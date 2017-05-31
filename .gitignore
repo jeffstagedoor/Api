@@ -17,6 +17,14 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# Editor
+*.sublime-project
+*.sublime-workspace
+
+# Composer
+composer.lock
+composer.phar
+
 # =========================
 # Operating System Files
 # =========================
