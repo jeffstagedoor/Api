@@ -1,6 +1,5 @@
 {
     "name": "jeffstagedoor/Api",
-    "version": "1.0.0",
     "type": "library",
     "description": "A simple Rest-API for php to be used by mystagedoor.de",
     "keywords": ["api","rest"],
