@@ -15,5 +15,13 @@
     ],
     "require": {
         "php": ">=5.5.0"
-    }
+		"joshcam/MySQLi-Database-Class": ">=2.7.0"
+	},
+
+	"repositories": [
+		{
+			"type": "vcs",
+			"url": "https://github.com/joshcam/PHP-MySQLi-Database-Class"
+		}
+	]
 }
