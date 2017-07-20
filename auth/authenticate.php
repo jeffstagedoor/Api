@@ -10,23 +10,29 @@
 
 namespace Jeff\Api;
 
-require_once('../config.php');
-require_once('../api/Account.php');
-require_once('../api/Err.php');
-require_once('../vendor/MysqliDb.php');
+require_once(__DIR__.'/../api/Account.php');
+require_once(__DIR__.'/../api/Err.php');
+require_once(__DIR__.'/../../../../vendor/MysqliDb.php');
 
 $db = new \MysqliDb($ENV->database);
 $err = new Err();
 
-$obj = new Models\Account($db);
+$Account = new Models\Account($db);
 
 //vars auslesen - tries idenfication/username and password/pwd
 $postObject = (Object) $_POST;
+
+if(isset($postObject->grant_type) && $postObject->grant_type==='refresh_token') {
+	$auth = $Account->refreshToken($postObject->refresh_token);
+
+};
+
+
+
 $identification = isset($postObject->username) ? $postObject->username : NULL;
 if(!$identification) { $identification = isset($postObject->identification) ? $postObject->identification : NULL; }
 $password = isset($postObject->password) ? $postObject->password : NULL;
 if(!$password) { $password = isset($postObject->pwd) ? $postObject->pwd : NULL; }
-
 
 
 if(strlen($identification)<5 || strlen($password)<4) {
@@ -37,9 +43,10 @@ if(strlen($identification)<5 || strlen($password)<4) {
 	header("HTTP/1.0 400 Bad Request");
 	header('Content-Type: application/json');
 	echo $errstr;
+	exit;
 } else {
 
-	$auth = $obj->authenticate($identification, $password);
+	$auth = $Account->authenticate($identification, $password);
 	if($err->hasErrors()) {
 		$errors = $err->get();
 		header("Access-Control-Allow-Origin: ".$ENV->urls->allowOrigin);
@@ -47,7 +54,8 @@ if(strlen($identification)<5 || strlen($password)<4) {
 		header("Access-Control-Allow-Headers: Content-Type");
 		header("HTTP/1.0 401 Unauthorized");
 		header('Content-Type: application/json');
-		echo '{"errors": '.json_encode($errors). '}';;
+		echo '{"errors": '.json_encode($errors). '}';
+		exit;
 	} else {
 		$json = '{
 			"access_token": "'.$auth->authToken.'",
@@ -61,6 +69,7 @@ if(strlen($identification)<5 || strlen($password)<4) {
 		header("HTTP/1.0 200 OK");
 		header('Content-Type: application/json; charset=UTF-8');
 		echo $json;
+		exit;
 	}
 
 }

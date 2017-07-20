@@ -40,6 +40,7 @@ function rest_get($request, $data=NULL) {
 			} elseif (isset($data->fileId)) {
 				// VERSION 2 (filename & path has to be fetched from db-table files)
 				// TODO
+				echo "err: File fetching from DB not yet implemented (restGet.php line 43)";
 			} else {
 				echo "err, wrong call to get image";
 			}
@@ -93,6 +94,9 @@ function rest_get($request, $data=NULL) {
 			echo json_encode($files);
 			exit;
 			break;
+		case "apiinfo":
+			ApiHelper::showApiInfo();
+			exit;
 	}
 
 
@@ -139,13 +143,18 @@ function rest_get($request, $data=NULL) {
 			
 			
 			if (!file_exists($modelFile)) {
-				throw new \Exception ('Falsy API call. Model '.$request[0]. ' does not exist.');
+				if($request[0]>'') {
+					throw new \Exception ('Falsy API call. Model '.$request[0]. ' does not exist.');
+				} else {
+					ApiHelper::showApiInfo();
+					exit;
+				}
 			} else {
 				require_once($modelFile); 
 			}
 			$className = "\\" . __NAMESPACE__ . "\\Models\\" . ucfirst($request[0]);
 			$model = new $className($db);
-
+#echo($data->filter);
 			if(isset($request[1])) {
 				// echo "request: ".$request[1];
 				switch ($request[1]) {

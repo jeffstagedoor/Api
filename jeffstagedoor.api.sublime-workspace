@@ -375,14 +375,6 @@
 	},
 	"buffers":
 	[
-		{
-			"file": "composer.json",
-			"settings":
-			{
-				"buffer_size": 532,
-				"line_ending": "Windows"
-			}
-		}
 	],
 	"build_system": "",
 	"command_palette":
@@ -444,9 +436,11 @@
 	},
 	"file_history":
 	[
-		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/composer.json",
-		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/LICENSE.txt",
 		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/.gitignore",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/README.md",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/composer.json",
+		"/C/Users/jefff/Google Drive/www/bandsched/online/date_adder.php",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/LICENSE.txt",
 		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/pods/news/controller.js",
 		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/pods/news/template.hbs",
 		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/pods/components/ui/button-delete/template.hbs",
@@ -569,9 +563,7 @@
 		"/C/Users/jefff/Google Drive/www/jefffrohner.com/includes/db_inc.php",
 		"/C/Users/jefff/Google Drive/www/jefffrohner.com/online/index_broken.php",
 		"/C/Users/jefff/Google Drive/www/finances/package.json",
-		"/C/Users/jefff/Google Drive/www/finances/app/styles/oneui.scss",
-		"/C/Users/jefff/Google Drive/www/finances/ember-cli-build.js",
-		"/C/Users/jefff/Google Drive/www/finances/app/pods/expenses/new/template.hbs"
+		"/C/Users/jefff/Google Drive/www/finances/app/styles/oneui.scss"
 	],
 	"find":
 	{
@@ -745,37 +737,8 @@
 	"groups":
 	[
 		{
-			"selected": 0,
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"file": "composer.json",
-					"settings":
-					{
-						"buffer_size": 532,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								54,
-								54
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/JavaScript/JSON.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				}
 			]
 		}
 	],

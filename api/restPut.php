@@ -130,6 +130,11 @@ function rest_put($request, $data=NULL) {
 				$data->{$singularRequest}[$model->modifiedByField] = $Account->id;
 			}
 			unset($data->{$model->modelName}['modDate']);	// will be set in/by db itself
+			// WORKING HERE !!
+			// echo "\nthis is in working stage. Trying to set 'null' to a real NULL in data-array\n";
+			// $data->{$model->modelName}['invoiceDate'] = NULL;
+			// echo "\n\ninvoiceDate: ".$data->{$model->modelName}['invoiceDate'];
+			//
 			$model->update($id, $data->{$model->modelName});
 	
 			$item = $model->getOneById($id);

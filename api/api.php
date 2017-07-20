@@ -14,9 +14,19 @@
 namespace Jeff\Api;
 // use Jeff\Api\Models;
 
+$apiInfo = new \stdClass();
+$apiInfo->version = "1.3.0";
+$apiInfo->author = "Jeff Frohner";
+$apiInfo->year = "2017";
+$apiInfo->licence = "MIT";
+$apiInfo->type = "REST";
+$apiInfo->restriction = "authorized apps and logged in users only";
 
 
-require("../vendor/MysqliDb.php");
+
+
+
+require(__DIR__.'/../../../../vendor/MysqliDb.php');
 // require("../vendor/Jeff/Api/api/Err.php");
 
 require("Err.php");
@@ -34,7 +44,6 @@ $Account = new Models\Account($db);
 
 // developing options. MUST be false for production
 $NOAUTH = true;
-// $showExecutionTime = false;
 
 
 // put together what was passed as parameters to this api:
@@ -43,10 +52,18 @@ $request = ApiHelper::getRequest();
 $data = ApiHelper::getData();
 
 
+if($method==='OPTIONS') {
+	header("Access-Control-Allow-Origin: ".$ENV->urls->allowOrigin);
+	header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+	header("Access-Control-Allow-Headers: Origin, Content-Type, Authorization, X-Custom-Auth");
+	exit;
+}
+
 // User-Authentication and Authorization
 // authenticate current user
 
-if( $request[0]==='login' || 
+if( $request[0]==='apiinfo' ||
+	$request[0]==='login' || 
 	$request[0]==='signup' || 
 	$request[0]==='getimage' ||
 	($request[0]==='tasks' && isset($request[1]) && $request[1]==='user2artistconfirmation') || 
@@ -128,8 +145,10 @@ switch ($method) {
 function rest_head($request) {
 
 }
-function rest_options($request) {
-
+function rest_options() {
+	header("Access-Control-Allow-Origin: ".$ENV->urls->allowOrigin);
+	header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+	header("Access-Control-Allow-Headers: Origin, Content-Type, Authorization, X-Custom-Auth");
 }
 function rest_error($request) {
 

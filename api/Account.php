@@ -5,7 +5,7 @@
 *	@author Jeff Frohner
 *	@copyright Copyright (c) 2015
 *	@license   private
-*	@version   1.2
+*	@version   1.3
 *
 **/
 
@@ -13,7 +13,7 @@ namespace Jeff\Api\Models;
 use Jeff\Api as Api;
 
 require_once('Model.php');
-require_once('../Constants.php');
+require_once(__DIR__.'/../../../../Constants.php');
 
 Class Account extends Model
 {
@@ -92,7 +92,7 @@ Class Account extends Model
 
 	/**
 	* method getAuthById
-	* mocks an account for developing
+	* 
 	* @param $id of user/account
 	* @return the user's authToken
 	*/
@@ -175,14 +175,13 @@ Class Account extends Model
 
 
 		$this->db->where('email', $identification);
-		// $salt = myStagedoor\Constants::SALT;
-		// $this->db->where('password', sha1($password.$salt));
 		$cols = Array("id", "password", "authToken");
 		$user = $this->db->getOne($this->dbTable, $cols);
-
+		// var_dump($user);
 		if($user) {
 			// identification correct, check password:
 			if(password_verify($password, $user['password'])) {
+				// echo "password_verify failed with pw: ".$password;
 				// update login-timestamp and maybe authToken in db
 				$data = Array (
 					'lastLogin' => $this->db->now(),
@@ -199,7 +198,7 @@ Class Account extends Model
 				$this->db->where('id', $user['id']);
 				$this->db->update('users', $data);
 				// make new entry in logLogin
-				require_once($ENV->dirs->phpRoot . $ENV->dirs->api . "Log.php");
+				require_once("Log.php");
 				$log = new APi\LoginLog($this->db);
 				$id = $log->writeLoginLog($user['id'],true,true);
 
@@ -207,7 +206,7 @@ Class Account extends Model
 				// password wrong
 				$err->add(91);
 				// make new entry in logLogin
-				require_once($ENV->dirs->phpRoot . $ENV->dirs->api . "Log.php");
+				require_once("Log.php");
 				$log = new Api\LoginLog($this->db);
 				$id = $log->writeLoginLog($user['id'],true,false);
 			}
@@ -314,14 +313,10 @@ Class Account extends Model
 		$a->id = $user->id;
 		$a->identification = $user->email;
 		$personalDetails = new \stdClass();
-		$personalDetails->fullName = $user->fullName;
+		$personalDetails->fullName = isset($user->fullName) ? $user->fullName : null;
 		$a->personalDetails = $personalDetails;
-		$a->rights = $user->rights;
-		$a->workgroups = $this->getWorkgroups($user->id);
 
-		# dismissed, dez 15, better load it when needed via getProductions():
-		#$a->productions = $this->getProductions($user->id, $a->workgroups);
-
+		$a->rights = isset($user->rights) ? $user->rights : null;
 		return $a;
 	}
 

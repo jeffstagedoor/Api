@@ -7,7 +7,7 @@
 *	@author Jeff Frohner
 *	@copyright Copyright (c) 2015-2016
 *	@license   private
-*	@version   1.7
+*	@version   1.8
 *
 **/
 namespace Jeff\Api\Models;
@@ -23,7 +23,20 @@ Class Model {
 								// to determine all the mother-models of a grand-child model such as a track, 
 								// that belongsTo an artistgroup, an production, a workgroup
 								// will be needed to figure out if a user may edit/delete an item or not
-	public $modelFields = array();
+	
+	public $modelFields = array();  // DEPRECATED, use dbDefinition istead!
+	public $dbDefinition = array( 	
+			/*
+			array(
+				'id',				// name of column
+				'int',				// data type of column (int, varchar, date, timestamp, text, ..)
+				'11',				// length of column (empty for date, text)
+				false,				// if column can be NULL
+				null, 				// default value. if NULL is wanted, write 'NULL' (as a string)
+				'AUTO_INCREMENT'	// extras like auto_increment
+		    	),
+		    */
+			);
 	public $modifiedByField = null;
 	// Models with isSortable=true MUST have a field 'sort' in dbTable
 	public $isSortable = false;
@@ -98,6 +111,23 @@ Class Model {
 	public function __construct($db=NULL) 
 	{
 		$this->db = $db;
+
+		// modelFields will get Deprecated, this is for intermediate.
+		// old Version had a plain array in modelFields with all the ColumnNames.
+		// new Version has dbDefinition, which will be used instead.
+		if(isset($this->modelFields) && !isset($this->dbDefinition)) {
+			echo "updating dbDefinition in Model::construct - This is DEPRECATED, modelFields should be transformed to dbDefinition.";
+			$this->dbDefinition  = array(); 
+			foreach ($this->modelFields as $i => $def) {
+				$this->dbDefinition[][0] = $def;
+			}
+		}
+		// if(isset($this->dbDefinition)) {
+		// 	$this->modelFields  = array(); 
+		// 	foreach ($this->dbDefinition as $i => $def) {
+		// 		$this->modelFields[] = $def[0];
+		// 	}
+		// }
 	}
 
 	public function hasErrors() 
@@ -161,12 +191,25 @@ Class Model {
 	*/
 	public function getAll($filters=null) 
 	{
-		$this->cols = $this->_makeAssociativeFieldsArray($this->dbTable, $this->modelFields);
+		$this->cols = $this->_makeAssociativeFieldsArray($this->dbTable, $this->dbDefinition);
 
 		// check if the child-model has the beforeGetAll-Hook implemented
+		// Standard Example for such a hook: 
+		// 
+		// 	 function beforeGetAll() {
+		// 		global $Account;
+		// 		$restriction = new ModelRestriction('REF_ID', 'account', $Account->id);
+		// 		$restrictions = Array();
+		// 		$restrictions[] = $restriction;
+		// 		return $restrictions;
+		//   }
+		//
+
 		if(method_exists($this, 'beforeGetAll')) {
+
 			// if so, get the restrictions
 			$restrictions = $this->beforeGetAll();
+			// print_r($restrictions);
 			// and apply them, depending on their type
 			foreach ($restrictions as $key => $restriction) {
 				switch ($restriction->type) {
@@ -178,6 +221,7 @@ Class Model {
 					case 'REF_IS':
 						// the model describes a definite reference the model shall be limited to.
 						$this->db->where($restriction->referenceField, $restriction->id);
+						// echo "REF_IS";
 						break;
 					case 'REF_IN':
 						// the model describes a list of referenced id's the model shall be limited to.
@@ -203,6 +247,7 @@ Class Model {
 		}
 
 		$result = $this->_getResultFromDb();
+		// echo $this->db->getLastQuery();
 		$items = $this->_getHasMany($result);
 
 		return $items;
@@ -223,11 +268,16 @@ Class Model {
 		}
 		
 		// walk all the items, save them ids in an array, do select with 'IN', walk the items again to add the hasManyFields
-		$ids = array();
-		foreach ($items as $item) {
-			$ids[]=$item[$this->dbIdField];
+		if(!count($items)) { // no items -> so we don't need to walk them, just return the empty array of items
+			return $items;
+		} else {
+			$ids = array();
+			foreach ($items as $item) {
+				$ids[]=$item[$this->dbIdField];
+			}
 		}
-		// now we all the ids of the main items
+
+		// now we have all the ids of the main items
 		foreach ($this->hasManyFields as $hmf) {
 			$hmf['ids'] = array();
 			$this->db->where($hmf['dbSourceFieldName'], $ids, 'IN');
@@ -243,8 +293,6 @@ Class Model {
 				}
 			}
 		}
-		#$end_time = microtime(TRUE);
-		#echo $end_time - $start_time;
 		return $items;
 	}
 
@@ -257,7 +305,7 @@ Class Model {
 	*	@param coalesceIds (Array)
 	**/
 	public function getCoalesce($coalesceIds=null) {
-		$this->cols = $this->_makeAssociativeFieldsArray($this->dbTable, $this->modelFields);
+		$this->cols = $this->_makeAssociativeFieldsArray($this->dbTable, $this->dbDefinition);
 	
 		if($coalesceIds) {
 			$this->db->where($this->dbTable.'.id', $coalesceIds,'IN');
@@ -323,12 +371,11 @@ Class Model {
 		}
 	}
 
+
 	// possible HOOK:
 	// public function beforeUpdateMany2Many($id, $what, $data) {
 	// 	return $data;
 	// }
-
-
 	public function updateMany2Many($id, $what, $data) {
 		// call the hook beforeUpdateMany2Many if existing:
 		if(method_exists($this, 'beforeUpdateMany2Many')) {
@@ -629,16 +676,22 @@ Class Model {
 		}
 
 
-		$this->db->where ($this->dbIdField, $id);
-		if ($this->db->update ($this->dbTable, $data)) {
+		$this->db->where($this->dbIdField, $id);
+		// print_r($data);
+		if ($this->db->update($this->dbTable, $data)) {
+			// var_dump($data['invoiceDate']);
+			// echo "\n\nRows Updated: ".$this->db->count;
+			// echo "\n\n".$this->db->getLastQuery();
 			return $this->db->count; // $db->count.' records were updated';
 		} else {
+			// echo "im else";
+			// echo 'update failed: ' . $this->db->getLastError();
 			if($this->db->getLastError()>'') { 
 				$err->add(22);
 				$this->errors[] = "Database-Error: " .$this->db->getLastError();
 				return false;
 			}
-			return false; #echo 'update failed: ' . $db->getLastError();
+			return false; 
 		}	
 	}
 
@@ -795,7 +848,7 @@ Class Model {
 		}
 		for ($i=0; $i < count($this->hasManyFields); $i++) { 
 			$hmf = $this->hasManyFields[$i];
-			if ($this->db->tableExists ($hmf['dbTable'])) {
+			if ($this->db->tableExists($hmf['dbTable'])) {
 				$this->db->where($hmf['dbSourceFieldName'], $id);
 				// if(isset($hmf['orderBy'])) {
 				// 	$this->db->orderBy($hmf['orderBy']['field'], $hmf['orderBy']['direction']);
@@ -893,10 +946,24 @@ Class Model {
 	private function _makeAssociativeFieldsArray($table, $fields) {
 		$x = array();
 		foreach ($fields as $field) {
-			$x[] = $table.'.'.$field. ' '. $field;
+			$x[] = $table.'.'.$field[0]. ' '. $field[0];
 		}
 		return $x;
 	}
 
+
+
 }
-?>
+
+// SUB Classes
+class ModelRestriction {
+	public $type;
+	public $referenceField;
+	public $id;
+
+	public function __construct($type, $referenceField, $id) {
+		$this->type = $type;
+		$this->referenceField = $referenceField;
+		$this->id = $id;
+	}
+}
