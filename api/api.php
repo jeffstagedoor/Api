@@ -7,7 +7,7 @@
 #
 # copy Jeff Frohner 2017
 #
-# Version 1.3
+# Version 1.3.1
 #
 #########################
 
@@ -15,7 +15,7 @@ namespace Jeff\Api;
 // use Jeff\Api\Models;
 
 $apiInfo = new \stdClass();
-$apiInfo->version = "1.3.0";
+$apiInfo->version = "1.3.1";
 $apiInfo->author = "Jeff Frohner";
 $apiInfo->year = "2017";
 $apiInfo->licence = "MIT";
@@ -25,16 +25,14 @@ $apiInfo->restriction = "authorized apps and logged in users only";
 
 
 
-
-require(__DIR__.'/../../../../vendor/MysqliDb.php');
-// require("../vendor/Jeff/Api/api/Err.php");
+require(__DIR__.DIRECTORY_SEPARATOR.$ENV->dirs->vendor.'joshcam/mysqli-database-class/MysqliDb.php');
 
 require("Err.php");
 require("Log.php");
 require("DataMasker.php");
 require("ApiHelper.php");
 require("Model.php");
-include("Account.php");
+require("Account.php");
 
 $err = new Err();
 $db = new \MysqliDb($ENV->database);
@@ -43,7 +41,7 @@ $Account = new Models\Account($db);
 
 
 // developing options. MUST be false for production
-$NOAUTH = true;
+$NOAUTH = isset($ENV->NOAUTH) ? $ENV->NOAUTH : false;
 
 
 // put together what was passed as parameters to this api:

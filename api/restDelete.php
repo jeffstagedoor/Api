@@ -67,8 +67,7 @@ function rest_delete($request, $data=NULL)
 		*
 		*/
 		try {
-			require_once($ENV->dirs->phpRoot . $ENV->dirs->models.$request[0].".php");
-			$className = "\\" . __NAMESPACE__ . "\\Models\\" . $request[0];
+			$className = ApiHelper::getModel($request[0], $ENV);
 			$model  = new $className($db);
 			$id = $request[1];
 			// get item from db for log and cast it into an object of type: 

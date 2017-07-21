@@ -556,6 +556,30 @@ Class Model {
 		foreach ($this->hasManyFields as $hmf) {
 			unset($data[$hmf['name']]);
 		}
+		echo "data:";
+		print_r($data);
+		// check if we have all data we need:
+
+		// we have the following definition
+		// public $dbDefinition = array( 	
+		// 	array('id', 'int', '11', false, null, 'AUTO_INCREMENT'),
+		// 	array('date', 'date', null, true),
+		// 	array('title', 'varchar', '50', false),
+		// 	array('body', 'varchar', '250', false, false),
+		// 	array('modBy', 'int', '11', true),
+		// );
+		# now we check what fields are required (=don't allow null and or don't have a default value)
+		$required = array();
+		foreach ($this->dbDefinition as $index => $field) {
+			if(
+				(isset($field[3]) && $field[3]===false)	// may NOT be NULL
+				// && (isset($field[5]) && $field[5]!='AUTO_INCREMENT') // no Auto_Increment
+				// && (isset($field[4]) && ($field[4]===false || $field[4]===NULL)) // kein Default
+				)
+				$required[]=$field;
+			# code...
+		}
+			print_r($required);
 
 		// the actual insert into database:
 		$id = $this->db->insert($this->dbTable, $data);

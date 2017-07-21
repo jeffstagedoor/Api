@@ -123,8 +123,7 @@ function rest_put($request, $data=NULL) {
 		/* and here's the default for all usual data
 		*/
 		try {
-			require_once($ENV->dirs->phpRoot . $ENV->dirs->models .ucfirst($request[0]) . ".php");
-			$className = "\\".__NAMESPACE__ . "\\Models\\".ucfirst($request[0]);
+			$className = ApiHelper::getModel($request[0], $ENV);
 			$model = new $className($db);
 			if($model->modifiedByField) {
 				$data->{$singularRequest}[$model->modifiedByField] = $Account->id;

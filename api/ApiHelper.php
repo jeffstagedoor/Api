@@ -69,7 +69,34 @@ Class ApiHelper {
 		return $data;
 	}
 
-
+	/**
+	*	getModel
+	*	tries to find the requested model
+	*	@param [string] modelName
+	*	@return [string] className
+	**/
+	public static function getModel($modelName, $ENV) {
+		// echo "\n".$ENV->dirs->models."\n";
+		$modelFile = dirname(__FILE__).DIRECTORY_SEPARATOR.$ENV->dirs->models . ucfirst($modelName) . ".php";
+		// echo dirname(__FILE__);
+		// echo "\n<br><br>\n".$modelFile."<br>\n";
+		
+		
+		if (!file_exists($modelFile)) {
+			if($modelName>'') {
+				$errors[] = "API Error. Requested recource '{$modelName}' not found/defined.";
+				self::sendResponse(400,"{ \"errors\": ".json_encode($errors)."}");
+				exit;
+			} else {
+				self::showApiInfo();
+				exit;
+			}
+		} else {
+			require_once($modelFile); 
+		}
+		$className = "\\" . __NAMESPACE__ . "\\Models\\" . ucfirst($modelName);
+		return $className;
+	}
 
 	/**
 	*	sendResponse

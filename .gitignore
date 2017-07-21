@@ -53,3 +53,6 @@ composer.phar
 Network Trash Folder
 Temporary Items
 .apdisk
+
+#3rd Party repos
+vendor/

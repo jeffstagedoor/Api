@@ -13,7 +13,8 @@ namespace Jeff\Api\Models;
 use Jeff\Api as Api;
 
 require_once('Model.php');
-require_once(__DIR__.'/../../../../Constants.php');
+
+require_once(__DIR__.'/'.$ENV->dirs->appRoot.'Constants.php');
 
 Class Account extends Model
 {

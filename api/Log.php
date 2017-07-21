@@ -12,10 +12,10 @@ Class Log {
 
 		require_once("../config.php");
 		global $ENV, $logConfig;
-		if (!file_exists($ENV->dirs->phpRoot."LogConfig.php")) {
-			echo "no LogConfig File found. Should be placed in php-Root folder.";
+		if (!file_exists(__DIR__.DIRECTORY_SEPARATOR.$ENV->dirs->appRoot."LogConfig.php")) {
+			echo "no LogConfig File found in '{$ENV->dirs->appRoot}LogConfig.php'. Should be placed in php-Root folder.";
 		} else {
-			require_once($ENV->dirs->phpRoot."LogConfig.php");
+			require_once(__DIR__.DIRECTORY_SEPARATOR.$ENV->dirs->appRoot."LogConfig.php");
 			$this->logConfig = $logConfig;
 		}
 	}

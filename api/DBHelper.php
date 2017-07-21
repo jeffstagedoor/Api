@@ -176,7 +176,11 @@ Class dbColumn {
 			} else {
 				if (strtoupper($this->default)==='CURRENT_TIMESTAMP' && strtoupper($this->type)==='TIMESTAMP') {
 						$s.= ' DEFAULT CURRENT_TIMESTAMP'; 
-				} else { 
+				} 
+				// elseif(strtoupper($this->default)==='CURRENT_DATE' && strtoupper($this->type)==='DATE') {
+				// 		$s.= ' DEFAULT CURRENT_DATE'; 
+				// }
+				else { 
 					$s.= ' DEFAULT \''.$this->default.'\'';
 				}
 			}

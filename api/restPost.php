@@ -90,8 +90,9 @@ function rest_post($request, $data=NULL) {
 
 	} else {
 
-		include_once($ENV->dirs->phpRoot . $ENV->dirs->models . ucfirst($request[0]).".php");
-		$className = "\\" . __NAMESPACE__ . "\\Models\\" . ucfirst($request[0]);
+		// include_once($ENV->dirs->phpRoot . $ENV->dirs->models . ucfirst($request[0]).".php");
+		$className = ApiHelper::getModel($request[0], $ENV);
+		// $className = "\\" . __NAMESPACE__ . "\\Models\\" . ucfirst($request[0]);
 		$model = new $className($db);
 
 		if($model->modifiedByField) {

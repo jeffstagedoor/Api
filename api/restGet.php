@@ -139,22 +139,10 @@ function rest_get($request, $data=NULL) {
 		*	(Array) unsetProperties: these fields will be deleted/unset in all get-requests
 		*/
 		try {
-			$modelFile = $ENV->dirs->phpRoot . $ENV->dirs->models . ucfirst($request[0]) . ".php";
-			
-			
-			if (!file_exists($modelFile)) {
-				if($request[0]>'') {
-					throw new \Exception ('Falsy API call. Model '.$request[0]. ' does not exist.');
-				} else {
-					ApiHelper::showApiInfo();
-					exit;
-				}
-			} else {
-				require_once($modelFile); 
-			}
-			$className = "\\" . __NAMESPACE__ . "\\Models\\" . ucfirst($request[0]);
+	
+			$className = ApiHelper::getModel($request[0], $ENV);
 			$model = new $className($db);
-#echo($data->filter);
+			#echo($data->filter);
 			if(isset($request[1])) {
 				// echo "request: ".$request[1];
 				switch ($request[1]) {
