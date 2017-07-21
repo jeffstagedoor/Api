@@ -1,0 +1,17 @@
+Order deny,allow
+#Deny from all
+Allow from 127.0.0.1
+
+
+
+Options +FollowSymLinks
+RewriteEngine on
+RewriteRule ^auth?$ /jeffstagedoor/php/Api/dummy/auth/authenticate.php [NC,L]										# Handle Authorization-Requests
+RewriteRule ^api/([A-Za-z0-9-/_]+)?$ /jeffstagedoor/php/Api/dummy/api/api.php?request=$1&%{QUERY_STRING} [NC,L]			# All Api-Requests
+RewriteRule ^api$ /jeffstagedoor/php/Api/dummy/api/api.php [NC,L]												# api-only without / after api -> should call an error
+RewriteRule ^dist/files/([A-Za-z0-9-./]+)?$ /jeffstagedoor/php/Api/dummy/files/$1 [NC,L]							# Files/Images
+RewriteRule ^dist/([A-Za-z0-9-/]+)/?$ /jeffstagedoor/php/Api/dummy/dist/index.html [NC,L]							# Ember-Routing
+
+#php_value memory_limit 65M
+php_value post_max_size 100M
+php_value upload_max_filesize 30M
