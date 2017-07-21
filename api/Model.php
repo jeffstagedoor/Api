@@ -11,6 +11,7 @@
 *
 **/
 namespace Jeff\Api\Models;
+use Jeff\Api as Api;
 
 
 
@@ -569,17 +570,9 @@ Class Model {
 		// 	array('modBy', 'int', '11', true),
 		// );
 		# now we check what fields are required (=don't allow null and or don't have a default value)
-		$required = array();
-		foreach ($this->dbDefinition as $index => $field) {
-			if(
-				(isset($field[3]) && $field[3]===false)	// may NOT be NULL
-				// && (isset($field[5]) && $field[5]!='AUTO_INCREMENT') // no Auto_Increment
-				// && (isset($field[4]) && ($field[4]===false || $field[4]===NULL)) // kein Default
-				)
-				$required[]=$field;
-			# code...
-		}
-			print_r($required);
+		$required = Api\ApiHelper::getRequiredFields($this->dbDefinition);
+		$allSet = Api\ApiHelper::allRequiredFieldsSet($required, $data);
+		// print_r($required);
 
 		// the actual insert into database:
 		$id = $this->db->insert($this->dbTable, $data);

@@ -99,6 +99,44 @@ Class ApiHelper {
 	}
 
 	/**
+	*	getRequiredFields
+	*	tries to find the requested model
+	*	@param [string] dbDefinitions
+	*	@return [array] the required field
+	**/
+	public static function getRequiredFields($dbDefinition) {
+		$required = array();
+		foreach ($dbDefinition as $index => $field) {
+			if(
+				(!isset($field[3]) || (isset($field[3]) && $field[3]===false))	// may NOT be NULL
+				&&
+				(!isset($field[5]) || (isset($field[5]) && $field[5]!='AUTO_INCREMENT')) // no Auto_Increment
+				&&
+				(!isset($field[4]) || (isset($field[4]) && ($field[4]===false || $field[4]==null))) // has no Default
+				) 
+			{
+				$required[]=$field;
+			}
+		}
+		return $required;
+	}
+
+	/**
+	*	allRequiredFieldsSet
+	*	tries to find the requested model
+	*	@param [array] requiredFields, [array] the received dataset
+	*	@return [boolean]
+	**/
+	public static function allRequiredFieldsSet($required, $data) {
+		echo $data;
+		foreach ($required as $key => $field) {
+
+			# code...
+		}
+	}
+
+
+	/**
 	*	sendResponse
 	*	echoes the given [json] reponse
 	*	@param [int] http_response_code, [string/json] response, ([string/json] content_type)

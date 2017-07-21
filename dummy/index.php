@@ -151,6 +151,10 @@ require("config.php");
 			$.ajax({
 				url: 'api/'+recource,
 				type: method,
+				data: { post: {
+						title: 'der Titel'
+					}
+				},
 				error: function(jqXHR,textStatus, errorThrown) {
 					console.log(jqXHR);
 

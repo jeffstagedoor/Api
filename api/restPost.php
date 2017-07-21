@@ -114,7 +114,7 @@ function rest_post($request, $data=NULL) {
 			}
 			/* and here's the default for a simple single post
 			*/
-
+			var_dump($data);
 			$id = $model->add($data->{$model->modelName});
 			if($err->hasErrors()) {
 				$err->sendApiErrors();
