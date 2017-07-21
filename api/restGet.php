@@ -211,7 +211,16 @@ function rest_get($request, $data=NULL) {
 				$items = $model->getAll($newFilter);
 			} else {
 				// get all we can get (restrictions are made in Model.php and in beforeGetAll()-hook)
-				$items = $model->getAll();
+				$tableExists = $db->rawQuery("SHOW tables like '{$model->getdbTable()}'");
+				if(!empty($tableExists)) {
+					$items = $model->getAll();
+				} else {
+					// dbTable doesn't exist
+					// echo "ERROR: in restGet.php - dbTable '{$model->getdbTable()}' does not exist. Run db_update.";
+					$errors[] = "DB Error. dbTable '{$model->getdbTable()}' does not exist. Run db_update.";
+					ApiHelper::sendResponse(500,"{ \"errors\": ".json_encode($errors)."}");
+					exit;
+				}
 			}
 			// send the result back to user/browser/caller:
 			ApiHelper::postItems($model, $items, $model->modelNamePlural);
