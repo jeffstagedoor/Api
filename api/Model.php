@@ -55,7 +55,7 @@ Class Model {
 	protected $dbTable = 'undefined';
 	protected $cols = null;
 
-	public $errors = Array();	// DEPRECATED -> use Err Class instead
+	public $errors = Array();	// DEPRECATED -> use ErrorHandler Class instead
 	public $lastInsertedID = -1;
 
 	public $sideload = null;
@@ -123,12 +123,6 @@ Class Model {
 				$this->dbDefinition[][0] = $def;
 			}
 		}
-		// if(isset($this->dbDefinition)) {
-		// 	$this->modelFields  = array(); 
-		// 	foreach ($this->dbDefinition as $i => $def) {
-		// 		$this->modelFields[] = $def[0];
-		// 	}
-		// }
 	}
 
 	public function hasErrors() 
@@ -557,32 +551,25 @@ Class Model {
 		foreach ($this->hasManyFields as $hmf) {
 			unset($data[$hmf['name']]);
 		}
-		echo "data:";
-		print_r($data);
+
 		// check if we have all data we need:
-
-		// we have the following definition
-		// public $dbDefinition = array( 	
-		// 	array('id', 'int', '11', false, null, 'AUTO_INCREMENT'),
-		// 	array('date', 'date', null, true),
-		// 	array('title', 'varchar', '50', false),
-		// 	array('body', 'varchar', '250', false, false),
-		// 	array('modBy', 'int', '11', true),
-		// );
-		# now we check what fields are required (=don't allow null and or don't have a default value)
 		$required = Api\ApiHelper::getRequiredFields($this->dbDefinition);
-		$allSet = Api\ApiHelper::allRequiredFieldsSet($required, $data);
-		// print_r($required);
-
-		// the actual insert into database:
-		$id = $this->db->insert($this->dbTable, $data);
-		if($this->db->getLastError()>'') { 
-			$err->add(22);
-			$this->errors[] = "Database-Error: " .$this->db->getLastError();
+		$missingFields = Api\ApiHelper::checkRequiredFieldsSet($required, $data);
+		// print_r($missingFields);
+		if(count($missingFields)===0) {
+			// the actual insert into database:
+			$id = $this->db->insert($this->dbTable, $data);
+			if($this->db->getLastError()>'') { 
+				$err->add(new Api\Error($err::DB_INSERT, $this->db->getLastError()));
+				return false;
+			}
+			$this->lastInsertedID = $id;
+			return $id;
+		} else {
+			$e = Array("API-Error", "Not all required fields were sent. I missed: ".implode(",", $missingFields), 1, false);
+			$err->add(new Api\Error($e));
 			return false;
 		}
-		$this->lastInsertedID = $id;
-		return $id;
 	}
 
 

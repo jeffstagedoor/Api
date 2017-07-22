@@ -27,14 +27,14 @@ $apiInfo->restriction = "authorized apps and logged in users only";
 
 require(__DIR__.DIRECTORY_SEPARATOR.$ENV->dirs->vendor.'joshcam/mysqli-database-class/MysqliDb.php');
 
-require("Err.php");
+require("ErrorHandler.php");
 require("Log.php");
 require("DataMasker.php");
 require("ApiHelper.php");
 require("Model.php");
 require("Account.php");
 
-$err = new Err();
+$err = new ErrorHandler();
 $db = new \MysqliDb($ENV->database);
 $log = new Log($db);
 $Account = new Models\Account($db);

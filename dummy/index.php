@@ -75,7 +75,7 @@ require("config.php");
 
 	<div class="panel panel-default">
 		<div class="panel-body">
-			<div class="col-md-6">
+			<div class="col-md-12">
 	<form>
 	  <div class="form-group">
 		<label for="httpMethod">Method</label>
@@ -89,14 +89,14 @@ require("config.php");
 	  </div>
 	  <div class="form-group">
 		<label for="recource">Recource</label>
-		<input type="text" class="form-control" id="recource" name="recource" placeholder="Enter email">
+		<input type="text" class="form-control" id="recource" name="recource" placeholder="Enter email" value="posts">
 		<small id="emailHelp" class="form-text text-muted">The name of the recource to be fetched/modified</small>
 	  </div>
 
 
 	  <div class="form-group">
-		<label for="exampleTextarea">Example textarea</label>
-		<textarea class="form-control" id="exampleTextarea" rows="3"></textarea>
+		<label for="exampleTextarea">Post-Data</label>
+		<textarea class="form-control" id="postData" rows="3">{"post": {"title": "der Titel"}}</textarea>
 	  </div>
 
 	  
@@ -113,7 +113,7 @@ require("config.php");
 	  <button type="button" id="formSubmit" class="btn btn-primary">Do it</button>
 	</form>
 	</div>
-		<div class="col-md-6">
+		<div class="col-md-12">
 		<div id="response">
 			
 		</div>
@@ -147,14 +147,18 @@ require("config.php");
 			// collect what we've got.
 			var method = $('#httpMethod').val();
 			var recource = $('#recource').val();
+			var dataString = $('#postData').val();
+			if(isJSON(dataString)) {
+				dataJson = JSON.parse(dataString);
+			} else {
+				alert('this isn\'t valid json in post-data!');
+				return false;
+			}
 
 			$.ajax({
 				url: 'api/'+recource,
 				type: method,
-				data: { post: {
-						title: 'der Titel'
-					}
-				},
+				data: dataJson,
 				error: function(jqXHR,textStatus, errorThrown) {
 					console.log(jqXHR);
 

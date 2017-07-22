@@ -4,6 +4,62 @@
 		"selected_items":
 		[
 			[
+				"log",
+				"logPath"
+			],
+			[
+				"array",
+				"array_merge"
+			],
+			[
+				"getGeo",
+				"getGeoInfoArray"
+			],
+			[
+				"Er",
+				"Error"
+			],
+			[
+				"CRITICAL",
+				"CRITICAL_ALL"
+			],
+			[
+				"CRITICA_",
+				"CRITICAL_EMAIL"
+			],
+			[
+				"CRITICAL_",
+				"CRITICAL_LOG"
+			],
+			[
+				"DEFAULT_",
+				"DEFAULT_CRITICAL"
+			],
+			[
+				"DEFAULT",
+				"DEFAULT_INTERNAL"
+			],
+			[
+				"Error",
+				"ErrorHandler"
+			],
+			[
+				"var",
+				"var_dump"
+			],
+			[
+				"all",
+				"allThere"
+			],
+			[
+				"data",
+				"dataString"
+			],
+			[
+				"par",
+				"parse"
+			],
+			[
 				"null",
 				"NULL"
 			],
@@ -54,10 +110,6 @@
 			[
 				"time",
 				"timestamp"
-			],
-			[
-				"log",
-				"logForConfig"
 			],
 			[
 				"for",
@@ -419,7 +471,7 @@
 			"file": "dummy/index.php",
 			"settings":
 			{
-				"buffer_size": 7034,
+				"buffer_size": 7283,
 				"line_ending": "Windows"
 			}
 		},
@@ -427,39 +479,7 @@
 			"file": "api/ApiHelper.php",
 			"settings":
 			{
-				"buffer_size": 4311,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "dummy/api/db_update.php",
-			"settings":
-			{
-				"buffer_size": 5715,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "dummy/config.php",
-			"settings":
-			{
-				"buffer_size": 2125,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "dummy/models/Posts.php",
-			"settings":
-			{
-				"buffer_size": 1988,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "api/DBHelper.php",
-			"settings":
-			{
-				"buffer_size": 4601,
+				"buffer_size": 5507,
 				"line_ending": "Windows"
 			}
 		},
@@ -467,7 +487,47 @@
 			"file": "api/Model.php",
 			"settings":
 			{
-				"buffer_size": 28884,
+				"buffer_size": 28273,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "api/restPost.php",
+			"settings":
+			{
+				"buffer_size": 3799,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "api/ErrorHandler.php",
+			"settings":
+			{
+				"buffer_size": 8004,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "api/api.php",
+			"settings":
+			{
+				"buffer_size": 3921,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "api/Log.php",
+			"settings":
+			{
+				"buffer_size": 8414,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "dummy/LogConfig.php",
+			"settings":
+			{
+				"buffer_size": 655,
 				"line_ending": "Windows"
 			}
 		}
@@ -515,7 +575,7 @@
 				"Preferences: Browse Packages"
 			]
 		],
-		"width": 416.0
+		"width": 400.0
 	},
 	"console":
 	{
@@ -532,6 +592,11 @@
 	},
 	"file_history":
 	[
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Validate.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/api/db_update.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/config.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/models/Posts.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/DBHelper.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/restGet.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/restDelete.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/restPut.php",
@@ -543,7 +608,6 @@
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/api.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/api/api.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Account.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/config.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Log.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/.gitignore",
 		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/.gitignore",
@@ -655,11 +719,7 @@
 		"/C/Users/Jeff/GoogleDrive/www/jefffrohner.com/admin/app/pods/components/page-layout/main-header/template.hbs",
 		"/C/Users/Jeff/GoogleDrive/www/jefffrohner.com/admin/app/pods/components/page-layout/side-bar/template.hbs",
 		"/C/Users/Jeff/GoogleDrive/www/jefffrohner.com/admin/config/environment.js",
-		"/C/Users/Jeff/GoogleDrive/www/jefffrohner.com/admin/app/index.html",
-		"/C/Users/Jeff/GoogleDrive/www/jefffrohner.com/admin/ember-cli-build.js",
-		"/C/Users/Jeff/GoogleDrive/www/jefffrohner.com/admin/.ember-cli",
-		"/C/Users/Jeff/GoogleDrive/www/jefffrohner.com/admin/app/pods/application/template.hbs",
-		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/helpers/imagelink.js"
+		"/C/Users/Jeff/GoogleDrive/www/jefffrohner.com/admin/app/index.html"
 	],
 	"find":
 	{
@@ -679,6 +739,15 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"geoInfo",
+			"data",
+			"no LogConfig File found in",
+			"3",
+			"CRITICAL_EMAIL",
+			"2",
+			"1",
+			"title",
+			"Errs",
 			");",
 			"expense",
 			"dbHelper",
@@ -797,16 +866,7 @@
 			"newA",
 			"target",
 			"target		",
-			"new",
-			"Production",
-			"production",
-			"Production",
-			"production",
-			"Production",
-			"production",
-			"Production",
-			"production",
-			"newAmount"
+			"new"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -833,7 +893,6 @@
 	"groups":
 	[
 		{
-			"selected": 6,
 			"sheets":
 			[
 				{
@@ -841,15 +900,15 @@
 					"file": "dummy/index.php",
 					"settings":
 					{
-						"buffer_size": 7034,
+						"buffer_size": 7283,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								7005,
-								7005
+								4004,
+								4004
 							]
 						],
 						"settings":
@@ -858,7 +917,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 3173.0,
+						"translation.y": 1919.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -868,15 +927,15 @@
 					"file": "api/ApiHelper.php",
 					"settings":
 					{
-						"buffer_size": 4311,
+						"buffer_size": 5507,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1760,
-								1760
+								5403,
+								5357
 							]
 						],
 						"settings":
@@ -885,25 +944,25 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 1238.0,
+						"translation.y": 3420.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 2,
-					"file": "dummy/api/db_update.php",
+					"file": "api/Model.php",
 					"settings":
 					{
-						"buffer_size": 5715,
+						"buffer_size": 28273,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								5058,
-								5133
+								16323,
+								16254
 							]
 						],
 						"settings":
@@ -912,25 +971,25 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 2907.0,
+						"translation.y": 10032.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 3,
-					"file": "dummy/config.php",
+					"file": "api/restPost.php",
 					"settings":
 					{
-						"buffer_size": 2125,
+						"buffer_size": 3799,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								716,
-								716
+								2384,
+								2384
 							]
 						],
 						"settings":
@@ -939,25 +998,25 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 342.0,
+						"translation.y": 985.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 4,
-					"file": "dummy/models/Posts.php",
+					"file": "api/ErrorHandler.php",
 					"settings":
 					{
-						"buffer_size": 1988,
+						"buffer_size": 8004,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								582,
-								582
+								7772,
+								7772
 							]
 						],
 						"settings":
@@ -966,25 +1025,25 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 285.0,
+						"translation.y": 3773.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 5,
-					"file": "api/DBHelper.php",
+					"file": "api/api.php",
 					"settings":
 					{
-						"buffer_size": 4601,
+						"buffer_size": 3921,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								4113,
-								4113
+								425,
+								453
 							]
 						],
 						"settings":
@@ -993,25 +1052,25 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 2850.0,
+						"translation.y": 570.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 6,
-					"file": "api/Model.php",
+					"file": "api/Log.php",
 					"settings":
 					{
-						"buffer_size": 28884,
+						"buffer_size": 8414,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								16675,
-								16753
+								5581,
+								5557
 							]
 						],
 						"settings":
@@ -1020,7 +1079,34 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 10408.0,
+						"translation.y": 3762.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "dummy/LogConfig.php",
+					"settings":
+					{
+						"buffer_size": 655,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								140,
+								147
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/PHP/PHP.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"

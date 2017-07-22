@@ -10,6 +10,10 @@ require_once('Constants.php');
 
 $logConfig = new \stdClass();
 
+
+$logConfig->logPath = __DIR__.DIRECTORY_SEPARATOR."apiLog".DIRECTORY_SEPARATOR;
+$logConfig->dbTable = "log";
+
 // POSTS
 $logConfig->posts = new \stdClass();
 $logConfig->posts->for = new Api\LogDefaultFor(

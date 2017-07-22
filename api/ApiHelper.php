@@ -127,12 +127,15 @@ Class ApiHelper {
 	*	@param [array] requiredFields, [array] the received dataset
 	*	@return [boolean]
 	**/
-	public static function allRequiredFieldsSet($required, $data) {
-		echo $data;
+	public static function checkRequiredFieldsSet($required, $data) {
+		$missing = Array();
+		// $data;
 		foreach ($required as $key => $field) {
-
-			# code...
+			if(!isset($data[$field[0]])) {
+				$missing[] = $field[0];
+			}
 		}
+		return $missing;
 	}
 
 
@@ -201,8 +204,13 @@ Class ApiHelper {
 
 	public static function writeLog($itemName, $data, $action) {
 		global $ENV, $Account, $log;
-		include($ENV->dirs->phpRoot."LogConfig.php");
-		$log->write($Account->id, $action, $itemName, $data);
+		$logConfig = __DIR__.DIRECTORY_SEPARATOR.$ENV->dirs->appRoot."LogConfig.php";
+		if(file_exists($logConfig)) {
+			include($logConfig);
+			$log->write($Account->id, $action, $itemName, $data);
+		} else {
+			$err = new Error(ErrorHandler::LOG_NO_CONFIG);
+		}
 	}
 
 	public static function showApiInfo() {

@@ -6,25 +6,43 @@ namespace Jeff\Api;
 Class Log {
 	public $db = NULL;
 	private $logConfig;
+	private $readyToWrite = false;
 
 	public function __construct($db) {
+		global $ENV;
 		$this->db = $db;
 
 		require_once("../config.php");
-		global $ENV, $logConfig;
+		
+		if(!isset($err)) { $err = new ErrorHandler(); }
 		if (!file_exists(__DIR__.DIRECTORY_SEPARATOR.$ENV->dirs->appRoot."LogConfig.php")) {
-			echo "no LogConfig File found in '{$ENV->dirs->appRoot}LogConfig.php'. Should be placed in php-Root folder.";
+			$err->add(new Error(ErrorHandler::LOG_NO_CONFIG));
+			$err->sendErrors();
+			$readyToWrite = false;
 		} else {
 			require_once(__DIR__.DIRECTORY_SEPARATOR.$ENV->dirs->appRoot."LogConfig.php");
 			$this->logConfig = $logConfig;
+			$readyToWrite = true;
+		}
+
+		$logTable = $this->db->rawQuery("SHOW tables like '{$this->logConfig->dbTable}'");
+		if(count($logTable)>0) { 
+			$this->readyToWrite=true;
+		} else {
+			$this->readyToWrite = false;
+			$err->add(new Error(ErrorHandler::LOG_NO_TABLE));
+			$err->sendErrors();
 		}
 	}
 
-	/** Basic Write to Log - Method, will be overridden by special logs
+	/** Basic API Write to DBLog - Method, will be overridden by special logs
 	*
 	*
 	*/
 	public function write($user, $type, $itemName, $data) {
+		if(!$this->readyToWrite) { 
+			return null;
+		}
 		// first Prepare from custom LogConfig
 		// so let's see if we have a configuration for the given item:
 		if (isset( $this->logConfig->{$itemName} )) {
@@ -52,7 +70,7 @@ Class Log {
 		// echo "\n<h3>dbData</h3>\n\n";
 		// var_dump($dbData);
 		
-		$id = $this->db->insert("log", $dbData);
+		$id = $this->db->insert($this->logConfig->dbTable, $dbData);
 		// echo "SQL: ".$this->db->getLastQuery()."\n";
 		// echo "Error: ".$this->db->getLastError()."\n";
 		// echo "\nid:".$id."\n";
@@ -75,11 +93,18 @@ Class Log {
 		return $logConfig;		
 	}
 
+}
+
+Class LogHelper {
+
+	public function __construct() {
+
+	}
 
 	/**
 	*
 	*/
-	public function getUserAgent() {
+	public static function getUserAgent() {
 		$u_agent = $_SERVER['HTTP_USER_AGENT']; 
 		$bname = 'Unknown';
 		$platform = 'Unknown';
@@ -180,32 +205,36 @@ Class Log {
 	*	@param $ip
 	*	@return object of infos
 	*/
-	public function getGeoInfo($ip) {
+	public static function getGeoInfo() {
+		$ip  = $_SERVER['REMOTE_ADDR'];
+		$ip = "213.168.109.88";
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, "http://ipinfo.io/".$ip."/json");
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		$json = curl_exec($ch);
+
 		curl_close($ch);
 		$obj = json_decode($json);
 		if(is_object($obj)) return $obj;
 		else return false;
 	}
 
-	public function addGeoInfoToData($ip, $data) {
-		$geoInfo = $this->getGeoInfo($ip);
+	public static function getGeoInfoArray() {
+		$geoInfo = self::getGeoInfo();
+		$g = Array();
 		if($geoInfo) {
 			if(isset($geoInfo->loc)) {
 				$longlat = explode(",",$geoInfo->loc);
-				$data['long'] = $longlat[0];
-				$data['lat'] = $longlat[1];
+				$d['long'] = $longlat[0];
+				$d['lat'] = $longlat[1];
 			}
-			$data['geoCity'] = isset($geoInfo->city) ? $geoInfo->city : "";
-			$data['geoRegion'] =  isset($geoInfo->region) ? $geoInfo->region : "";
-			$data['geoCountry'] =  isset($geoInfo->country) ? $geoInfo->country : "";
-			$data['geoOrg'] =  isset($geoInfo->org) ? $geoInfo->org : "";
-			$data['geoPostal'] =  isset($geoInfo->postal) ? $geoInfo->postal : "";
+			$d['geoCity'] = isset($geoInfo->city) ? $geoInfo->city : "";
+			$d['geoRegion'] =  isset($geoInfo->region) ? $geoInfo->region : "";
+			$d['geoCountry'] =  isset($geoInfo->country) ? $geoInfo->country : "";
+			$d['geoOrg'] =  isset($geoInfo->org) ? $geoInfo->org : "";
+			$d['geoPostal'] =  isset($geoInfo->postal) ? $geoInfo->postal : "";
 		}
-		return $data;
+		return $d;
 	}
 }
 
@@ -250,8 +279,8 @@ Class LoginLog extends Log{
 			'ip6' => $ip6
 		);
 
-		// add geo-information (will fail gracefully and return same data as passed if we are on localhost or have no ip)
-		$data = $this->addGeoInfoToData($ip, $data);
+		$geoInfo = $this->getGeoInfoArray();
+		$data = array_merge($data, $geoInfo);
 		return $data;
 	}
 }
