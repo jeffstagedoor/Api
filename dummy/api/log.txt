@@ -1,4 +1,0 @@
-22.07.2017 02:02:10 Europe/Vienna: Log DB Error - Log Table not found 
-     50.9333, 6.9833, Deutz, Nordrhein-Westfalen, DE, AS8422 NetCologne GmbH, 50679
-22.07.2017 02:03:25 Europe/Vienna: Log DB Error - Log Table not found 
-     ::1 50.9333, 6.9833, Deutz, Nordrhein-Westfalen, DE, AS8422 NetCologne GmbH, 50679
