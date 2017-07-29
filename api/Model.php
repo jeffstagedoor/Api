@@ -239,9 +239,9 @@ Class Model {
 			}
 		}
 
-		$result = $this->_getResultFromDb();
+		$items = $this->_getResultFromDb();
 		// echo $this->db->getLastQuery();
-		$items = $this->_getHasMany($result);
+		$items = $this->_getHasMany($items);
 
 		return $items;
 	}
@@ -316,7 +316,7 @@ Class Model {
 	*/
 	private function _getResultFromDb() {
 		global $err;
-		$result = null;
+		$result = Array();
 		try {
 			$result = $this->db->get($this->dbTable, null, $this->cols);
 		} 

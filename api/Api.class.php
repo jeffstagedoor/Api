@@ -135,14 +135,28 @@ Class Api {
 						ApiHelper::sendResponse(400,"{ \"success\": ".json_encode($reponse)."}");
 					}
 				} else {
-					ApiHelper::postItems($this->request->model, $ApiGet->getItems(), $this->request->model->modelNamePlural);
+					$items = $ApiGet->getItems();
+					if(isset($items)) {
+						ApiHelper::postItems($this->request->model, $items, $this->request->model->modelNamePlural);
+					} else {
+						$this->errorHandler->add(21);
+						$this->errorHandler->sendApiErrors();
+					}
 				}
 				break;
 			case 'POST':
+				require_once('ApiPost.class.php');
+				$ApiPost = new ApiPost($this->request, $this->data, $ENV, $this->db, $this->errorHandler);
 				break;
 			case 'PUT':
 				break;
 			case 'DELETE':
+				require_once('ApiDelete.class.php');
+				$ApiDelete = new ApiDelete($this->request, $this->data, $ENV, $this->db, $this->errorHandler);
+				$items = $ApiDelete->deleteItem();
+				if($items) {
+					ApiHelper::postItems($this->request->model, $items, $this->request->model->modelNamePlural);
+				}
 				break;
 		}
 	} // end __construct()

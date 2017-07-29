@@ -385,3 +385,57 @@
 29.07.2017 02:02:17: API-Error - wrong call to getImage. Missing data 'file' or 'imageId' 
      ::1 , , , , 
 
+29.07.2017 02:23:49: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 02:23:58: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 02:24:38: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 02:24:44: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 02:24:48: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 02:29:24: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 02:29:45: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 02:38:20: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 02:43:52: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 02:46:10: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 02:46:42: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 02:47:24: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 02:47:40: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 02:48:02: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 02:48:15: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 02:49:16: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 02:49:24: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 02:49:32: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
