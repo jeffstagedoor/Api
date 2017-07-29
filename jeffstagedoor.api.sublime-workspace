@@ -4,6 +4,50 @@
 		"selected_items":
 		[
 			[
+				"break",
+				"break"
+			],
+			[
+				"Api",
+				"ApiTest"
+			],
+			[
+				"error",
+				"errorHandler"
+			],
+			[
+				"REQU",
+				"REQUEST_TYPE_COALESQUE"
+			],
+			[
+				"RE",
+				"REQUEST_TYPE_NORMAL"
+			],
+			[
+				"REQ",
+				"REQUEST_TYPE_REFERENCE"
+			],
+			[
+				"send",
+				"sendErrors"
+			],
+			[
+				"is_nu",
+				"is_numeric"
+			],
+			[
+				"request",
+				"requestArray"
+			],
+			[
+				"Env",
+				"ENV"
+			],
+			[
+				"file",
+				"fileName"
+			],
+			[
 				"log",
 				"logPath"
 			],
@@ -86,10 +130,6 @@
 			[
 				"jq",
 				"jqXHR"
-			],
-			[
-				"error",
-				"errorThrown"
 			],
 			[
 				"text",
@@ -230,10 +270,6 @@
 			[
 				"background-",
 				"background-color"
-			],
-			[
-				"send",
-				"sendKeyDown"
 			],
 			[
 				"font-",
@@ -468,66 +504,18 @@
 	"buffers":
 	[
 		{
-			"file": "dummy/index.php",
+			"file": "api/Authorizor.php",
 			"settings":
 			{
-				"buffer_size": 7283,
+				"buffer_size": 3901,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "api/ApiHelper.php",
+			"file": "api/ApiGet.class.php",
 			"settings":
 			{
-				"buffer_size": 5507,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "api/Model.php",
-			"settings":
-			{
-				"buffer_size": 28273,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "api/restPost.php",
-			"settings":
-			{
-				"buffer_size": 3799,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "api/ErrorHandler.php",
-			"settings":
-			{
-				"buffer_size": 8004,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "api/api.php",
-			"settings":
-			{
-				"buffer_size": 3921,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "api/Log.php",
-			"settings":
-			{
-				"buffer_size": 8414,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "dummy/LogConfig.php",
-			"settings":
-			{
-				"buffer_size": 655,
+				"buffer_size": 2269,
 				"line_ending": "Windows"
 			}
 		}
@@ -575,7 +563,7 @@
 				"Preferences: Browse Packages"
 			]
 		],
-		"width": 400.0
+		"width": 512.0
 	},
 	"console":
 	{
@@ -592,23 +580,34 @@
 	},
 	"file_history":
 	[
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Validate.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/ApiGet.class.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/api/db_update.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/config.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Api.class.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/models/Comments.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/models/Posts.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/DBHelper.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Model.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Account.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Names.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Log.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/index.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/restPost.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/_RestGET.class.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/restGet.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/ApiHelper.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/ErrorHandler.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/customTasks.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/LogConfig.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/api.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Validate.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/config.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/DBHelper.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/restDelete.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/restPut.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/restPost.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/.htaccess",
 		"/C/Users/Jeff/GoogleDrive/www/finances/php/api/db_update.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/DISABLED.htaccess",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/jeffstagedoor.api.sublime-project",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/api.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/api/api.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Account.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Log.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/.gitignore",
 		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/.gitignore",
 		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/README.md",
@@ -708,18 +707,7 @@
 		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/transforms/moment.js",
 		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/pods/components/ui/form-datetimepicker/template.hbs",
 		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/pods/components/ui/form-datetimepicker/component.js",
-		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/pods/components/page-layout/block-block/template.hbs",
-		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/pods/components/page-layout/block-block/component.js",
-		"/C/Users/jefff/Google Drive/www/jefffrohner.com/doc/db/news_backup.sql",
-		"/C/Users/jefff/Google Drive/www/jefffrohner.com/online/work.php",
-		"/C/Users/jefff/Google Drive/www/jefffrohner.com/online/gallery.php",
-		"/C/Users/jefff/Google Drive/www/jefffrohner.com/online/soundfiles.php",
-		"/C/Users/Jeff/GoogleDrive/www/jefffrohner.com/admin/app/initializers/component-router-injector.js",
-		"/C/Users/Jeff/GoogleDrive/www/jefffrohner.com/admin/app/pods/components/page-layout/side-bar/component.js",
-		"/C/Users/Jeff/GoogleDrive/www/jefffrohner.com/admin/app/pods/components/page-layout/main-header/template.hbs",
-		"/C/Users/Jeff/GoogleDrive/www/jefffrohner.com/admin/app/pods/components/page-layout/side-bar/template.hbs",
-		"/C/Users/Jeff/GoogleDrive/www/jefffrohner.com/admin/config/environment.js",
-		"/C/Users/Jeff/GoogleDrive/www/jefffrohner.com/admin/app/index.html"
+		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/pods/components/page-layout/block-block/template.hbs"
 	],
 	"find":
 	{
@@ -739,6 +727,25 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"protected",
+			"public",
+			"protected",
+			"public",
+			"myStagedoor",
+			"hasMany",
+			"hasManyFields",
+			"Fields",
+			"Name",
+			"name",
+			"API_",
+			"$data",
+			"$requestType",
+			"->request",
+			"request",
+			"singularRequest",
+			"$this->",
+			"$db",
+			"self",
 			"geoInfo",
 			"data",
 			"no LogConfig File found in",
@@ -847,26 +854,7 @@
 			"tooltip",
 			"modal",
 			"body",
-			"#page-container",
-			"header-navbar",
-			"#sidebar",
-			"scrolllock",
-			"jqueryui",
-			"tooltip",
-			"jqueryui",
-			"jquery",
-			"tooltip",
-			"App.",
-			"login.js",
-			"'simple-auth-authenticator:oauth2-password-grant'",
-			"export default Ember.Controller.extend(LoginControllerMixin, {\n	authenticator: 'simple-auth-authenticator:oauth2-password-grant'\n});",
-			"this.get('model').get('ust')",
-			"this.get('model').get('amount')",
-			"newU",
-			"newA",
-			"target",
-			"target		",
-			"new"
+			"#page-container"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -893,211 +881,23 @@
 	"groups":
 	[
 		{
+			"selected": 1,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "dummy/index.php",
+					"file": "api/Authorizor.php",
 					"settings":
 					{
-						"buffer_size": 7283,
+						"buffer_size": 3901,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								4004,
-								4004
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/PHP/PHP.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 1919.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "api/ApiHelper.php",
-					"settings":
-					{
-						"buffer_size": 5507,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								5403,
-								5357
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/PHP/PHP.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 3420.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "api/Model.php",
-					"settings":
-					{
-						"buffer_size": 28273,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								16323,
-								16254
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/PHP/PHP.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 10032.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "api/restPost.php",
-					"settings":
-					{
-						"buffer_size": 3799,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2384,
-								2384
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/PHP/PHP.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 985.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "api/ErrorHandler.php",
-					"settings":
-					{
-						"buffer_size": 8004,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								7772,
-								7772
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/PHP/PHP.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 3773.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "api/api.php",
-					"settings":
-					{
-						"buffer_size": 3921,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								425,
-								453
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/PHP/PHP.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 570.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "api/Log.php",
-					"settings":
-					{
-						"buffer_size": 8414,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								5581,
-								5557
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/PHP/PHP.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 3762.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 7,
-					"file": "dummy/LogConfig.php",
-					"settings":
-					{
-						"buffer_size": 655,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								140,
-								147
+								1318,
+								1318
 							]
 						],
 						"settings":
@@ -1107,6 +907,33 @@
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "api/ApiGet.class.php",
+					"settings":
+					{
+						"buffer_size": 2269,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								516,
+								515
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/PHP/PHP.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 342.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"

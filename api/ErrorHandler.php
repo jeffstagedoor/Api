@@ -13,7 +13,6 @@
 namespace Jeff\Api;
 
 
-// We should rename that to ErrorHandler and have a seperate Class for a single Error
 Class ErrorHandler {
 	
 	Const DB_ERROR = 					20;
@@ -34,9 +33,11 @@ Class ErrorHandler {
 	Const API_INVALID_GET_REQUEST = 	42;
 	Const API_INVALID_PUT_REQUEST = 	43;
 	Const API_INVALID_POSTPUT_REQUEST = 44;
+	Const API_ID_MISSING = 				45;
 
 	Const LOG_NO_CONFIG = 				50;
 	Const LOG_NO_TABLE = 				51;
+
 
 	Const AUTH_NO_AUTHTOKEN =		 	90;
 	Const AUTH_FAILED =				 	91;
@@ -46,6 +47,7 @@ Class ErrorHandler {
 	Const AUTH_PWD_NOT_MATCHING =		97;
 	Const AUTH_INT_ACCOUNTNOTSET =		99;
 	Const CUSTOM =						100;
+
 
 	Const CRITICAL_LOG = 1;
 	Const CRITICAL_EMAIL = 2;
@@ -74,6 +76,7 @@ Class ErrorHandler {
 		42 => Array("code"=>42, "title"=>"Invalid get request", "msg"=>"Invalid get request", 			"critical"=>self::CRITICAL_LOG),
 		43 => Array("code"=>43, "title"=>"Invalid put request", "msg"=>"Invalid put request", 			"critical"=>self::CRITICAL_LOG),
 		44 => Array("code"=>44, "title"=>"Invalid post/put request", "msg"=>"Not all required fields received", "critical"=>self::CRITICAL_LOG),
+		44 => Array("code"=>44, "title"=>"Invalid post/put request", "msg"=>"Recource id is missing", "critical"=>self::CRITICAL_LOG),
 
 	// LOG
 		50 => Array("code"=>50, "title"=>"Log Error", "msg"=>"No Log Config found", 	"critical"=>self::CRITICAL_EMAIL, "internal"=>true),
@@ -108,21 +111,35 @@ Class ErrorHandler {
 		if(is_integer($e)) {
 			// if I get an Integer, it's the number-code of a predefined error
 			// so lets make this a real Error Instance
-			$this->Errors[] = $e;
+			$this->Errors[] = new Error($e);
 		} elseif(is_array($e)) {
 			// if I get an Array, it's a custom error in format ['title', 'msg']
-			$this->Errors[] = $e;
+			$this->Errors[] = new Error($e);
 
 		} elseif($e instanceof Error) {
 			// if I get an Instance of Error-Class, it's the best anyway
 			$this->Errors[] = $e;
 
 		} else {
-			throw new Exception("Error in Class Err: $e is not an Integer", 1);
+			$this->add(Array("Error in Class Err:"," e is not an Instance of Error, nor an Integer, nor an Array.".var_export($e, true), 1));
 		}
 		// return all saved errors by defult, as a shortcut
 		return $this->get();
 	}
+
+
+	/**
+	*	throw
+	*	adds an Error to the error array and sends the errors to client and log (and email if spezified)
+	*	@param [int] error code, [array] title and msg for custom errors
+	*	@return [array] all errors
+	**/
+	public function throwOne($e) {
+		$this->add($e);
+		$this->sendApiErrors();
+		$this->sendErrors();
+	}
+
 
 	// returns ALL saved Errors
 	public function get() {
@@ -152,7 +169,6 @@ Class ErrorHandler {
 
 	public function sendApiErrors() {
 		$errors = $this->getPublic();
-		#var_dump($errors);
 		http_response_code(500);
 		header("Content-Type: application/json");
 		echo '{"errors": '.json_encode($errors). '}';

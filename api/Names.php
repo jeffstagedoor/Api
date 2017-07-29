@@ -1,6 +1,13 @@
 <?php
-// Class Names
-// various helper functions all about names..
+/**
+*	Class Names
+*	
+*	@author Jeff Frohner
+*	@copyright Copyright (c) 2015
+*	@license   private
+*	@version   1.0.0
+*
+**/
 
 namespace Jeff\Api;
 
@@ -8,9 +15,10 @@ Class Names {
 
 	private static $prename = array("von"=>1, "van"=>1, "del"=>1, "dal"=>1, "dallo"=>1, "dello"=>1, "de"=>1, "di"=>1,"der"=>1, "du"=>1, "lo"=>1, "los"=>1, "il"=>1, "la"=>1);
 
-
-	// versucht einen FullName in VorName, MiddleName, Prefix, Nachname zu splitten
-	// @return: an array of strings = (vname, mname, prenname, nname)
+	/**
+	* versucht einen FullName in VorName, MiddleName, Prefix, Nachname zu splitten
+	* @return [array of strings] (vname, mname, prenname, nname)
+	**/
 	static function Arrange($y) {
 		$x=explode(" ",$y);
 		switch (count($x)) {

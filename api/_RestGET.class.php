@@ -21,9 +21,13 @@ Class RestGet {
 	private $Account;
 	private $model;
 
-	function __construct($db, $request, $data) {
-		global $ENV;
+	function __construct($db, $request, $data, $ENV) {
+		// global $ENV;
 		$this->db = $db;
+
+		if($request->type==='normal') {
+
+		}
 
 
 		// find special cases:
@@ -108,19 +112,20 @@ Class RestGet {
 
 	}
 
-	private function setModel($modelName) {
-		global $ENV;
-		$modelFile = $ENV->dirs->phpRoot . $ENV->dirs->models . ucfirst($modelName) . ".php";
+	// NOT NEEDED, already done in API Class
+	// private function setModel($modelName) {
+	// 	global $ENV;
+	// 	$modelFile = $ENV->dirs->phpRoot . $ENV->dirs->models . ucfirst($modelName) . ".php";
 			
 			
-		if (!file_exists($modelFile)) {
-			throw new \Exception ('Falsy API call. Model '.$modelName. ' does not exist.');
-		} else {
-			require_once($modelFile); 
-		}
-		$className = "\\" . __NAMESPACE__ . "\\Models\\" . ucfirst($modelName);
-		$this->model = new $className($this->db);
-	}
+	// 	if (!file_exists($modelFile)) {
+	// 		throw new \Exception ('Falsy API call. Model '.$modelName. ' does not exist.');
+	// 	} else {
+	// 		require_once($modelFile); 
+	// 	}
+	// 	$className = "\\" . __NAMESPACE__ . "\\Models\\" . ucfirst($modelName);
+	// 	$this->model = new $className($this->db);
+	// }
 
 	function getModel($modelName=null) {
 		if($modelName) {

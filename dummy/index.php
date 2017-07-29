@@ -48,34 +48,35 @@ require("config.php");
 		<!-- <div class="row"> -->
 		<h2>Dummy App</h2>
 		<p>for <a href='https://github.com/jeffstagedoor/Api'>jeffstagedoor\Api</a></p>
-		<small>AppRootFile: <?php echo __DIR__ ?></small>
-		<div id="env-json"><?php echo "<pre>ENV(ironment) as defined in config.php\n".stripslashes(json_encode($ENV, JSON_PRETTY_PRINT))."</pre>"; ?></div>
+		
+		<small>AppRootFile: <?php echo __DIR__ ?></small><br>
+		<a role="button" data-toggle="collapse" data-target="#env-json" aria-expanded="false" aria-controls="env-json">Environment</a><br>
+		<div id="env-json" class="collapse"><?php echo "<pre>ENV(ironment) as defined in config.php\n".stripslashes(json_encode($ENV, JSON_PRETTY_PRINT))."</pre>"; ?></div>
 
+
+		<a role="button" data-toggle="collapse" data-target="#paths" aria-expanded="false" aria-controls="paths">Paths</a><br>
 		<?php 
-		// echo "<p>";
-		// echo "<br>This Script: ".$_SERVER['PHP_SELF'];
-		// echo "<br>AppRootUrl: ".$ENV->dirs->appRoot;
-		// echo "<br>ApiUrl: ".$ENV->urls->apiUrl;
-		// echo "</p>";
-		// Check blank Api response (the Api info)
+		echo "<pre id='paths' class='collapse'>";
+		echo "This Script: ".$_SERVER['PHP_SELF'];
+		echo "<br>AppRootUrl: ".$ENV->dirs->appRoot;
+		echo "<br>ApiUrl: ".$ENV->urls->apiUrl;
+		echo "</pre>";
 		?>
-		<h4>Api-Test &amp; Info:</h4>
+
+		<a role="button" data-toggle="collapse" data-target="#ApiTest" aria-expanded="false" aria-controls="ApiTest">Api-Test &amp; Info</a><br>
 		<?php
 			$ch = curl_init(); 
-			curl_setopt($ch, CURLOPT_URL, $ENV->urls->baseUrl.$ENV->urls->apiUrl."api.php"); 
+			curl_setopt($ch, CURLOPT_URL, $ENV->urls->baseUrl.$ENV->urls->apiUrl."/apiInfo"); 
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
 			$output = curl_exec($ch); 
 			echo curl_error($ch);
-			echo "<pre>".json_encode(json_decode($output), JSON_PRETTY_PRINT)."</pre>";
+			echo "<pre class='collapse' id='ApiTest'>".json_encode(json_decode($output), JSON_PRETTY_PRINT)."</pre>";
 			curl_close($ch);
 		?>
-
-
-	<!-- </div> -->
-
+	<br>
 	<div class="panel panel-default">
 		<div class="panel-body">
-			<div class="col-md-12">
+			<div class="col-md-6">
 	<form>
 	  <div class="form-group">
 		<label for="httpMethod">Method</label>
@@ -113,7 +114,7 @@ require("config.php");
 	  <button type="button" id="formSubmit" class="btn btn-primary">Do it</button>
 	</form>
 	</div>
-		<div class="col-md-12">
+		<div class="col-md-6">
 		<div id="response">
 			
 		</div>
@@ -193,7 +194,7 @@ require("config.php");
 					else {
 						responseText = data;
 					}
-					response = "<pre id='response'>"+responseText+"</pre>";
+					response = "<pre id='response' class='pre-scrollable'>"+responseText+"</pre>";
 					html += response;
 					$('#response').html(html);
 				}
@@ -205,7 +206,7 @@ require("config.php");
 	  });
 
 
-	  	// helpers
+		// helpers
 		function isJSON(str) {
 			try {
 				JSON.parse(str);

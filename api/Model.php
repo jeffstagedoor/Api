@@ -7,7 +7,7 @@
 *	@author Jeff Frohner
 *	@copyright Copyright (c) 2015-2016
 *	@license   private
-*	@version   1.8
+*	@version   1.8.1
 *
 **/
 namespace Jeff\Api\Models;
@@ -18,15 +18,14 @@ use Jeff\Api as Api;
 Class Model {
 
 	// a modelName MUST NOT include a '2', because otherwise it'll be treated as a relational-model
-	public $modelName = null;
-	public $modelNamePlural = null;
-	public $motherModel = null; // this will be needed to make a bubbleUp method, 
+	protected $modelName = null;
+	protected $modelNamePlural = null;
+	protected $motherModel = null; // this will be needed to make a bubbleUp method, 
 								// to determine all the mother-models of a grand-child model such as a track, 
 								// that belongsTo an artistgroup, an production, a workgroup
 								// will be needed to figure out if a user may edit/delete an item or not
 	
-	public $modelFields = array();  // DEPRECATED, use dbDefinition istead!
-	public $dbDefinition = array( 	
+	protected $dbDefinition = array( 	
 			/*
 			array(
 				'id',				// name of column
@@ -53,45 +52,44 @@ Class Model {
 	protected $db = null;
 	protected $dbIdField = 'id';
 	protected $dbTable = 'undefined';
-	protected $cols = null;
-
-	public $errors = Array();	// DEPRECATED -> use ErrorHandler Class instead
+	public $cols = null;
 	public $lastInsertedID = -1;
 
 	public $sideload = null;
-	protected $sideLoadTargetsSave = Array();
+	public $sideLoadTargetsSave = Array();
 
 	// maskFields
 	// these fields will be masked with *** according to it's properties
-	protected $maskFields = Array(
-		// 'email' => myStagedoor\DataMasker::MASK_TYPE_EMAIL,
-		// 'tel' => myStagedoor\DataMasker::MASK_TYPE_TEL,
+	private $maskFields = Array(
+		// 'email' => Jeff\Api\DataMasker::MASK_TYPE_EMAIL,
+		// 'tel' => Jeff\Api\DataMasker::MASK_TYPE_TEL,
 		);
 
 	// searchSendCols
 	// what data (=db-fields) to send when querying a search 
-	protected $searchSendCols = Array('id');	
+	private $searchSendCols = Array('id');	
 
 	// hiddenProperties
 	// what properties will be unset before sending the payload
 	// allways remove password, authToken, auth, ...
-	protected $hiddenProperties = Array('password', 'authToken', 'auth');
+	private $hiddenProperties = Array('password', 'authToken', 'auth');
 
 	// validateFields
 	// what fields shall be validated before inserting/updating
-	protected $validateFields = Array(
-		// Array('field' => 'email', 'valtype' => myStagedoor\Validate::VAL_TYPE_EMAIL, 'arg' => null),
-		// Array('field' => 'description', 'valtype' => myStagedoor\Validate::VAL_TYPE_LENGTH_MAX, 'arg' => 300),
-		// Array('field' => 'description', 'valtype' => myStagedoor\Validate::VAL_TYPE_LENGTH_MIN, 'arg' => 300),
+	private $validateFields = Array(
+		// Array('field' => 'email', 'valtype' => Jeff\Api\Validate::VAL_TYPE_EMAIL, 'arg' => null),
+		// Array('field' => 'description', 'valtype' => Jeff\Api\Validate::VAL_TYPE_LENGTH_MAX, 'arg' => 300),
+		// Array('field' => 'description', 'valtype' => Jeff\Api\Validate::VAL_TYPE_LENGTH_MIN, 'arg' => 300),
 		);
 
 	// hasMany-Fields
-	protected $hasManyFields = Array (
-			// Array("name"=>'user2workgroups',"dbTable"=>'user2workgroup', "dbTargetFieldName"=>'workgroup', "dbSourceFieldName"=>'user', "saveToStoreField"=>'workgroup', "saveToStoreName"=>'workgroups'),
+	private $hasMany = Array (
+			// Array("hasManyName"=>'user2workgroups',"dbTable"=>'user2workgroup', "dbTargetFieldName"=>'workgroup', "dbSourceFieldName"=>'user', "saveToStoreField"=>'workgroup', "saveToStoreName"=>'workgroups'),
+			// Array("hasManyName"=>'user2workgroups',"dbTable"=>'user2workgroup', "dbTargetFieldName"=>'workgroup', "dbSourceFieldName"=>'user', "saveToStoreField"=>'workgroup', "saveToStoreName"=>'workgroups'),
 		);
 
 	// what Items to send as sideload when doing a simple getOneById()
-	protected $sideloadItems = Array( 
+	private $sideloadItems = Array( 
 			// Array("name"=>'user2workgroups',"dbTable"=>'user2workgroup', "reference"=>'user2workgroups'),
 			// Array("name"=>'workgroups', "dbTable"=>'workgroups', "reference"=>'workgroups'),
 			// Array("name"=>'user2productions', "dbTable"=>'user2production', "reference"=>'user2productions'),
@@ -109,9 +107,11 @@ Class Model {
 
 	// CONSTRUCTOR
 	// always pass the fitting db-object to contructor
-	public function __construct($db=NULL) 
+	public function __construct($db, $errorHandler) 
 	{
 		$this->db = $db;
+		$this->errorHandler = $errorHandler;
+		$this->cols = $this->_makeAssociativeFieldsArray($this->dbTable, $this->dbDefinition);
 
 		// modelFields will get Deprecated, this is for intermediate.
 		// old Version had a plain array in modelFields with all the ColumnNames.
@@ -169,7 +169,7 @@ Class Model {
 		$item = $this->db->getOne($this->dbTable);
 		if($item) {
 			$item = $this->_unsetHiddenProperties($item);
-			$item = $this->_addHasMany($item, $id); 	// add hasMany-Relationships, defined in Child-Model Class as $hasManyFields
+			$item = $this->_addHasMany($item, $id); 	// add hasMany-Relationships, defined in Child-Model Class as $hasMany
 			$this->_addSideloads($item); 			// add sideloads, defined in Child-Model Class as $sideloadItems
 
 			return $item;
@@ -186,8 +186,6 @@ Class Model {
 	*/
 	public function getAll($filters=null) 
 	{
-		$this->cols = $this->_makeAssociativeFieldsArray($this->dbTable, $this->dbDefinition);
-
 		// check if the child-model has the beforeGetAll-Hook implemented
 		// Standard Example for such a hook: 
 		// 
@@ -257,12 +255,12 @@ Class Model {
 	*	@return (Array) items
 	**/
 	private function _getHasMany($items) {
-		if(count($this->hasManyFields)===0) {
-			// if there are no hasManyFields to get, just return what you have gotten....
+		if(count($this->hasMany)===0) {
+			// if there are no hasMany to get, just return what you have gotten....
 			return $items;
 		}
 		
-		// walk all the items, save them ids in an array, do select with 'IN', walk the items again to add the hasManyFields
+		// walk all the items, save them ids in an array, do select with 'IN', walk the items again to add the hasMany
 		if(!count($items)) { // no items -> so we don't need to walk them, just return the empty array of items
 			return $items;
 		} else {
@@ -273,17 +271,17 @@ Class Model {
 		}
 
 		// now we have all the ids of the main items
-		foreach ($this->hasManyFields as $hmf) {
+		foreach ($this->hasMany as $hmf) {
 			$hmf['ids'] = array();
 			$this->db->where($hmf['dbSourceFieldName'], $ids, 'IN');
 			$hasMany = $this->db->get($hmf['dbTable'], null, array('id', $hmf['dbSourceFieldName']));
 			foreach ($hasMany as $hasManyItem) {
 				foreach ($items as &$item) {
-					if(!isset($item[$hmf['name']])) {
-						$item[$hmf['name']] = array();
+					if(!isset($item[$hmf['hasManyName']])) {
+						$item[$hmf['hasManyName']] = array();
 					}
 					if($item['id']===$hasManyItem[$hmf['dbSourceFieldName']]) {
-						array_push($item[$hmf['name']], $hasManyItem['id']);
+						array_push($item[$hmf['hasManyName']], $hasManyItem['id']);
 					}
 				}
 			}
@@ -300,8 +298,6 @@ Class Model {
 	*	@param coalesceIds (Array)
 	**/
 	public function getCoalesce($coalesceIds=null) {
-		$this->cols = $this->_makeAssociativeFieldsArray($this->dbTable, $this->dbDefinition);
-	
 		if($coalesceIds) {
 			$this->db->where($this->dbTable.'.id', $coalesceIds,'IN');
 			$items = $this->_getResultFromDb();
@@ -404,26 +400,6 @@ Class Model {
 
 
 
-	/*
-	*	method getCount()
-	*	
-	*/
-	public function getCount($delimiters=null) 
-	{
-		// NEED TO WORK ON THAT!!!!!!
-		if(is_object($delimiters)) {
-			foreach ($delimiters as $key => $value) {
-				$this->db->where($key, $value);
-			}
-		} elseif(is_array($delimiters)) {
-			for ($i=0; $i < count($delimiters); $i++) { 
-				$this->db->where($delimiters[$i]['key'], $delimiters[$i]['value']);
-			}
-		}
-		$count = $this->db->getValue($this->dbTable, "count(*)");
-		#echo $this->db->getLastQuery();
-		return $count;
-	}
 
 	public function getLastInsertedId() 
 	{
@@ -442,23 +418,20 @@ Class Model {
 			$or = true;
 			unset($data->condition);
 		} else {
+			$or = false;
 			unset($data->condition);
 		}
 		$cnt=0;
 
-		$searchType = $data->searchType;
-		#echo "searchType: ".$searchType."\n";
+		$searchType = isset($data->searchType) ? $data->searchType : self::SEARCH_TYPE_STRICT;
 		unset($data->searchType);
+
 		switch ($searchType) {
 			case self::SEARCH_TYPE_STRICT:
 				$operator = "=";
 				break;
 			case self::SEARCH_TYPE_SEMISTRICT:
-				$operator = "LIKE";
-				break;
 			case self::SEARCH_TYPE_LOOSE:
-				$operator = "LIKE";
-				break;
 			case self::SEARCH_TYPE_VERYLOOSE:
 				$operator = "LIKE";
 				break;
@@ -468,6 +441,10 @@ Class Model {
 		#echo "operator: ".$operator."\n";
 
 		foreach ($data as $key => $value) {
+			if(!is_string($value)) {
+				$this->errorHandler->throwOne(Array("API-Error", "No valid search data found. Please consult readme to find needed format."));
+				exit;
+			}
 			// for security, I first replace any placeholder with a questionmark
 			// if not, a user could search for "%%%%" and would get all datasets...we dont want that
 			$value=preg_replace('/[%*]/', "", $value);
@@ -483,7 +460,11 @@ Class Model {
 			if($searchType === self::SEARCH_TYPE_VERYLOOSE) {
 				$value=preg_replace('/[ -_\´\`\']/', "%", $value);
 				$value='%'.$value.'%';
-			}			
+			}
+			if(!in_array($this->dbTable.".".$key." ".$key, $this->cols)) {
+				$this->errorHandler->throwOne(Array("API-Error", "Searching for field '$key', which doesn't exist in model '$this->modelName'. Please consult readme to find needed format."));
+				exit;
+			}
 			if($cnt && $or) {
 				$this->db->orWhere($key, $value, $operator);
 			} else {
@@ -492,13 +473,13 @@ Class Model {
 			$cnt++;
 		}
 		if($cnt) { // if I have minimum one search item, give a result
-			$result = $this->db->get($this->dbTable, NULL, $this->searchSendCols);
-			#echo $this->db->getLastQuery();
+			$cols = (count($this->searchSendCols)>1) ? $this->searchSendCols : $this->cols;
+			$result = $this->db->get($this->dbTable, NULL, $cols);
 			// Mask properties/fields that where defined to be masked in the Model ('maskFields')
 			for ($i=0; $i <count($result) ; $i++) {
 				foreach ($this->maskFields as $field => $type) {
 					if(isset($result[$i][$field])) {
-						$result[$i][$field] = myStagedoor\DataMasker::mask($result[$i][$field], $type);
+						$result[$i][$field] = Jeff\Api\DataMasker::mask($result[$i][$field], $type);
 					}
 				}
 			}
@@ -508,6 +489,32 @@ Class Model {
 		return $result;
 	}
 
+	/*
+	*	method count()
+	*	
+	*/
+	public function count($delimiters=null) 
+	{
+		if(is_object($delimiters)) {
+			foreach ($delimiters as $key => $value) {
+				if(!in_array($this->dbTable.".".$key." ".$key, $this->cols)) {
+					$this->errorHandler->throwOne(Array("API-Error", "Counting with delimiter '$key', which doesn't exist in model '$this->modelName'. Please consult readme to find needed format."));
+					exit;
+				}
+				$this->db->where($key, $value);
+			}
+		} elseif(is_array($delimiters)) {
+			for ($i=0; $i < count($delimiters); $i++) { 
+				if(!in_array($this->dbTable.".".$key." ".$key, $this->cols)) {
+					$this->errorHandler->throwOne(Array("API-Error", "Counting with delimiter '$key', which doesn't exist in model '$this->modelName'. Please consult readme to find needed format."));
+					exit;
+				}
+				$this->db->where($delimiters[$i]['key'], $delimiters[$i]['value']);
+			}
+		}
+		$count = $this->db->getValue($this->dbTable, "count(*)");
+		return $count;
+	}
 
 
 	//
@@ -547,8 +554,8 @@ Class Model {
 				$data['sort'] = intval($max[0])+1;
 			}
 		}
-		// unsetting hasMany-Fields that might come from Ember via POST:
-		foreach ($this->hasManyFields as $hmf) {
+		// unsetting hasMany that might come from Ember via POST:
+		foreach ($this->hasMany as $hmf) {
 			unset($data[$hmf['name']]);
 		}
 
@@ -636,7 +643,7 @@ Class Model {
 		}
 
 		// unsetting hasMany-Fields that might come from Ember via POST:
-		foreach ($this->hasManyFields as $hmf) {
+		foreach ($this->hasMany as $hmf) {
 			unset($data[$hmf['name']]);
 		}
 
@@ -675,7 +682,7 @@ Class Model {
 			$data = (Array) $data;
 		}
 		// unsetting hasMany-Fields that might come from Ember via POST:
-		foreach ($this->hasManyFields as $hmf) {
+		foreach ($this->hasMany as $hmf) {
 			unset($data[$hmf['name']]);
 		}
 
@@ -847,11 +854,11 @@ Class Model {
 	// SPECIALS FOR GETTING DATA
 	//
 	private function _addHasMany($item, $id) {
-		if(!($this->hasManyFields) || !is_array($this->hasManyFields)) {
+		if(!($this->hasMany) || !is_array($this->hasMany)) {
 			return $item;
 		}
-		for ($i=0; $i < count($this->hasManyFields); $i++) { 
-			$hmf = $this->hasManyFields[$i];
+		for ($i=0; $i < count($this->hasMany); $i++) { 
+			$hmf = $this->hasMany[$i];
 			if ($this->db->tableExists($hmf['dbTable'])) {
 				$this->db->where($hmf['dbSourceFieldName'], $id);
 				// if(isset($hmf['orderBy'])) {
@@ -874,12 +881,12 @@ Class Model {
 		return $item;
 	}
 
-	private function _addHasManyForSideload($item, $id, $hasManyFields=NULL) {
-		if(!($hasManyFields) || !is_array($hasManyFields)) {
+	private function _addHasManyForSideload($item, $id, $hasMany=NULL) {
+		if(!($hasMany) || !is_array($hasMany)) {
 			return $item;
 		}
-		for ($i=0; $i < count($hasManyFields); $i++) { 
-			$hmf = $hasManyFields[$i];
+		for ($i=0; $i < count($hasMany); $i++) { 
+			$hmf = $hasMany[$i];
 			
 			if ($this->db->tableExists ($hmf['dbTable'])) {
 				$this->db->where($hmf['dbSourceFieldName'], $id);
@@ -923,7 +930,7 @@ Class Model {
 						require_once($sli['class'].'.php');
 						$className = __NAMESPACE__ . "\\" . $sli['class'];
 						$class = new $className();
-						$result[$r] = $this->_addHasManyForSideload($result[$r], $result[$r]['id'], $class->hasManyFields);
+						$result[$r] = $this->_addHasManyForSideload($result[$r], $result[$r]['id'], $class->hasMany);
 					}
 				}
 				$this->sideload->{$sli['name']} = $result;
@@ -945,7 +952,7 @@ Class Model {
 	*
 	*	transferes the given array fields from 'name' to 'tablename.name name'
 	*	this is needed in method 'getAll()', to get the field names ready for a sql-join,
-	*	which is again needed to include hasManyFields 
+	*	which is again needed to include hasMany 
 	*/
 	private function _makeAssociativeFieldsArray($table, $fields) {
 		$x = array();

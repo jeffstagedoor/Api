@@ -45,44 +45,42 @@ Class Authorizor {
 		}
 	}
 
-	/*
+	/**
 	* the actual authorization-method
 	*	
 	* checks if the user is allowed to acces/modify specified information according to his given rights,
 	* which are taken from $account-object
-		Structure of that account-object: (more updated version will be found in class Account.php)
-
-		{
-			id: 1,
-			identification: maxmustermann@gmail.com,
-			personalDetails: {
-				fullName: "Jeff Frohner",
-				....
-			},
-			rights: {
-				account: 1-5,
-				workgroups: [
-					{id: 1, rights: 3},
-					{id: 2, rights: 0}
-				],
-				productions: [
-					{id: 1, rights: 1},
-					{id: 2, rights: 2},
-				],
-				auditions: [
-					{id: 2, rights: 5}
-				]
-			}
-			
-
-		}
+	*	Structure of that account-object: (more updated version will be found in class Account.php)
+	*
+	*		{
+	*			id: 1,
+	*			identification: maxmustermann@gmail.com,
+	*			personalDetails: {
+	*				fullName: "Jeff Frohner",
+	*				....
+	*			},
+	*			rights: {
+	*				account: 1-5,
+	*				workgroups: [
+	*					{id: 1, rights: 3},
+	*					{id: 2, rights: 0}
+	*				],
+	*				productions: [
+	*					{id: 1, rights: 1},
+	*					{id: 2, rights: 2},
+	*				],
+	*				auditions: [
+	*					{id: 2, rights: 5}
+	*				]
+	*			}
+	*		}
 	*
 	*
-	* @params:  $for is the name of the item the user wants to acces, for example a "production", a "workgroup", an "artist", ...
+	* @param  $for is the name of the item the user wants to acces, for example a "production", a "workgroup", an "artist", ...
 	*			$id the id of this item
 	*			$type describes what he wants to do: crud (create, read, update, delete)
-	* @returns: true if authorized, false if not...., 2-5 if a higher level is requested and granted! (is that a good idea?)
-	*/
+	* @return true if authorized, false if not...., 2-5 if a higher level is requested and granted! (is that a good idea?)
+	**/
 	public function authorize($for, $id, $type, $level=1) {
 		$accountRights = $account->rights->account;
 

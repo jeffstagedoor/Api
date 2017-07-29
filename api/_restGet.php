@@ -230,6 +230,4 @@ function rest_get($request, $data=NULL) {
 			exit;	
 		}
 	}
-	if($showExecutionTime) { echo "getAll: ". (microtime(true) - $timerStart)."\n"; }
-
 }

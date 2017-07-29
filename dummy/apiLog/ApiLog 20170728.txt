@@ -1,0 +1,126 @@
+28.07.2017 02:36:30: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 02:36:55: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 02:38:43: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 02:44:56: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 02:46:32: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 02:47:00: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 02:57:10: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 03:15:06: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 03:16:04: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 03:17:16: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 03:18:18: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 03:18:38: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 03:21:02: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 03:21:14: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 03:21:43: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 03:22:02: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 03:22:16: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 03:22:30: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 03:24:14: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 03:24:25: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 03:24:37: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 03:25:19: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 03:26:51: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 20:16:02: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+28.07.2017 20:16:07: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+28.07.2017 20:21:37: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+28.07.2017 21:08:33: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+28.07.2017 21:08:38: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+28.07.2017 21:08:41: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+28.07.2017 21:12:00: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+28.07.2017 21:12:07: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+28.07.2017 21:20:42: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+28.07.2017 21:20:42: Api Error - Requested recource 'search' not found/defined. 
+     127.0.0.1 , , , , 
+
+28.07.2017 21:23:34: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+28.07.2017 21:23:43: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+28.07.2017 21:23:44: Api Error - Requested recource 'search' not found/defined. 
+     127.0.0.1 , , , , 
+
+28.07.2017 21:30:22: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+28.07.2017 21:30:22: Api Error - Requested recource 'search' not found/defined. 
+     127.0.0.1 , , , , 
+
+28.07.2017 23:41:38: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+28.07.2017 23:41:40: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 23:42:30: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+28.07.2017 23:42:39: Log DB Error - Log Table not found 
+     ::1 , , , , 
+

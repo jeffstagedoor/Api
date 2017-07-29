@@ -178,7 +178,6 @@ function Column($column) {
 	if(isset($column[3]) && !$column[3]) {
 		$s.= ' NOT NULL';
 	}
-	echo $column[4];
 	if(isset($column[4]) && $column[4]!=NULL) {
 		if($column[4]==='CURRENT_TIMESTAMP') {
 			$s.= ' DEFAULT CURRENT_TIMESTAMP';

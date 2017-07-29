@@ -1,10 +1,19 @@
 <?php
+/**
+*	Class Log
+*	
+*	@author Jeff Frohner
+*	@copyright Copyright (c) 2015
+*	@license   private
+*	@version   1.0.0
+*
+**/
 
 namespace Jeff\Api;
 
 
 Class Log {
-	public $db = NULL;
+	private $db = NULL;
 	private $logConfig;
 	private $readyToWrite = false;
 
@@ -12,7 +21,7 @@ Class Log {
 		global $ENV;
 		$this->db = $db;
 
-		require_once("../config.php");
+		// require_once("../config.php");
 		
 		if(!isset($err)) { $err = new ErrorHandler(); }
 		if (!file_exists(__DIR__.DIRECTORY_SEPARATOR.$ENV->dirs->appRoot."LogConfig.php")) {
@@ -207,7 +216,7 @@ Class LogHelper {
 	*/
 	public static function getGeoInfo() {
 		$ip  = $_SERVER['REMOTE_ADDR'];
-		$ip = "213.168.109.88";
+		// $ip = "213.168.109.88";
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, "http://ipinfo.io/".$ip."/json");
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);

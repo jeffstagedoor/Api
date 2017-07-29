@@ -33,6 +33,16 @@ $ENV->dirs->vendor = folderUp(1)."vendor".DIRECTORY_SEPARATOR;
 $ENV->dirs->models = $ENV->dirs->appRoot."models".DIRECTORY_SEPARATOR;
 $ENV->dirs->files = folderUp(2)."files".DIRECTORY_SEPARATOR;
 
+$ENV->Api = new \stdClass();
+$ENV->Api->noAuthRoutes = Array(
+	"login",
+	"signup",
+	"apiinfo",
+	"getimage",
+	"tasks/user2artistconfirmation"
+	);
+
+
 switch ($_SERVER['SERVER_NAME']) {
 	case 'dummy':
 	case 'localhost':
@@ -40,7 +50,7 @@ switch ($_SERVER['SERVER_NAME']) {
 		$ENV->production = false;
 		$ENV->development = true;
 		$ENV->debug = false;
-		$ENV->NOAUTH = true;
+		$ENV->Api->noAuth = true;
 
 		$ENV->database = Array( 
 					"username" => "root",
