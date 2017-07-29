@@ -121,6 +121,7 @@ Class ApiHelper {
 	public static function checkRequiredFieldsSet($required, $data) {
 		$missing = Array();
 		// $data;
+		// var_dump($data);
 		foreach ($required as $key => $field) {
 			if(!isset($data[$field[0]])) {
 				$missing[] = $field[0];

@@ -573,8 +573,8 @@ Class Model {
 			$this->lastInsertedID = $id;
 			return $id;
 		} else {
-			$e = Array("API-Error", "Not all required fields were sent. I missed: ".implode(",", $missingFields), 1, false);
-			$err->add(new Api\Error($e));
+			$e = Array("API-Error", "Not all required fields were sent. I missed: ".implode(",", $missingFields), 400, 1, false);
+			$this->errorHandler->add(new Api\Error($e));
 			return false;
 		}
 	}

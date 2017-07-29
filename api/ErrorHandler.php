@@ -58,41 +58,41 @@ Class ErrorHandler {
 	public static $Codes = Array(
 
 	// DB
-		20 => Array("code"=>20, "title"=>"Database Error", "msg"=>"An undefined database error occured.", 	"critical"=>self::CRITICAL_LOG),
-		21 => Array("code"=>21, "title"=>"Database Error", "msg"=>"Could not find requested resource.", 	"critical"=>self::CRITICAL_LOG),
-		22 => Array("code"=>22, "title"=>"Database Error", "msg"=>"Could not insert record.", 				"critical"=>self::CRITICAL_EMAIL),
-		23 => Array("code"=>23, "title"=>"Database Error", "msg"=>"Could not update record.", 				"critical"=>self::CRITICAL_EMAIL),
-		24 => Array("code"=>24, "title"=>"Database Error", "msg"=>"Could not delete record.", 				"critical"=>self::CRITICAL_EMAIL),
+		20 => Array("title"=>"Database Error", "msg"=>"An undefined database error occured.", "httpCode"=>500,	"critical"=>self::CRITICAL_LOG),
+		21 => Array("title"=>"Database Error", "msg"=>"Could not find requested resource.", "httpCode"=>404,	"critical"=>self::CRITICAL_LOG),
+		22 => Array("title"=>"Database Error", "msg"=>"Could not insert record.", "httpCode"=>400,				"critical"=>self::CRITICAL_EMAIL),
+		23 => Array("title"=>"Database Error", "msg"=>"Could not update record.", "httpCode"=>400,				"critical"=>self::CRITICAL_EMAIL),
+		24 => Array("title"=>"Database Error", "msg"=>"Could not delete record.", "httpCode"=>400,				"critical"=>self::CRITICAL_EMAIL),
 
 	// MODELS
-		30 => Array("code"=>30, "title"=>"Model Error", "msg"=>"This Model is not defined", 										"critical"=>self::CRITICAL_ALL),
-		33 => Array("code"=>33, "title"=>"Model Error", "msg"=>"Trying to sort an item, \nthat is not defined as sortable.", 				"critical"=>self::CRITICAL_EMAIL),
-		34 => Array("code"=>34, "title"=>"Model Error", "msg"=>"Trying to sort an item, \nbut that item is already first/last of group.", 	"critical"=>self::CRITICAL_EMAIL),
-		35 => Array("code"=>35, "title"=>"Model Error", "msg"=>"The Database Table for this Model does not exist", 							"critical"=>self::CRITICAL_ALL),
+		30 => Array("title"=>"Model Error", "msg"=>"This Model is not defined", "httpCode"=>400,										"critical"=>self::CRITICAL_ALL),
+		33 => Array("title"=>"Model Error", "msg"=>"Trying to sort an item, \nthat is not defined as sortable.", "httpCode"=>400,				"critical"=>self::CRITICAL_EMAIL),
+		34 => Array("title"=>"Model Error", "msg"=>"Trying to sort an item, \nbut that item is already first/last of group.", "httpCode"=>400,	"critical"=>self::CRITICAL_EMAIL),
+		35 => Array("title"=>"Model Error", "msg"=>"The Database Table for this Model does not exist", "httpCode"=>400,							"critical"=>self::CRITICAL_ALL),
 
 	// API
-		40 => Array("code"=>40, "title"=>"Invalid API request", "msg"=>"Invalid API request", 			"critical"=>self::CRITICAL_LOG),
-		41 => Array("code"=>41, "title"=>"Invalid post request", "msg"=>"Invalid post request", 		"critical"=>self::CRITICAL_LOG),
-		42 => Array("code"=>42, "title"=>"Invalid get request", "msg"=>"Invalid get request", 			"critical"=>self::CRITICAL_LOG),
-		43 => Array("code"=>43, "title"=>"Invalid put request", "msg"=>"Invalid put request", 			"critical"=>self::CRITICAL_LOG),
-		44 => Array("code"=>44, "title"=>"Invalid post/put request", "msg"=>"Not all required fields received", "critical"=>self::CRITICAL_LOG),
-		44 => Array("code"=>44, "title"=>"Invalid post/put request", "msg"=>"Recource id is missing", "critical"=>self::CRITICAL_LOG),
+		40 => Array("title"=>"Invalid API request", "msg"=>"Invalid API request", "httpCode"=>400, 			"critical"=>self::CRITICAL_LOG),
+		41 => Array("title"=>"Invalid post request", "msg"=>"Invalid post request", "httpCode"=>400, 		"critical"=>self::CRITICAL_LOG),
+		42 => Array("title"=>"Invalid get request", "msg"=>"Invalid get request", "httpCode"=>400, 			"critical"=>self::CRITICAL_LOG),
+		43 => Array("title"=>"Invalid put request", "msg"=>"Invalid put request", "httpCode"=>400, 			"critical"=>self::CRITICAL_LOG),
+		44 => Array("title"=>"Invalid post/put request", "msg"=>"Not all required fields received", "httpCode"=>400, "critical"=>self::CRITICAL_LOG),
+		44 => Array("title"=>"Invalid post/put request", "msg"=>"Recource id is missing", "httpCode"=>400, "critical"=>self::CRITICAL_LOG),
 
 	// LOG
-		50 => Array("code"=>50, "title"=>"Log Error", "msg"=>"No Log Config found", 	"critical"=>self::CRITICAL_EMAIL, "internal"=>true),
-		51 => Array("code"=>51, "title"=>"Log DB Error", "msg"=>"Log Table not found", 	"critical"=>self::CRITICAL_EMAIL, "internal"=>true),
+		50 => Array("title"=>"Log Error", "msg"=>"No Log Config found", "httpCode"=>500,	"critical"=>self::CRITICAL_EMAIL, "internal"=>true),
+		51 => Array("title"=>"Log DB Error", "msg"=>"Log Table not found", "httpCode"=>500, 	"critical"=>self::CRITICAL_EMAIL, "internal"=>true),
 
 
 	// Authorization
-		90 => Array("code"=>90, "title"=>"No AuthToken found", "msg"=>"Could not find a valid authorization token.", 	"critical"=>self::CRITICAL_LOG),
-		91 => Array("code"=>91, "title"=>"Authentication failed", "msg"=>"Could not authenticate user.", 				"critical"=>self::CRITICAL_LOG),
-		92 => Array("code"=>92, "title"=>"Incorrect Password", "msg"=>"Password is not correct.", 						"critical"=>self::CRITICAL_LOG),
-		93 => Array("code"=>93, "title"=>"Unknown User", "msg"=>"Could not find a user with these credentials.", 		"critical"=>self::CRITICAL_LOG),
+		90 => Array("title"=>"No AuthToken found", "msg"=>"Could not find a valid authorization token.", "httpCode"=>401,	"critical"=>self::CRITICAL_LOG),
+		91 => Array("title"=>"Authentication failed", "msg"=>"Could not authenticate user.", "httpCode"=>401,				"critical"=>self::CRITICAL_LOG),
+		92 => Array("title"=>"Incorrect Password", "msg"=>"Password is not correct.", "httpCode"=>401,						"critical"=>self::CRITICAL_LOG),
+		93 => Array("title"=>"Unknown User", "msg"=>"Could not find a user with these credentials.", "httpCode"=>401,		"critical"=>self::CRITICAL_LOG),
 
-		97 => Array("code"=>97, "title"=>"Not matching Passwords", "msg"=>"The passwords do not match.", 			"critical"=>0),
+		97 => Array("title"=>"Not matching Passwords", "msg"=>"The passwords do not match.", "httpCode"=>401,			"critical"=>0),
 
-		99 => Array("code"=>99, "title"=>"Internal Error", "msg"=>"Account not set", 	"critical"=>self::CRITICAL_ALL),
-		100 => Array("code"=>100, "title"=>"Custom", "msg"=>"Custom", "critical"=>self::CRITICAL_EMAIL),
+		99 => Array("title"=>"Internal Error", "msg"=>"Account not set", "httpCode"=>500, 	"critical"=>self::CRITICAL_ALL),
+		100 => Array("title"=>"Custom", "msg"=>"Custom", "httpCode"=>500, "critical"=>self::CRITICAL_EMAIL),
 	);
 
 
@@ -121,7 +121,7 @@ Class ErrorHandler {
 			$this->Errors[] = $e;
 
 		} else {
-			$this->add(Array("Error in Class Err:"," e is not an Instance of Error, nor an Integer, nor an Array.".var_export($e, true), 1));
+			$this->add(Array("Error in Class Err:"," e is not an Instance of Error, nor an Integer, nor an Array.".var_export($e, true), 500, 1));
 		}
 		// return all saved errors by defult, as a shortcut
 		return $this->get();
@@ -169,7 +169,8 @@ Class ErrorHandler {
 
 	public function sendApiErrors() {
 		$errors = $this->getPublic();
-		http_response_code(500);
+		// var_dump($errors);
+		http_response_code($errors[0]['httpCode']);
 		header("Content-Type: application/json");
 		echo '{"errors": '.json_encode($errors). '}';
 	}
@@ -199,7 +200,7 @@ Class ErrorHandler {
 }
 
 Class Error {
-	private $code;
+	private $httpCode;
 	private $title;
 	private $msg;
 	private $internal = false;
@@ -207,6 +208,7 @@ Class Error {
 	private $stackTrace;
 	Const DEFAULT_INTERNAL = false;
 	Const DEFAULT_CRITICAL = 0;
+	Const DEFAULT_CODE = 500;
 
 
 
@@ -214,22 +216,22 @@ Class Error {
 		if(is_integer($e)) {
 			$err = ErrorHandler::$Codes[$e];
 			// var_dump($err);
-			$this->code = $e;
+			$this->httpCode = $err['httpCode'];
 			$this->title = $err['title'];
 			$this->msg = $err['msg'];
 			$this->stackTrace = $info;
 			$this->critical = $err['critical'];
 		} elseif(is_array($e)) {
 			// if I get an Array, it's a custom error in format ['title', 'msg', [int] critical, [bool] internal]
-			$this->code = 100;
+			$this->httpCode = isset($e[2]) ? $e[2] : self::DEFAULT_CODE;
 			$this->title = $e[0];
 			$this->msg = $e[1];
-			$this->internal = isset($e[2]) ? $e[2] : self::DEFAULT_INTERNAL;
+			$this->internal = isset($e[3]) ? $e[3] : self::DEFAULT_INTERNAL;
 			$this->stackTrace = $info;
-			$this->critical = isset($e[3]) ? $e[3] : self::DEFAULT_CRITICAL;
+			$this->critical = isset($e[4]) ? $e[4] : self::DEFAULT_CRITICAL;
 		} elseif (is_string($e)) {
 			// if I get only ONE String, try to make the best out of it
-			$this->code = 100;
+			$this->httpCode = 500;
 			$this->title = "Custom Error";
 			$this->msg = $e;
 			$this->internal = true;
@@ -241,6 +243,7 @@ Class Error {
 		$a = Array(
 			"title"=> $this->title,
 			"msg"=> $this->msg,
+			"httpCode"=> $this->httpCode,
 
 			);
 		if($internal) {

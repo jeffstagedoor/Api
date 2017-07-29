@@ -17,16 +17,17 @@ Class Log {
 	private $logConfig;
 	private $readyToWrite = false;
 
-	public function __construct($db) {
-		global $ENV;
+	public function __construct($db, $ENV=null, $errorHandler=null) {
 		$this->db = $db;
+		$this->$ENV = $ENV;
+		$this->errorHandler=$errorHandler;
 
 		// require_once("../config.php");
 		
-		if(!isset($err)) { $err = new ErrorHandler(); }
+		if(!$this->errorHandler) { $this->errorHandler = new ErrorHandler(); }
 		if (!file_exists(__DIR__.DIRECTORY_SEPARATOR.$ENV->dirs->appRoot."LogConfig.php")) {
-			$err->add(new Error(ErrorHandler::LOG_NO_CONFIG));
-			$err->sendErrors();
+			$this->errorHandler->add(new Error(ErrorHandler::LOG_NO_CONFIG));
+			$this->errorHandler->sendErrors();
 			$readyToWrite = false;
 		} else {
 			require_once(__DIR__.DIRECTORY_SEPARATOR.$ENV->dirs->appRoot."LogConfig.php");
@@ -39,8 +40,8 @@ Class Log {
 			$this->readyToWrite=true;
 		} else {
 			$this->readyToWrite = false;
-			$err->add(new Error(ErrorHandler::LOG_NO_TABLE));
-			$err->sendErrors();
+			$this->errorHandler->add(new Error(ErrorHandler::LOG_NO_TABLE));
+			$this->errorHandler->sendErrors();
 		}
 	}
 

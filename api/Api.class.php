@@ -139,14 +139,15 @@ Class Api {
 					if(isset($items)) {
 						ApiHelper::postItems($this->request->model, $items, $this->request->model->modelNamePlural);
 					} else {
-						$this->errorHandler->add(21);
-						$this->errorHandler->sendApiErrors();
+						$this->errorHandler->throwOne($this->errorHandler::DB_NOT_FOUND);
+						exit;
 					}
 				}
 				break;
 			case 'POST':
 				require_once('ApiPost.class.php');
 				$ApiPost = new ApiPost($this->request, $this->data, $ENV, $this->db, $this->errorHandler);
+				$ApiPost->postItem();
 				break;
 			case 'PUT':
 				break;
