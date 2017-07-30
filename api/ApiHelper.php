@@ -205,8 +205,8 @@ Class ApiHelper {
 
 
 
-	public static function writeLog($itemName, $data, $action) {
-		global $ENV, $Account, $log;
+	public static function writeLog($itemName, $data, $action, $ENV, $Account, $log) {
+		
 		$logConfig = __DIR__.DIRECTORY_SEPARATOR.$ENV->dirs->appRoot."LogConfig.php";
 		if(file_exists($logConfig)) {
 			include($logConfig);

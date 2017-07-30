@@ -17,7 +17,7 @@ namespace Jeff\Api;
 require(__DIR__.DIRECTORY_SEPARATOR.$ENV->dirs->vendor.'joshcam/mysqli-database-class/MysqliDb.php');
 
 require("ErrorHandler.php");
-require("Log.php");
+
 require("DataMasker.php");
 require("ApiHelper.php");
 require("Model.php");
@@ -55,6 +55,7 @@ Class ApiInfo {
 
 Class Api {
 
+	private $ENV;
 	private $NOAUTH=false;
 	private $specialVerbs = Array('meta', 'login', 'signup', 'signin', 'task', 'sort', 'search', 'count', 'apiInfo', 'getFile', 'getImage','getFolder');
 	private $models;
@@ -70,11 +71,16 @@ Class Api {
 
 	
 	public function __construct($ENV=null) {
+		$this->ENV = $ENV;
+
 		// instatiate all nesseccary classes
 		$this->errorHandler = new ErrorHandler();
-		$this->db = new \MysqliDb($ENV->database);
-		$this->log = new Log($this->db);
-		$this->NOAUTH = isset($ENV->Api->noAuth) ? $ENV->Api->noAuth : false;
+		$this->db = new \MysqliDb($this->ENV->database);
+
+		require("Log.php"); // I somehow need to include it here, otherwise I won't get the scope of logConfig
+		$this->log = new Log($this->db, $this->ENV, $this->errorHandler);
+
+		$this->NOAUTH = isset($this->ENV->Api->noAuth) ? $this->ENV->Api->noAuth : false;
 		$this->Account = new Models\Account($this->db, $this->errorHandler);
 
 		// put together what was passed as parameters to this api:
@@ -84,7 +90,7 @@ Class Api {
 
 
 		// AUTHENTICATION
-		if($this->_needsAuthentication($ENV)) {
+		if($this->_needsAuthentication()) {
 			// check if and where we got an authToken
 			$headers = getallheaders();
 			if(isset($headers['Authorization'])) {
@@ -108,14 +114,14 @@ Class Api {
 				$this->Account->updateLastOnline();
 			}
 		} 
-		if($ENV->Api->noAuth) {
+		if($this->ENV->Api->noAuth) {
 			$this->Account->mockAccount();
 		}
 		# End Authentication
 
 
-		$this->models = $this->_getAllModels($ENV);
-		$this->request = $this->_getFullRequest($ENV);
+		$this->models = $this->_getAllModels();
+		$this->request = $this->_getFullRequest();
 
 		if($this->request->type===self::REQUEST_TYPE_INFO) {
 				echo ApiInfo::getApiInfo();
@@ -128,7 +134,7 @@ Class Api {
 				exit;
 			case 'GET':
 				require_once('ApiGet.class.php');
-				$ApiGet = new ApiGet($this->request, $this->data, $ENV, $this->db, $this->errorHandler);
+				$ApiGet = new ApiGet($this->request, $this->data, $this->ENV, $this->db, $this->errorHandler);
 				if($this->request->type===self::REQUEST_TYPE_SPECIAL) {
 					$response = $ApiGet->getSpecial();
 					if($response) {
@@ -139,21 +145,22 @@ Class Api {
 					if(isset($items)) {
 						ApiHelper::postItems($this->request->model, $items, $this->request->model->modelNamePlural);
 					} else {
-						$this->errorHandler->throwOne($this->errorHandler::DB_NOT_FOUND);
+						$this->errorHandler->throwOne(ErrorHandler::DB_NOT_FOUND);
 						exit;
 					}
 				}
 				break;
 			case 'POST':
 				require_once('ApiPost.class.php');
-				$ApiPost = new ApiPost($this->request, $this->data, $ENV, $this->db, $this->errorHandler);
-				$ApiPost->postItem();
+				$ApiPost = new ApiPost($this->request, $this->data, $this->ENV, $this->db, $this->errorHandler, $this->Account, $this->log);
+				$items = $ApiPost->postItem();
+				ApiHelper::postItems($this->request->model, $items, $this->request->model->modelNamePlural);
 				break;
 			case 'PUT':
 				break;
 			case 'DELETE':
 				require_once('ApiDelete.class.php');
-				$ApiDelete = new ApiDelete($this->request, $this->data, $ENV, $this->db, $this->errorHandler);
+				$ApiDelete = new ApiDelete($this->request, $this->data, $this->ENV, $this->db, $this->errorHandler, $this->Account, $this->log);
 				$items = $ApiDelete->deleteItem();
 				if($items) {
 					ApiHelper::postItems($this->request->model, $items, $this->request->model->modelNamePlural);
@@ -170,7 +177,7 @@ Class Api {
 	*	@param [object] environment configuration
 	*	@return [object] which has a type, a model, an id
 	**/
-	private function _getFullRequest($ENV) {
+	private function _getFullRequest() {
 		$request = new \stdClass();
 		$request->type = $this->_determineRequestType();
 
@@ -190,7 +197,7 @@ Class Api {
 		}
 		if($request->type === self::REQUEST_TYPE_NORMAL || $request->type === self::REQUEST_TYPE_QUERY) {
 			$modelName = $this->requestArray[0];
-			$model = $this->_getModel($modelName,$ENV);
+			$model = $this->_getModel($modelName);
 			$request->model = $model;
 			if (isset($this->requestArray[1]) && is_numeric($this->requestArray[1])) {
 				$request->id = $this->requestArray[1];
@@ -245,7 +252,7 @@ Class Api {
 	*	@param [object] environment configuration
 	*	@return [array of models]
 	**/
-	private function _getModel($modelName, $ENV) {
+	private function _getModel($modelName) {
 		if($this->models) {
 			// if we already scanned the directory (which we should have done already), we can simply check if it's in there and return true
 			if(isset($this->models[$modelName])) {
@@ -261,10 +268,9 @@ Class Api {
 			}
 		}
 
-		$modelFile = dirname(__FILE__).DIRECTORY_SEPARATOR.$ENV->dirs->models . ucfirst($modelName) . ".php";
+		$modelFile = dirname(__FILE__).DIRECTORY_SEPARATOR.$this->ENV->dirs->models . ucfirst($modelName) . ".php";
 		if (!file_exists($modelFile)) {
-			
-			$this->errorHandler->throwOne(Array("Api Error", "Requested recource '{$modelName}' not found/defined.", $this->errorHandler::CRITICAL_EMAIL));
+			$this->errorHandler->throwOne(Array("Api Error", "Requested recource '{$modelName}' not found/defined.", 400, false, ErrorHandler::CRITICAL_EMAIL));
 			exit;
 		} else {
 			include_once($modelFile);
@@ -284,9 +290,9 @@ Class Api {
 	*	@param [object] environment configuration
 	*	@return [array of models]
 	**/
-	private function _getAllModels($ENV) {
+	private function _getAllModels() {
 		$models = Array();
-		$folder = dirname(__FILE__).DIRECTORY_SEPARATOR.$ENV->dirs->models;
+		$folder = dirname(__FILE__).DIRECTORY_SEPARATOR.$this->ENV->dirs->models;
 		$files = array_diff(scandir($folder), array('.', '..'));
 		foreach ($files as $fileName) {
 			include_once($folder.DIRECTORY_SEPARATOR.$fileName);
@@ -305,20 +311,20 @@ Class Api {
 	*	@param [array] the uri request, [object] environment configuration
 	*	@return [bool]
 	**/
-	private function _needsAuthentication($ENV) {
+	private function _needsAuthentication() {
 		// in Config we can defaine a set of routes (=the request string 'posts', 'login', 'task/redirect')
 		// which will be accessable without authentication.
 		// This is especially needed for singup, login, special tasks.
 
-		if(isset($ENV->Api->noAuthRoutes) && is_array($ENV->Api->noAuthRoutes)) {
+		if(isset($this->ENV->Api->noAuthRoutes) && is_array($this->ENV->Api->noAuthRoutes)) {
 			$requestRoute = implode('/', $this->requestArray);
-			foreach ($ENV->Api->noAuthRoutes as $key => $route) {
+			foreach ($this->ENV->Api->noAuthRoutes as $key => $route) {
 				if($route===$requestRoute) {
 					return false;
 				}
 			}
 		}
-		if($ENV->Api->noAuth) { 
+		if($this->ENV->Api->noAuth) { 
 			return false;
 		}
 		return true;
@@ -332,8 +338,8 @@ Class Api {
 	*	@param [object] environment configuration
 	*	@return [void]
 	**/
-	private function _sendPrimaryHeaders($ENV) {
-		header("Access-Control-Allow-Origin: ".$ENV->urls->allowOrigin);
+	private function _sendPrimaryHeaders() {
+		header("Access-Control-Allow-Origin: ".$this->ENV->urls->allowOrigin);
 		header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 		header("Access-Control-Allow-Headers: Origin, Content-Type, Authorization, X-Custom-Auth");	
 	}

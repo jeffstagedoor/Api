@@ -4,16 +4,36 @@
 		"selected_items":
 		[
 			[
-				"break",
-				"break"
+				"error",
+				"errorHandler"
+			],
+			[
+				"throw",
+				"throwOne"
 			],
 			[
 				"Api",
-				"ApiTest"
+				"ApiPost"
 			],
 			[
-				"error",
-				"errorHandler"
+				"req",
+				"requestedFolder"
+			],
+			[
+				"print",
+				"print_r"
+			],
+			[
+				"ti",
+				"this"
+			],
+			[
+				"is",
+				"isset"
+			],
+			[
+				"break",
+				"break"
 			],
 			[
 				"REQU",
@@ -380,10 +400,6 @@
 				"property"
 			],
 			[
-				"is",
-				"isEditingUser2Prod"
-			],
-			[
 				"array_p",
 				"array_push"
 			],
@@ -504,10 +520,10 @@
 	"buffers":
 	[
 		{
-			"file": "api/Authorizor.php",
+			"file": "api/Api.class.php",
 			"settings":
 			{
-				"buffer_size": 3901,
+				"buffer_size": 10456,
 				"line_ending": "Windows"
 			}
 		},
@@ -515,7 +531,15 @@
 			"file": "api/ApiGet.class.php",
 			"settings":
 			{
-				"buffer_size": 2269,
+				"buffer_size": 5695,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "api/Model.php",
+			"settings":
+			{
+				"buffer_size": 29139,
 				"line_ending": "Windows"
 			}
 		}
@@ -580,28 +604,31 @@
 	},
 	"file_history":
 	[
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Log.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/ErrorHandler.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/ApiHelper.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Model.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/restPost.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/ApiPost.class.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/api.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/restDelete.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/APIDelete.class.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/config.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/models/Posts.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/ApiGet.class.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/restGet.php",
+		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Authorizor.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/api/db_update.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Api.class.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/models/Comments.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/models/Posts.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Model.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Account.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Names.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Log.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/index.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/restPost.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/_RestGET.class.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/restGet.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/ApiHelper.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/ErrorHandler.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/customTasks.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/LogConfig.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/api.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Validate.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/config.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/DBHelper.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/restDelete.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/restPut.php",
 		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/.htaccess",
 		"/C/Users/Jeff/GoogleDrive/www/finances/php/api/db_update.php",
@@ -704,10 +731,7 @@
 		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/php/classes/models/Account.php",
 		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/php/auth/pwdhash.php",
 		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/pods/components/ui/form-datepicker/template.hbs",
-		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/transforms/moment.js",
-		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/pods/components/ui/form-datetimepicker/template.hbs",
-		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/pods/components/ui/form-datetimepicker/component.js",
-		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/pods/components/page-layout/block-block/template.hbs"
+		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/transforms/moment.js"
 	],
 	"find":
 	{
@@ -727,6 +751,34 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"$ENV",
+			"$err",
+			"->add(",
+			"errorHandler->add",
+			"Not all required fields were sent",
+			"code",
+			"Code",
+			"code",
+			"CODE",
+			"code",
+			"Code",
+			"CODE",
+			"code",
+			"CODE",
+			"code",
+			"Code",
+			"CODE",
+			"code",
+			"\"code\"=>",
+			"$model",
+			"Delete",
+			"$model",
+			"getimage",
+			"getfile",
+			"apiinfo",
+			"models",
+			"err",
+			"trowone",
 			"protected",
 			"public",
 			"protected",
@@ -826,35 +878,7 @@
 			"			$",
 			"modBy",
 			"myStagedoor",
-			"Simple-line",
-			".si",
-			".si ",
-			".si",
-			"sidebar",
-			"cellContentName",
-			"CellContent",
-			".jeff-table",
-			"#jeff",
-			"jeff-table",
-			"jeff",
-			"Row",
-			"cellpos",
-			"scantable",
-			"scantabble",
-			"Email",
-			"Ember.$(e.currentTarget)",
-			"myDropdown",
-			"Dwop",
-			"position",
-			"2",
-			"column",
-			"{{data-grid}}",
-			"tooltip",
-			"slim",
-			"tooltip",
-			"modal",
-			"body",
-			"#page-container"
+			"Simple-line"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -881,23 +905,22 @@
 	"groups":
 	[
 		{
-			"selected": 1,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "api/Authorizor.php",
+					"file": "api/Api.class.php",
 					"settings":
 					{
-						"buffer_size": 3901,
+						"buffer_size": 10456,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1318,
-								1318
+								0,
+								0
 							]
 						],
 						"settings":
@@ -906,7 +929,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 2378.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -916,15 +939,15 @@
 					"file": "api/ApiGet.class.php",
 					"settings":
 					{
-						"buffer_size": 2269,
+						"buffer_size": 5695,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								516,
-								515
+								5695,
+								5695
 							]
 						],
 						"settings":
@@ -933,7 +956,34 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 342.0,
+						"translation.y": 2825.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "api/Model.php",
+					"settings":
+					{
+						"buffer_size": 29139,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								14941,
+								14941
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/PHP/PHP.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 9046.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"

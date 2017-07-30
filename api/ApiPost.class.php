@@ -24,14 +24,18 @@ Class ApiPost
 	private $ENV;
 	private $items;
 
-	function __construct($request, $data, $ENV, $db, $errorHandler, $Account=NULL) {
-		// global $ENV;
+	function __construct($request, $data, $ENV, $db, $errorHandler, $Account, $log=NULL) {
 		$this->request = $request;
 		$this->data = $data;
 		$this->ENV = $ENV;
 		$this->db = $db;
 		$this->errorHandler = $errorHandler;
 		$this->Account = $Account;
+		if($log===NULL) {
+			require_once("Log.php");
+			$log = new Log($this->db, $this->ENV, $this->errorHandler);
+		}
+		$this->log = $log;
 	}
 
 	public function postItem() {
@@ -61,15 +65,14 @@ Class ApiPost
 					$dataSet = (isset($this->data->{$this->request->model->modelName})) ? $this->data->{$this->request->model->modelName} : $this->data;
 
 					$id = $this->request->model->add($dataSet);
+
 					if($this->errorHandler->hasErrors()) {
 						$this->errorHandler->sendApiErrors();
-						exit;
+						$this->errorHandler->sendErrors();
 					}
 					$this->item = $this->request->model->getOneById($id);
 					$this->data->{$this->request->model->modelName}['id'] = $id;
-					
-					ApiHelper::writeLog($this->request->model->modelName, $this->data, 'create');
-
+					$this->log->write($this->Account->id, 'create', $this->request->model->modelName, $this->data);
 					$this->items = $this->request->model->getAll();
 				}	
 				break;

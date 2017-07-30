@@ -14,6 +14,7 @@ namespace Jeff\Api;
 
 
 Class ErrorHandler {
+	public $testVal = "original from class";
 	
 	Const DB_ERROR = 					20;
 	Const DB_NOT_FOUND = 				21;
@@ -129,7 +130,7 @@ Class ErrorHandler {
 
 
 	/**
-	*	throw
+	*	throwOne
 	*	adds an Error to the error array and sends the errors to client and log (and email if spezified)
 	*	@param [int] error code, [array] title and msg for custom errors
 	*	@return [array] all errors
@@ -154,7 +155,11 @@ Class ErrorHandler {
 	public function getPublic() {
 		$arr = Array();
 		foreach ($this->Errors as $key => $error) {
-			$arr[] = $error->toArray();
+			if($error->isPublic()) {
+			#	echo "isPublic:";
+			#	var_dump($error);
+				$arr[] = $error->toArray();
+			}
 		}
 		return $arr;
 	}
@@ -169,10 +174,12 @@ Class ErrorHandler {
 
 	public function sendApiErrors() {
 		$errors = $this->getPublic();
-		// var_dump($errors);
-		http_response_code($errors[0]['httpCode']);
-		header("Content-Type: application/json");
-		echo '{"errors": '.json_encode($errors). '}';
+		if(count($errors)) {
+			// var_dump($errors);
+			http_response_code($errors[0]['httpCode']);
+			header("Content-Type: application/json");
+			echo '{"errors": '.json_encode($errors). '}';
+		}
 	}
 
 	public function sendErrors() {
@@ -221,8 +228,9 @@ Class Error {
 			$this->msg = $err['msg'];
 			$this->stackTrace = $info;
 			$this->critical = $err['critical'];
+			$this->internal = isset($err['internal']) ? $err['internal'] : false;
 		} elseif(is_array($e)) {
-			// if I get an Array, it's a custom error in format ['title', 'msg', [int] critical, [bool] internal]
+			// if I get an Array, it's a custom error in format ['title', 'msg', [bool] internal, [int] critical]
 			$this->httpCode = isset($e[2]) ? $e[2] : self::DEFAULT_CODE;
 			$this->title = $e[0];
 			$this->msg = $e[1];
@@ -254,5 +262,13 @@ Class Error {
 		}
 
 		return $a;
+	}
+
+	public function isPublic() {
+		if($this->internal) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 }

@@ -304,8 +304,7 @@ Class Model {
 			$items = $this->_getHasMany($items);
 			return $items;
 		} else {
-			$err->add(42);
-			$this->errors[] = "API-Error: getCoalesce without sending coalesceIds";
+			$this->errorHandler->throwOne(ErrorHadler::API_INVALID_GET_REQUEST);
 			return false;
 		}
 	}
@@ -316,13 +315,19 @@ Class Model {
 	*/
 	private function _getResultFromDb() {
 		global $err;
+		$tableResult = $this->db->rawQuery("SHOW FULL TABLES LIKE '".$this->dbTable."'");
+		if(!(count($tableResult)>0)) {
+			$this->errorHandler->throwOne(Array("Database Error", "Table '{$this->dbTable}' does not exist.",500, true));
+			$this->errorHandler->throwOne(20);
+			exit;
+		}
 		$result = Array();
 		try {
 			$result = $this->db->get($this->dbTable, null, $this->cols);
 		} 
 		catch (Exception $e) {
-			$err->add(20);
-			$this->errors[] = "Database-Error: " .$this->db->getLastError();
+			$this->errorHandler->throwOne(Array("Database Error", $this->db->getLastError(),500, true));
+			$this->errorHandler->throwOne(20);
 		}
 		return $result;
 	}
@@ -496,22 +501,24 @@ Class Model {
 	public function count($delimiters=null) 
 	{
 		if(is_object($delimiters)) {
+
 			foreach ($delimiters as $key => $value) {
 				if(!in_array($this->dbTable.".".$key." ".$key, $this->cols)) {
-					$this->errorHandler->throwOne(Array("API-Error", "Counting with delimiter '$key', which doesn't exist in model '$this->modelName'. Please consult readme to find needed format."));
+					$this->errorHandler->throwOne(Array("API-Error", "Counting with delimiter '$key', which doesn't exist in model '$this->modelName'. Please consult readme to find needed format.", 400));
 					exit;
 				}
 				$this->db->where($key, $value);
 			}
-		} elseif(is_array($delimiters)) {
-			for ($i=0; $i < count($delimiters); $i++) { 
-				if(!in_array($this->dbTable.".".$key." ".$key, $this->cols)) {
-					$this->errorHandler->throwOne(Array("API-Error", "Counting with delimiter '$key', which doesn't exist in model '$this->modelName'. Please consult readme to find needed format."));
-					exit;
-				}
-				$this->db->where($delimiters[$i]['key'], $delimiters[$i]['value']);
-			}
-		}
+		} 
+		// elseif(is_array($delimiters)) {
+		// 	for ($i=0; $i < count($delimiters); $i++) { 
+		// 		if(!in_array($this->dbTable.".".$delimiter[$i]->key." ".$delimiter[$i]->key, $this->cols)) {
+		// 			$this->errorHandler->throwOne(Array("API-Error", "Counting with delimiter '$key', which doesn't exist in model '$this->modelName'. Please consult readme to find needed format.", 400));
+		// 			exit;
+		// 		}
+		// 		$this->db->where($delimiters[$i]->, $delimiters[$i]['value']);
+		// 	}
+		// }
 		$count = $this->db->getValue($this->dbTable, "count(*)");
 		return $count;
 	}
@@ -527,7 +534,6 @@ Class Model {
 	*/
 	public function add($data) 
 	{
-		global $err;
 
 		// call the hook beforeAdd if existing:
 		if(method_exists($this, 'beforeAdd')) {
@@ -558,22 +564,21 @@ Class Model {
 		foreach ($this->hasMany as $hmf) {
 			unset($data[$hmf['name']]);
 		}
-
+		$this->errorHandler->testVal = "set in Model->add()";
 		// check if we have all data we need:
 		$required = Api\ApiHelper::getRequiredFields($this->dbDefinition);
 		$missingFields = Api\ApiHelper::checkRequiredFieldsSet($required, $data);
-		// print_r($missingFields);
 		if(count($missingFields)===0) {
 			// the actual insert into database:
 			$id = $this->db->insert($this->dbTable, $data);
 			if($this->db->getLastError()>'') { 
-				$err->add(new Api\Error($err::DB_INSERT, $this->db->getLastError()));
+				$this->errorHandler->add(new Api\Error($err::DB_INSERT, $this->db->getLastError()));
 				return false;
 			}
 			$this->lastInsertedID = $id;
 			return $id;
 		} else {
-			$e = Array("API-Error", "Not all required fields were sent. I missed: ".implode(",", $missingFields), 400, 1, false);
+			$e = Array("API-Error", "Not all required fields were sent. I missed: ".implode(",", $missingFields), 400, false, Api\ErrorHandler::CRITICAL_EMAIL);
 			$this->errorHandler->add(new Api\Error($e));
 			return false;
 		}

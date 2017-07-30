@@ -1,6 +1,6 @@
 <?php
 /**
-*	Class RestPost
+*	OLD DEPRECATED, REMOVED "Class" RestPost
 *	
 *	@author Jeff Frohner
 *	@copyright Copyright (c) 2015

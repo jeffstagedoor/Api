@@ -16,21 +16,22 @@ Class Log {
 	private $db = NULL;
 	private $logConfig;
 	private $readyToWrite = false;
+	private $ENV = NULL;
+	private $errorHandler = NULL;
 
-	public function __construct($db, $ENV=null, $errorHandler=null) {
+	public function __construct($db, $ENV=NULL, $errorHandler=NULL) {
 		$this->db = $db;
-		$this->$ENV = $ENV;
+		$this->ENV = $ENV;
 		$this->errorHandler=$errorHandler;
 
-		// require_once("../config.php");
 		
 		if(!$this->errorHandler) { $this->errorHandler = new ErrorHandler(); }
-		if (!file_exists(__DIR__.DIRECTORY_SEPARATOR.$ENV->dirs->appRoot."LogConfig.php")) {
+		if (!file_exists(__DIR__.DIRECTORY_SEPARATOR.$this->ENV->dirs->appRoot."LogConfig.php")) {
 			$this->errorHandler->add(new Error(ErrorHandler::LOG_NO_CONFIG));
 			$this->errorHandler->sendErrors();
 			$readyToWrite = false;
 		} else {
-			require_once(__DIR__.DIRECTORY_SEPARATOR.$ENV->dirs->appRoot."LogConfig.php");
+			include_once(__DIR__.DIRECTORY_SEPARATOR.$this->ENV->dirs->appRoot."LogConfig.php");
 			$this->logConfig = $logConfig;
 			$readyToWrite = true;
 		}
@@ -235,16 +236,16 @@ Class LogHelper {
 		if($geoInfo) {
 			if(isset($geoInfo->loc)) {
 				$longlat = explode(",",$geoInfo->loc);
-				$d['long'] = $longlat[0];
-				$d['lat'] = $longlat[1];
+				$g['long'] = $longlat[0];
+				$g['lat'] = $longlat[1];
 			}
-			$d['geoCity'] = isset($geoInfo->city) ? $geoInfo->city : "";
-			$d['geoRegion'] =  isset($geoInfo->region) ? $geoInfo->region : "";
-			$d['geoCountry'] =  isset($geoInfo->country) ? $geoInfo->country : "";
-			$d['geoOrg'] =  isset($geoInfo->org) ? $geoInfo->org : "";
-			$d['geoPostal'] =  isset($geoInfo->postal) ? $geoInfo->postal : "";
+			$g['geoCity'] = isset($geoInfo->city) ? $geoInfo->city : "";
+			$g['geoRegion'] =  isset($geoInfo->region) ? $geoInfo->region : "";
+			$g['geoCountry'] =  isset($geoInfo->country) ? $geoInfo->country : "";
+			$g['geoOrg'] =  isset($geoInfo->org) ? $geoInfo->org : "";
+			$g['geoPostal'] =  isset($geoInfo->postal) ? $geoInfo->postal : "";
 		}
-		return $d;
+		return $g;
 	}
 }
 

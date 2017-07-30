@@ -517,3 +517,240 @@
 29.07.2017 03:36:28: Log DB Error - Log Table not found 
      ::1 , , , , 
 
+29.07.2017 03:53:38: Log Error - No Log Config found 
+     ::1 , , , , 
+
+29.07.2017 03:54:16: Log Error - No Log Config found 
+     ::1 , , , , 
+
+29.07.2017 03:55:05: Log Error - No Log Config found 
+     ::1 , , , , 
+
+29.07.2017 03:55:43: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 03:59:54: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 04:01:42: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 04:03:16: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 04:04:03: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 04:09:39: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 04:10:59: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 04:11:06: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 04:11:07: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 04:11:42: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 04:12:41: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 04:12:52: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 04:13:00: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+29.07.2017 04:13:03: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 04:13:09: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 04:13:25: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 13:58:24: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+29.07.2017 14:04:49: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+29.07.2017 14:04:49: Api Error - Requested recource 'nixda' not found/defined. 
+     127.0.0.1 , , , , 
+
+29.07.2017 16:18:42: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+29.07.2017 16:18:43: Api Error - Requested recource 'nixda' not found/defined. 
+     127.0.0.1 , , , , 
+
+29.07.2017 16:22:39: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+29.07.2017 16:22:39: Api Error - Requested recource 'nixda' not found/defined. 
+     127.0.0.1 , , , , 
+
+29.07.2017 16:23:21: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+29.07.2017 16:23:21: Api Error - Requested recource 'nixda' not found/defined. 
+     127.0.0.1 , , , , 
+
+29.07.2017 16:24:26: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+29.07.2017 16:24:26: Api Error - Requested recource 'nixda' not found/defined. 
+     127.0.0.1 , , , , 
+
+29.07.2017 16:24:49: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+29.07.2017 16:24:50: Api Error - Requested recource 'nixda' not found/defined. 
+     127.0.0.1 , , , , 
+
+29.07.2017 16:27:25: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+29.07.2017 16:27:25: Api Error - Requested recource 'nixda' not found/defined. 
+     127.0.0.1 , , , , 
+
+29.07.2017 16:29:04: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+29.07.2017 16:29:05: Api Error - Requested recource 'nixda' not found/defined. 
+     127.0.0.1 , , , , 
+
+29.07.2017 16:29:27: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+29.07.2017 16:29:27: Api Error - Requested recource 'nixda' not found/defined. 
+     127.0.0.1 , , , , 
+
+29.07.2017 16:34:58: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+29.07.2017 16:34:58: Api Error - Requested recource 'nixda' not found/defined. 
+     127.0.0.1 , , , , 
+
+29.07.2017 16:35:05: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+29.07.2017 16:35:24: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+29.07.2017 17:47:11: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+29.07.2017 17:47:16: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+29.07.2017 17:47:16: Api Error - Requested recource 'wert' not found/defined. 
+     127.0.0.1 , , , , 
+
+29.07.2017 17:58:58: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+29.07.2017 23:21:04: Log DB Error - Log Table not found 
+     127.0.0.1 , , , , 
+
+29.07.2017 23:21:06: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 23:21:14: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 23:21:14: API-Error - Counting with delimiter 'post', which doesn't exist in model 'post'. Please consult readme to find needed format. 
+     ::1 , , , , 
+
+29.07.2017 23:24:41: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 23:24:41: API-Error - Counting with delimiter 'post', which doesn't exist in model 'post'. Please consult readme to find needed format. 
+     ::1 , , , , 
+
+29.07.2017 23:26:23: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 23:26:23: API-Error - Counting with delimiter 'post', which doesn't exist in model 'post'. Please consult readme to find needed format. 
+     ::1 , , , , 
+
+29.07.2017 23:26:25: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 23:26:26: API-Error - Counting with delimiter 'post', which doesn't exist in model 'post'. Please consult readme to find needed format. 
+     ::1 , , , , 
+
+29.07.2017 23:26:38: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 23:26:38: API-Error - Counting with delimiter 'post', which doesn't exist in model 'post'. Please consult readme to find needed format. 
+     ::1 , , , , 
+
+29.07.2017 23:30:36: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 23:30:36: API-Error - Counting with delimiter 'post', which doesn't exist in model 'post'. Please consult readme to find needed format. 
+     ::1 , , , , 
+
+29.07.2017 23:30:40: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 23:30:41: API-Error - Counting with delimiter 'posts', which doesn't exist in model 'post'. Please consult readme to find needed format. 
+     ::1 , , , , 
+
+29.07.2017 23:31:22: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 23:31:28: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 23:31:50: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 23:31:55: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 23:32:46: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 23:32:51: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 23:32:57: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 23:32:57: API-Error - Counting with delimiter 'delimiter', which doesn't exist in model 'post'. Please consult readme to find needed format. 
+     ::1 , , , , 
+
+29.07.2017 23:33:34: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 23:33:49: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 23:33:54: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 23:34:02: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 23:34:05: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 23:34:06: Database Error - Could not find requested resource. 
+     ::1 , , , , 
+
+29.07.2017 23:41:12: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 23:41:20: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+29.07.2017 23:41:29: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
