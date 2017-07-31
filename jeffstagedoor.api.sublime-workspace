@@ -4,164 +4,60 @@
 		"selected_items":
 		[
 			[
+				"model",
+				"modelName"
+			],
+			[
+				"log",
+				"logConfig"
+			],
+			[
+				"ERROR",
+				"ErrorHandler"
+			],
+			[
+				"thr",
+				"throwOne"
+			],
+			[
 				"error",
 				"errorHandler"
 			],
 			[
-				"throw",
-				"throwOne"
-			],
-			[
-				"Api",
-				"ApiPost"
-			],
-			[
-				"req",
-				"requestedFolder"
-			],
-			[
-				"print",
-				"print_r"
-			],
-			[
-				"ti",
-				"this"
-			],
-			[
-				"is",
-				"isset"
-			],
-			[
-				"break",
-				"break"
-			],
-			[
-				"REQU",
-				"REQUEST_TYPE_COALESQUE"
-			],
-			[
 				"RE",
+				"REQUEST_TYPE_SPECIAL"
+			],
+			[
+				"REQUST",
 				"REQUEST_TYPE_NORMAL"
-			],
-			[
-				"REQ",
-				"REQUEST_TYPE_REFERENCE"
-			],
-			[
-				"send",
-				"sendErrors"
-			],
-			[
-				"is_nu",
-				"is_numeric"
-			],
-			[
-				"request",
-				"requestArray"
-			],
-			[
-				"Env",
-				"ENV"
-			],
-			[
-				"file",
-				"fileName"
-			],
-			[
-				"log",
-				"logPath"
-			],
-			[
-				"array",
-				"array_merge"
-			],
-			[
-				"getGeo",
-				"getGeoInfoArray"
-			],
-			[
-				"Er",
-				"Error"
-			],
-			[
-				"CRITICAL",
-				"CRITICAL_ALL"
-			],
-			[
-				"CRITICA_",
-				"CRITICAL_EMAIL"
-			],
-			[
-				"CRITICAL_",
-				"CRITICAL_LOG"
-			],
-			[
-				"DEFAULT_",
-				"DEFAULT_CRITICAL"
-			],
-			[
-				"DEFAULT",
-				"DEFAULT_INTERNAL"
 			],
 			[
 				"Error",
 				"ErrorHandler"
 			],
 			[
-				"var",
-				"var_dump"
+				"special",
+				"specialVerbs"
 			],
 			[
-				"all",
-				"allThere"
+				"noAuth",
+				"noAuth"
 			],
 			[
-				"data",
-				"dataString"
+				"request",
+				"requestRoute"
 			],
 			[
-				"par",
-				"parse"
+				"Authen",
+				"authentication"
 			],
 			[
-				"null",
-				"NULL"
+				"Api",
+				"ApiHelper"
 			],
 			[
-				"db",
-				"dbDefinition"
-			],
-			[
-				"response",
-				"responseJson"
-			],
-			[
-				"model",
-				"modelFile"
-			],
-			[
-				"class",
-				"className"
-			],
-			[
-				"respon",
-				"responseText"
-			],
-			[
-				"jq",
-				"jqXHR"
-			],
-			[
-				"text",
-				"textStatus"
-			],
-			[
-				"http",
-				"httpMethod"
-			],
-			[
-				"json",
-				"json_decode"
+				"table",
+				"tableExists"
 			],
 			[
 				"delete",
@@ -236,10 +132,6 @@
 				"offsetTop"
 			],
 			[
-				"table",
-				"tableColumns"
-			],
-			[
 				"cell",
 				"cellName"
 			],
@@ -290,6 +182,10 @@
 			[
 				"background-",
 				"background-color"
+			],
+			[
+				"send",
+				"sendKeyDown"
 			],
 			[
 				"font-",
@@ -398,6 +294,10 @@
 			[
 				"pro",
 				"property"
+			],
+			[
+				"is",
+				"isEditingUser2Prod"
 			],
 			[
 				"array_p",
@@ -519,30 +419,6 @@
 	},
 	"buffers":
 	[
-		{
-			"file": "api/Api.class.php",
-			"settings":
-			{
-				"buffer_size": 10456,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "api/ApiGet.class.php",
-			"settings":
-			{
-				"buffer_size": 5695,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "api/Model.php",
-			"settings":
-			{
-				"buffer_size": 29139,
-				"line_ending": "Windows"
-			}
-		}
 	],
 	"build_system": "",
 	"command_palette":
@@ -587,7 +463,7 @@
 				"Preferences: Browse Packages"
 			]
 		],
-		"width": 512.0
+		"width": 416.0
 	},
 	"console":
 	{
@@ -604,41 +480,31 @@
 	},
 	"file_history":
 	[
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Log.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/ErrorHandler.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/ApiHelper.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Model.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/restPost.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/ApiPost.class.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/api.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/restDelete.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/APIDelete.class.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/config.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/models/Posts.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/ApiGet.class.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/restGet.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Authorizor.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/api/db_update.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Api.class.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/models/Comments.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Account.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Names.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/index.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/_RestGET.class.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/customTasks.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/LogConfig.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/Validate.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/DBHelper.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/api/restPut.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/.htaccess",
-		"/C/Users/Jeff/GoogleDrive/www/finances/php/api/db_update.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/DISABLED.htaccess",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/jeffstagedoor.api.sublime-project",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/dummy/api/api.php",
-		"/C/Users/Jeff/GoogleDrive/www/jeffstagedoor/php/Api/.gitignore",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api/Api.class.php",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api/ApiGet.class.php",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api/Model.php",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api/ApiPost.class.php",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api/Log.php",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api/_restPost.php",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/dummy/LogConfig.php",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/dummy/api/api.php",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api/varScope.php",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api/ApiHelper.php",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api/ErrorHandler.php",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api/_RestGET.class.php",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/dummy/api/db_update.php",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api/RestGET.class.php",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api/restGet.php",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/dummy/config.php",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api/api.php",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api/restPost.php",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/dummy/index.php",
+		"/C/Users/jefff/AppData/Roaming/HandBrake/presets.json",
+		"/C/Users/jefff/AppData/Local/GitHub/cache.db",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/dummy/Constants.php",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/composer.json",
 		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/.gitignore",
 		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/README.md",
-		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/composer.json",
 		"/C/Users/jefff/Google Drive/www/bandsched/online/date_adder.php",
 		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/LICENSE.txt",
 		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/pods/news/controller.js",
@@ -731,7 +597,17 @@
 		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/php/classes/models/Account.php",
 		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/php/auth/pwdhash.php",
 		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/pods/components/ui/form-datepicker/template.hbs",
-		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/transforms/moment.js"
+		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/transforms/moment.js",
+		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/pods/components/ui/form-datetimepicker/template.hbs",
+		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/pods/components/ui/form-datetimepicker/component.js",
+		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/pods/components/page-layout/block-block/template.hbs",
+		"/C/Users/jefff/Google Drive/www/jefffrohner.com/admin/app/pods/components/page-layout/block-block/component.js",
+		"/C/Users/jefff/Google Drive/www/jefffrohner.com/doc/db/news_backup.sql",
+		"/C/Users/jefff/Google Drive/www/jefffrohner.com/online/work.php",
+		"/C/Users/jefff/Google Drive/www/jefffrohner.com/online/gallery.php",
+		"/C/Users/jefff/Google Drive/www/jefffrohner.com/online/soundfiles.php",
+		"/C/Users/Jeff/GoogleDrive/www/jefffrohner.com/admin/app/initializers/component-router-injector.js",
+		"/C/Users/Jeff/GoogleDrive/www/jefffrohner.com/admin/app/pods/components/page-layout/side-bar/component.js"
 	],
 	"find":
 	{
@@ -752,65 +628,16 @@
 		"find_history":
 		[
 			"$ENV",
-			"$err",
-			"->add(",
-			"errorHandler->add",
-			"Not all required fields were sent",
-			"code",
-			"Code",
-			"code",
-			"CODE",
-			"code",
-			"Code",
-			"CODE",
-			"code",
-			"CODE",
-			"code",
-			"Code",
-			"CODE",
-			"code",
-			"\"code\"=>",
-			"$model",
-			"Delete",
-			"$model",
-			"getimage",
-			"getfile",
-			"apiinfo",
-			"models",
-			"err",
-			"trowone",
-			"protected",
-			"public",
-			"protected",
-			"public",
-			"myStagedoor",
-			"hasMany",
-			"hasManyFields",
-			"Fields",
-			"Name",
-			"name",
-			"API_",
-			"$data",
-			"$requestType",
-			"->request",
-			"request",
-			"singularRequest",
-			"$this->",
-			"$db",
-			"self",
-			"geoInfo",
-			"data",
-			"no LogConfig File found in",
-			"3",
-			"CRITICAL_EMAIL",
-			"2",
-			"1",
-			"title",
-			"Errs",
-			");",
-			"expense",
-			"dbHelper",
-			"AppRoot",
+			"d",
+			"tableExists",
+			"throw",
+			"$req",
+			"$Ac",
+			">NOAUTH",
+			"$apiInfo->",
+			"ApiHe",
+			"dbTable",
+			"expenses",
 			"deleteAreYouSure",
 			"clear: both",
 			"workgroup",
@@ -878,7 +705,56 @@
 			"			$",
 			"modBy",
 			"myStagedoor",
-			"Simple-line"
+			"Simple-line",
+			".si",
+			".si ",
+			".si",
+			"sidebar",
+			"cellContentName",
+			"CellContent",
+			".jeff-table",
+			"#jeff",
+			"jeff-table",
+			"jeff",
+			"Row",
+			"cellpos",
+			"scantable",
+			"scantabble",
+			"Email",
+			"Ember.$(e.currentTarget)",
+			"myDropdown",
+			"Dwop",
+			"position",
+			"2",
+			"column",
+			"{{data-grid}}",
+			"tooltip",
+			"slim",
+			"tooltip",
+			"modal",
+			"body",
+			"#page-container",
+			"header-navbar",
+			"#sidebar",
+			"scrolllock",
+			"jqueryui",
+			"tooltip",
+			"jqueryui",
+			"jquery",
+			"tooltip",
+			"App.",
+			"login.js",
+			"'simple-auth-authenticator:oauth2-password-grant'",
+			"export default Ember.Controller.extend(LoginControllerMixin, {\n	authenticator: 'simple-auth-authenticator:oauth2-password-grant'\n});",
+			"this.get('model').get('ust')",
+			"this.get('model').get('amount')",
+			"newU",
+			"newA",
+			"target",
+			"target		",
+			"new",
+			"Production",
+			"production"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -907,87 +783,6 @@
 		{
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"file": "api/Api.class.php",
-					"settings":
-					{
-						"buffer_size": 10456,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/PHP/PHP.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 2378.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "api/ApiGet.class.php",
-					"settings":
-					{
-						"buffer_size": 5695,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								5695,
-								5695
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/PHP/PHP.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 2825.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "api/Model.php",
-					"settings":
-					{
-						"buffer_size": 29139,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								14941,
-								14941
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/PHP/PHP.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 9046.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				}
 			]
 		}
 	],

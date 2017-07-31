@@ -17,7 +17,7 @@ namespace Jeff\Api;
 require(__DIR__.DIRECTORY_SEPARATOR.$ENV->dirs->vendor.'joshcam/mysqli-database-class/MysqliDb.php');
 
 require("ErrorHandler.php");
-
+// require("Log.php"); // will be included in __construct. see comment there.
 require("DataMasker.php");
 require("ApiHelper.php");
 require("Model.php");
