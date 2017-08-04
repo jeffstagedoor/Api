@@ -92,7 +92,7 @@ Class Api {
 
 
 		$this->NOAUTH = isset($this->ENV->Api->noAuth) ? $this->ENV->Api->noAuth : false;
-		$this->Account = new Models\Account($this->db, $this->errorHandler);
+		$this->account = new Models\Account($this->db, $this->errorHandler, null);
 
 		// put together what was passed as parameters to this api:
 		$this->method = $_SERVER['REQUEST_METHOD'];
@@ -117,19 +117,19 @@ Class Api {
 				$this->errorHandler->throwOne(ErrorHandler::AUTH_NO_AUTHTOKEN);
 				exit;
 			}
-			$success = $this->Account->reAuthenticate($authToken);
+			$success = $this->account->reAuthenticate($authToken);
 
-			if(!$this->Account->isAuthenticated) {	
+			if(!$this->account->isAuthenticated) {	
 				// authorization failed
 				$this->errorHandler->throwOne(ErrorHandler::AUTH_FAILED);
 				exit;
 			} else { 
 				// authorization succeeded
-				$this->Account->updateLastOnline();
+				$this->account->updateLastOnline();
 			}
 		} 
 		if($this->ENV->Api->noAuth) {
-			$this->Account->mockAccount();
+			$this->account->mockAccount();
 		}
 		# End Authentication
 
@@ -165,7 +165,7 @@ Class Api {
 				break;
 			case 'POST':
 				require_once('ApiPost.class.php');
-				$ApiPost = new ApiPost($this->request, $this->data, $this->ENV, $this->db, $this->errorHandler, $this->Account, $this->log);
+				$ApiPost = new ApiPost($this->request, $this->data, $this->ENV, $this->db, $this->errorHandler, $this->account, $this->log);
 				$items = $ApiPost->postItem();
 				ApiHelper::postItems($this->request->model, $items, $this->request->model->modelNamePlural);
 				break;
@@ -173,7 +173,7 @@ Class Api {
 				break;
 			case 'DELETE':
 				require_once('ApiDelete.class.php');
-				$ApiDelete = new ApiDelete($this->request, $this->data, $this->ENV, $this->db, $this->errorHandler, $this->Account, $this->log);
+				$ApiDelete = new ApiDelete($this->request, $this->data, $this->ENV, $this->db, $this->errorHandler, $this->account, $this->log);
 				$items = $ApiDelete->deleteItem();
 				if($items) {
 					ApiHelper::postItems($this->request->model, $items, $this->request->model->modelNamePlural);
@@ -316,7 +316,7 @@ Class Api {
 			include_once($folder.DIRECTORY_SEPARATOR.$fileName);
 			$className = basename($fileName, ".php");
 			$classNameNamespaced = "\\Jeff\\Api\\Models\\" . ucfirst($className);
-			$model = new $classNameNamespaced($this->db, $this->errorHandler);
+			$model = new $classNameNamespaced($this->db, $this->errorHandler, $this->account);
 			$models[$model->modelNamePlural] = $model;
 		}
 		return $models;

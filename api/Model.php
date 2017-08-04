@@ -107,22 +107,12 @@ Class Model {
 
 	// CONSTRUCTOR
 	// always pass the fitting db-object to contructor
-	public function __construct($db, $errorHandler) 
+	public function __construct($db, $errorHandler, $account) 
 	{
 		$this->db = $db;
 		$this->errorHandler = $errorHandler;
 		$this->cols = $this->_makeAssociativeFieldsArray($this->dbTable, $this->dbDefinition);
-
-		// modelFields will get Deprecated, this is for intermediate.
-		// old Version had a plain array in modelFields with all the ColumnNames.
-		// new Version has dbDefinition, which will be used instead.
-		if(isset($this->modelFields) && !isset($this->dbDefinition)) {
-			echo "updating dbDefinition in Model::construct - This is DEPRECATED, modelFields should be transformed to dbDefinition.";
-			$this->dbDefinition  = array(); 
-			foreach ($this->modelFields as $i => $def) {
-				$this->dbDefinition[][0] = $def;
-			}
-		}
+		$this->account = $account;
 	}
 
 	public function hasErrors() 
