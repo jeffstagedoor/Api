@@ -26,17 +26,33 @@ Class Log {
 
 		
 		if(!$this->errorHandler) { $this->errorHandler = new ErrorHandler(); }
-		if (!file_exists(__DIR__.DIRECTORY_SEPARATOR.$this->ENV->dirs->appRoot."LogConfig.php")) {
+		if (!file_exists($this->ENV->dirs->appRoot."LogConfig.php")) {
 			$this->errorHandler->add(new Error(ErrorHandler::LOG_NO_CONFIG));
 			$this->errorHandler->sendErrors();
 			$readyToWrite = false;
 		} else {
-			include_once(__DIR__.DIRECTORY_SEPARATOR.$this->ENV->dirs->appRoot."LogConfig.php");
-			$this->logConfig = $logConfig;
+			include_once($this->ENV->dirs->appRoot."LogConfig.php");
+			// $this->logConfig = $logConfig;
 			$readyToWrite = true;
 		}
 
-		$logTable = $this->db->rawQuery("SHOW tables like '{$this->logConfig->dbTable}'");
+		// check if we have a database ready:
+		try {
+			$this->db->connect();
+			// exit;
+		} catch(\Exception $e) {
+			// echo gettype($e);
+			// echo ($e[4]);
+			$this->db = NULL;
+			$this->readyToWrite = false;
+			$this->errorHandler->add(Array("DB Error", "Could not connect to database", 500, true, ErrorHandler::CRITICAL_ALL, $e));
+			$this->errorHandler->sendErrors();
+			// $this->errorHandler->sendApiErrors();
+			exit;
+		}
+
+
+		$logTable = $this->db->rawQuery("SHOW tables like '{LogConfig::DB_TABLE}'");
 		if(count($logTable)>0) { 
 			$this->readyToWrite=true;
 		} else {
@@ -296,6 +312,23 @@ Class LoginLog extends Log{
 	}
 }
 
+Class LogDefaultConfig {
+	const PATH = 'apiLog';
+	const DB_TABLE = "log";
+
+	public function values() {
+		$values = new \stdClass();
+		return $values;
+	}
+
+	public static function getPath() {
+		return dirname(__FILE__).DIRECTORY_SEPARATOR.self::PATH.DIRECTORY_SEPARATOR;;
+	}
+
+	public static function getDbTable() {
+		return self::DB_TABLE;
+	}
+}
 
 // These are the default classes that shall be used by LogConfig.php
 Class LogDefaultFor {

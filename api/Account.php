@@ -14,7 +14,7 @@ use Jeff\Api as Api;
 
 require_once('Model.php');
 
-require_once(__DIR__.'/'.$ENV->dirs->appRoot.'Constants.php');
+require_once($ENV->dirs->appRoot.'Constants.php');
 
 Class Account extends Model
 {

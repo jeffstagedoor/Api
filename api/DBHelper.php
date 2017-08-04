@@ -34,6 +34,7 @@ Class dbHelper {
 			$info->length = $this->_getLength($value['Type']);
 			$info->hasNull = $this->_getNull($value['Null']);
 			$info->default = $this->_getDefault($value['Default']);
+			$info->extra = $this->_getExtra($value['Extra']);
 			$tableInfo[] = $info;
 		}
 		return $tableInfo;
@@ -70,6 +71,14 @@ Class dbHelper {
 	private function _getDefault($info) {
 		if($info>='') {
 			return $info;
+		} else {
+			return NULL;
+		}
+	}
+
+	private function _getExtra($info) {
+		if($info>='') {
+			return $info;	
 		} else {
 			return NULL;
 		}

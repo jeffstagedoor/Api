@@ -14,10 +14,10 @@
 namespace Jeff\Api;
 // use Jeff\Api\Models;
 
-require(__DIR__.DIRECTORY_SEPARATOR.$ENV->dirs->vendor.'joshcam/mysqli-database-class/MysqliDb.php');
+require($ENV->dirs->vendor.'joshcam/mysqli-database-class/MysqliDb.php');
 
 require("ErrorHandler.php");
-// require("Log.php"); // will be included in __construct. see comment there.
+require("Log.php");
 require("DataMasker.php");
 require("ApiHelper.php");
 require("Model.php");
@@ -52,7 +52,6 @@ Class ApiInfo {
 }
 
 
-
 Class Api {
 
 	private $ENV;
@@ -70,15 +69,27 @@ Class Api {
 	Const REQUEST_TYPE_INFO = 6;
 
 	
-	public function __construct($ENV=null) {
-		$this->ENV = $ENV;
 
+
+	public function __construct($ENV=null) {
+		
+		$this->ENV = $ENV;
 		// instatiate all nesseccary classes
 		$this->errorHandler = new ErrorHandler();
 		$this->db = new \MysqliDb($this->ENV->database);
-
-		require("Log.php"); // I somehow need to include it here, otherwise I won't get the scope of logConfig
 		$this->log = new Log($this->db, $this->ENV, $this->errorHandler);
+
+		// check if we have a database ready:
+		try {
+			$this->db->connect();
+		} catch(\Exception $e) {
+			$this->db = NULL;
+			$this->errorHandler->add(Array("DB Error", "Could not connect to database", 500, true, ErrorHandler::CRITICAL_ALL));
+			$this->errorHandler->sendErrors();
+			$this->errorHandler->sendApiErrors();
+			exit;
+		}
+
 
 		$this->NOAUTH = isset($this->ENV->Api->noAuth) ? $this->ENV->Api->noAuth : false;
 		$this->Account = new Models\Account($this->db, $this->errorHandler);
@@ -86,6 +97,9 @@ Class Api {
 		// put together what was passed as parameters to this api:
 		$this->method = $_SERVER['REQUEST_METHOD'];
 		$this->requestArray = ApiHelper::getRequest();
+		if(count($this->requestArray)===0) {
+
+		}
 		$this->data = ApiHelper::getData();
 
 
@@ -119,11 +133,10 @@ Class Api {
 		}
 		# End Authentication
 
-
 		$this->models = $this->_getAllModels();
 		$this->request = $this->_getFullRequest();
 
-		if($this->request->type===self::REQUEST_TYPE_INFO) {
+		if($this->request===null || $this->request->type===self::REQUEST_TYPE_INFO) {
 				echo ApiInfo::getApiInfo();
 				exit;
 		}
@@ -178,6 +191,11 @@ Class Api {
 	*	@return [object] which has a type, a model, an id
 	**/
 	private function _getFullRequest() {
+		if(count($this->requestArray)===0) {
+			// nothing after .../api
+			return null;
+		}
+
 		$request = new \stdClass();
 		$request->type = $this->_determineRequestType();
 
@@ -292,7 +310,7 @@ Class Api {
 	**/
 	private function _getAllModels() {
 		$models = Array();
-		$folder = dirname(__FILE__).DIRECTORY_SEPARATOR.$this->ENV->dirs->models;
+		$folder = $this->ENV->dirs->models;
 		$files = array_diff(scandir($folder), array('.', '..'));
 		foreach ($files as $fileName) {
 			include_once($folder.DIRECTORY_SEPARATOR.$fileName);
@@ -316,7 +334,7 @@ Class Api {
 		// which will be accessable without authentication.
 		// This is especially needed for singup, login, special tasks.
 
-		if(isset($this->ENV->Api->noAuthRoutes) && is_array($this->ENV->Api->noAuthRoutes)) {
+		if(isset($this->ENV->Api->noAuthRoutes) && is_array($this->ENV->Api->noAuthRoutes) && is_array($this->requestArray)) {
 			$requestRoute = implode('/', $this->requestArray);
 			foreach ($this->ENV->Api->noAuthRoutes as $key => $route) {
 				if($route===$requestRoute) {

@@ -10,7 +10,10 @@
 *
 **/
 
+
 namespace Jeff\Api;
+
+
 
 
 Class ErrorHandler {
@@ -175,7 +178,6 @@ Class ErrorHandler {
 	public function sendApiErrors() {
 		$errors = $this->getPublic();
 		if(count($errors)) {
-			// var_dump($errors);
 			http_response_code($errors[0]['httpCode']);
 			header("Content-Type: application/json");
 			echo '{"errors": '.json_encode($errors). '}';
@@ -183,18 +185,17 @@ Class ErrorHandler {
 	}
 
 	public function sendErrors() {
-		global $logConfig;
-		// echo "send Errors";
 		foreach ($this->Errors as $key => $error) {
 			$e = $error->toArray(true);
 			$txt = date('d.m.Y H:i:s').": {$e['title']} - {$e['msg']} ".PHP_EOL;
 			if(isset($e['stackTrace']) && $e['stackTrace']>'') {
-				$txt .= "    ".$e['stackTrace'].PHP_EOL;
+				$txt .= $e['stackTrace'].PHP_EOL;
 			}
+
 		}
 		$geoInfo = LogHelper::getGeoInfoArray();
 		$txt.= "     ".$_SERVER['REMOTE_ADDR']." ".implode(", ",$geoInfo).PHP_EOL;
-		$logPath = isset($logConfig) ? $logConfig->logPath : "../apiLog";
+		$logPath = (null !== \Jeff\LogConfig::getPath()) ? \Jeff\LogConfig::getPath() : "../apiLog";
 		if (!is_dir($logPath)) {
     		mkdir($logPath, 0664, true);
 		}
@@ -230,13 +231,15 @@ Class Error {
 			$this->critical = $err['critical'];
 			$this->internal = isset($err['internal']) ? $err['internal'] : false;
 		} elseif(is_array($e)) {
-			// if I get an Array, it's a custom error in format ['title', 'msg', [bool] internal, [int] critical]
-			$this->httpCode = isset($e[2]) ? $e[2] : self::DEFAULT_CODE;
+			// if I get an Array, it's a custom error in format ['title', 'msg', [bool] internal, [int] critical, [string?] Exception]
 			$this->title = $e[0];
 			$this->msg = $e[1];
+			$this->httpCode = isset($e[2]) ? $e[2] : self::DEFAULT_CODE;
 			$this->internal = isset($e[3]) ? $e[3] : self::DEFAULT_INTERNAL;
-			$this->stackTrace = $info;
 			$this->critical = isset($e[4]) ? $e[4] : self::DEFAULT_CRITICAL;
+			if(isset($e[5]) && is_a($e[5], "Exception")) {
+				$this->stackTrace = $this->_ExceptionToLogString($e[5]);
+			}
 		} elseif (is_string($e)) {
 			// if I get only ONE String, try to make the best out of it
 			$this->httpCode = 500;
@@ -270,5 +273,17 @@ Class Error {
 		} else {
 			return true;
 		}
+	}
+
+	private function _ExceptionToLogString($e) {
+		$string =  "  ".$e->getMessage()."\r\n";
+		$string .= "   in File: ".$e->getFile()." - Line ".$e->getLine()."\r\n";
+		$string .= "   StackTrace: \r\n";
+		$trace = $e->getTrace();
+		foreach ($trace as $key => $value) {
+			// print_r($value);
+			$string .= "     {$value['file']}:{$value['line']}, class: {$value['class']}, function: {$value['function']}\r\n";
+		}
+		return $string;
 	}
 }
