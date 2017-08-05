@@ -17,8 +17,6 @@ namespace Jeff\Api;
 
 
 Class ErrorHandler {
-	public $testVal = "original from class";
-	
 	Const DB_ERROR = 					20;
 	Const DB_NOT_FOUND = 				21;
 	Const DB_INSERT = 					22;
@@ -41,12 +39,14 @@ Class ErrorHandler {
 
 	Const LOG_NO_CONFIG = 				50;
 	Const LOG_NO_TABLE = 				51;
+	Const LOG_NO_TABLE_LOGIN = 			52;
 
 
 	Const AUTH_NO_AUTHTOKEN =		 	90;
 	Const AUTH_FAILED =				 	91;
 	Const AUTH_PWD_INCORRECT =		 	92;
 	Const AUTH_USER_UNKNOWN =		 	93;
+	Const AUTH_CREDENTIALS_TOO_SHORT =	94;
 
 	Const AUTH_PWD_NOT_MATCHING =		97;
 	Const AUTH_INT_ACCOUNTNOTSET =		99;
@@ -85,6 +85,7 @@ Class ErrorHandler {
 	// LOG
 		50 => Array("title"=>"Log Error", "msg"=>"No Log Config found", "httpCode"=>500,	"critical"=>self::CRITICAL_EMAIL, "internal"=>true),
 		51 => Array("title"=>"Log DB Error", "msg"=>"Log Table not found", "httpCode"=>500, 	"critical"=>self::CRITICAL_EMAIL, "internal"=>true),
+		52 => Array("title"=>"Log DB Error", "msg"=>"LogLogin Table not found", "httpCode"=>500, 	"critical"=>self::CRITICAL_EMAIL, "internal"=>true),
 
 
 	// Authorization
@@ -92,6 +93,7 @@ Class ErrorHandler {
 		91 => Array("title"=>"Authentication failed", "msg"=>"Could not authenticate user.", "httpCode"=>401,				"critical"=>self::CRITICAL_LOG),
 		92 => Array("title"=>"Incorrect Password", "msg"=>"Password is not correct.", "httpCode"=>401,						"critical"=>self::CRITICAL_LOG),
 		93 => Array("title"=>"Unknown User", "msg"=>"Could not find a user with these credentials.", "httpCode"=>401,		"critical"=>self::CRITICAL_LOG),
+		93 => Array("title"=>"Authentication failed", "msg"=>"Email or password are too short", "httpCode"=>401,		"critical"=>self::CRITICAL_LOG),
 
 		97 => Array("title"=>"Not matching Passwords", "msg"=>"The passwords do not match.", "httpCode"=>401,			"critical"=>0),
 
@@ -193,7 +195,7 @@ Class ErrorHandler {
 			}
 
 		}
-		$geoInfo = LogHelper::getGeoInfoArray();
+		$geoInfo = Log::getGeoInfoArray();
 		$txt.= "     ".$_SERVER['REMOTE_ADDR']." ".implode(", ",$geoInfo).PHP_EOL;
 		$logPath = (null !== \Jeff\LogConfig::getPath()) ? \Jeff\LogConfig::getPath() : "../apiLog";
 		if (!is_dir($logPath)) {
@@ -231,7 +233,7 @@ Class Error {
 			$this->critical = $err['critical'];
 			$this->internal = isset($err['internal']) ? $err['internal'] : false;
 		} elseif(is_array($e)) {
-			// if I get an Array, it's a custom error in format ['title', 'msg', [bool] internal, [int] critical, [string?] Exception]
+			// if I get an Array, it's a custom error in format ['title', 'msg', [bool] internal, [int] critical, [object] Exception]
 			$this->title = $e[0];
 			$this->msg = $e[1];
 			$this->httpCode = isset($e[2]) ? $e[2] : self::DEFAULT_CODE;

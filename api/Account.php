@@ -43,6 +43,8 @@ Class Account extends Model
 
 	public $modelFields = array(	'id',
 									'email',
+									'password',
+									'authToken',
 									'fullName',
 									'firstName',
 									'middleName',
@@ -170,7 +172,7 @@ Class Account extends Model
 	* @return obj with authToken and id of logedin user or false if an error occured
 	*/
 	public function login($identification, $password) {
-		global $ENV, $err;
+		
 		$return = new \stdClass();
 
 
@@ -200,7 +202,7 @@ Class Account extends Model
 				$this->db->update('users', $data);
 				// make new entry in logLogin
 				require_once("Log.php");
-				$log = new APi\LoginLog($this->db);
+				$log = new Api\Log($this->db, $this->ENV, $this->errorHandler);
 				$id = $log->writeLoginLog($user['id'],true,true);
 
 			} else {
@@ -208,13 +210,13 @@ Class Account extends Model
 				$err->add(91);
 				// make new entry in logLogin
 				require_once("Log.php");
-				$log = new Api\LoginLog($this->db);
+				$log = new Api\Log($this->db, $this->ENV, $this->errorHandler);
 				$id = $log->writeLoginLog($user['id'],true,false);
 			}
 
 		} else {
 			// identification is wrong
-			$err->add(91);
+			$this->errorHandler->add(91);
 		}
 		return $return;
 	}

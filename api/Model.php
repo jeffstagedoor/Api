@@ -107,9 +107,10 @@ Class Model {
 
 	// CONSTRUCTOR
 	// always pass the fitting db-object to contructor
-	public function __construct($db, $errorHandler, $account) 
+	public function __construct($db, $ENV, $errorHandler, $account) 
 	{
 		$this->db = $db;
+		$this->ENV = $ENV;
 		$this->errorHandler = $errorHandler;
 		$this->cols = $this->_makeAssociativeFieldsArray($this->dbTable, $this->dbDefinition);
 		$this->account = $account;

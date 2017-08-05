@@ -13,6 +13,8 @@
 
 namespace Jeff\Api;
 // use Jeff\Api\Models;
+header("Access-Control-Allow-Origin: ".$ENV->urls->allowOrigin);
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 
 require($ENV->dirs->vendor.'joshcam/mysqli-database-class/MysqliDb.php');
 
@@ -60,6 +62,7 @@ Class Api {
 	private $models;
 	private $request;
 	private $data;
+	private $log;
 
 	Const REQUEST_TYPE_NORMAL = 1;
 	Const REQUEST_TYPE_REFERENCE = 2;
@@ -92,7 +95,7 @@ Class Api {
 
 
 		$this->NOAUTH = isset($this->ENV->Api->noAuth) ? $this->ENV->Api->noAuth : false;
-		$this->account = new Models\Account($this->db, $this->errorHandler, null);
+		$this->account = new Models\Account($this->db, $this->ENV, $this->errorHandler, null);
 
 		// put together what was passed as parameters to this api:
 		$this->method = $_SERVER['REQUEST_METHOD'];
@@ -293,7 +296,7 @@ Class Api {
 		} else {
 			include_once($modelFile);
 			$classNameNamespaced = "\\Jeff\\Api\\Models\\" . ucfirst($modelName);
-			$model = new $classNameNamespaced($this->db, $this->errorHandler);
+			$model = new $classNameNamespaced($this->db, $this->ENV, $this->errorHandler);
 			return $model;
 		}
 		return null;
@@ -316,7 +319,7 @@ Class Api {
 			include_once($folder.DIRECTORY_SEPARATOR.$fileName);
 			$className = basename($fileName, ".php");
 			$classNameNamespaced = "\\Jeff\\Api\\Models\\" . ucfirst($className);
-			$model = new $classNameNamespaced($this->db, $this->errorHandler, $this->account);
+			$model = new $classNameNamespaced($this->db, $this->ENV, $this->errorHandler, $this->account);
 			$models[$model->modelNamePlural] = $model;
 		}
 		return $models;

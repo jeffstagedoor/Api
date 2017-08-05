@@ -19,12 +19,11 @@ Class Log {
 	private $ENV = NULL;
 	private $errorHandler = NULL;
 
-	public function __construct($db, $ENV=NULL, $errorHandler=NULL) {
+	public function __construct($db, $ENV, $errorHandler) {
 		$this->db = $db;
 		$this->ENV = $ENV;
 		$this->errorHandler=$errorHandler;
-
-		
+	
 		if(!$this->errorHandler) { $this->errorHandler = new ErrorHandler(); }
 		if (!file_exists($this->ENV->dirs->appRoot."LogConfig.php")) {
 			$this->errorHandler->add(new Error(ErrorHandler::LOG_NO_CONFIG));
@@ -39,15 +38,11 @@ Class Log {
 		// check if we have a database ready:
 		try {
 			$this->db->connect();
-			// exit;
 		} catch(\Exception $e) {
-			// echo gettype($e);
-			// echo ($e[4]);
 			$this->db = NULL;
 			$this->readyToWrite = false;
 			$this->errorHandler->add(Array("DB Error", "Could not connect to database", 500, true, ErrorHandler::CRITICAL_ALL, $e));
 			$this->errorHandler->sendErrors();
-			// $this->errorHandler->sendApiErrors();
 			exit;
 		}
 
@@ -82,10 +77,6 @@ Class Log {
 			$for = $this->extractDataFromConfig($logForConfig, $data);
 			$meta = $this->extractDataFromConfig($logMetaConfig, $data);
 		}
-		// echo "<h3>FOR</h3>\n\n";
-		// var_dump($for);
-		// echo "\n<h3>META</h3>\n\n";
-		// var_dump($meta);
 
 		$data = new \stdClass();
 		$data->user = $user;
@@ -94,16 +85,27 @@ Class Log {
 
 
 		$dbData = array_merge((Array) $data, (Array) $for, (Array) $meta);
-		// echo "\n<h3>dbData</h3>\n\n";
-		// var_dump($dbData);
-		
 		$id = $this->db->insert($this->logConfig->dbTable, $dbData);
-		// echo "SQL: ".$this->db->getLastQuery()."\n";
-		// echo "Error: ".$this->db->getLastError()."\n";
-		// echo "\nid:".$id."\n";
 		return $id;		
-		// return false;
 	}
+
+
+	public function writeLoginLog($user, $loginattempt, $success) {
+		$this->user = $user;
+		$this->loginattempt = $loginattempt;
+		$this->success = $success;
+		$dbData = $this->collectData();
+		$result = $this->db->rawQuery("SHOW FULL TABLES LIKE '".\Jeff\LogConfig::DB_TABLE_LOGIN."'");
+		if(count($result)>0) {
+			$id = $this->db->insert(\Jeff\LogConfig::DB_TABLE_LOGIN, $dbData);
+			return $id;
+		} else {
+			$this->errorHandler->add(new Error(ErrorHandler::LOG_NO_TABLE_LOGIN));
+			$this->errorHandler->sendErrors();
+			exit;
+		}
+	}
+
 
 	private function extractDataFromConfig($logConfig, $data) {
 		foreach ($logConfig as $key => $value) {
@@ -120,13 +122,33 @@ Class Log {
 		return $logConfig;		
 	}
 
-}
 
-Class LogHelper {
+	private function collectData() {
+		// get some infos bout browser, os, ....
+		$ua = $this->getUserAgent();
+		// get and check ip-adress
+		$ip  = $_SERVER['REMOTE_ADDR'];
+		$ip4 = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ? $ip : "";
+		$ip6 = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) ? $ip : "";
 
-	public function __construct() {
+		$data = Array(
+			'user' => $this->user,
+			'loginattempt' => $this->loginattempt,
+			'success' => $this->success,
+			'timestamp' => $this->db->now(),
+			'referer' => '',
+			'userAgent' => $ua['userAgent'],
+			'userAgentOs' => $ua['platform'],
+			'userAgentBrowser' => $ua['browser'] ." ". $ua['version'],
+			'ip4' => $ip4,
+			'ip6' => $ip6
+		);
 
+		$geoInfo = $this->getGeoInfoArray();
+		$data = array_merge($data, $geoInfo);
+		return $data;
 	}
+
 
 	/**
 	*
@@ -268,53 +290,11 @@ Class LogHelper {
 
 
 
-
-
-Class LoginLog extends Log{
-	private $user = NULL;
-	private $loginattempt = false;
-	private $success = false;
-
-	public function writeLoginLog($user, $loginattempt, $success) {
-		$this->user = $user;
-		$this->loginattempt = $loginattempt;
-		$this->success = $success;
-		$dbData = $this->collectData();
-		$id = $this->db->insert("loglogin", $dbData);
-		return $id;
-	}
-
-
-	private function collectData() {
-		// get some infos bout browser, os, ....
-		$ua = $this->getUserAgent();
-		// get and check ip-adress
-		$ip  = $_SERVER['REMOTE_ADDR'];
-		$ip4 = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ? $ip : "";
-		$ip6 = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) ? $ip : "";
-
-		$data = Array(
-			'user' => $this->user,
-			'loginattempt' => $this->loginattempt,
-			'success' => $this->success,
-			'timestamp' => $this->db->now(),
-			'referer' => '',
-			'userAgent' => $ua['userAgent'],
-			'userAgentOs' => $ua['platform'],
-			'userAgentBrowser' => $ua['browser'] ." ". $ua['version'],
-			'ip4' => $ip4,
-			'ip6' => $ip6
-		);
-
-		$geoInfo = $this->getGeoInfoArray();
-		$data = array_merge($data, $geoInfo);
-		return $data;
-	}
-}
-
+// These are the default classes that shall be used by LogConfig.php
 Class LogDefaultConfig {
 	const PATH = 'apiLog';
 	const DB_TABLE = "log";
+	const DB_TABLE_LOGIN = "loginLog";
 
 	public function values() {
 		$values = new \stdClass();
@@ -329,8 +309,6 @@ Class LogDefaultConfig {
 		return self::DB_TABLE;
 	}
 }
-
-// These are the default classes that shall be used by LogConfig.php
 Class LogDefaultFor {
 	public $A;
 	public $ARights;
