@@ -13,11 +13,39 @@ namespace Jeff\Api;
 
 
 Class Log {
-	private $db = NULL;
-	private $logConfig;
-	private $readyToWrite = false;
-	private $ENV = NULL;
-	private $errorHandler = NULL;
+	protected $db = NULL;
+	protected $logConfig;
+	protected $readyToWrite = false;
+	protected $ENV = NULL;
+	protected $errorHandler = NULL;
+	public $modelName = "Log";
+
+	protected $dbTable = "log";
+	public $dbDefinition = Array(
+			array ('id', 'int', '11', false, NULL, 'auto_increment'),
+			array ('A', 'int', '11', true, NULL),
+			array ('ARights', 'int', '11', true, NULL),
+			array ('B', 'int', '11', true, NULL),
+			array ('BRights', 'int', '11', true, NULL),
+			array ('C', 'int', '11', true, NULL),
+			array ('CRights', 'int', '11', true, NULL),
+			array ('D', 'int', '11', true, NULL),
+			array ('DRights', 'int', '11', true, NULL),
+
+			array ('type', 'varchar', '50', false),
+			array ('item', 'varchar', '50', true, NULL),
+
+			array ('meta1', 'int', '11', true, NULL),
+			array ('meta2', 'int', '11', true, NULL),
+			array ('meta3', 'int', '11', true, NULL),
+			array ('meta4', 'varchar', '80', true, NULL),
+			array ('meta5', 'varchar', '255', true, NULL),
+
+			array ('logDate', 'timestamp', null, false, 'CURRENT_TIMESTAMP'),
+			array ('user', 'int', '11', true, NULL),
+
+		);
+	public $dbPrimaryKey = 'id';
 
 	public function __construct($db, $ENV, $errorHandler) {
 		$this->db = $db;
@@ -31,7 +59,7 @@ Class Log {
 			$readyToWrite = false;
 		} else {
 			include_once($this->ENV->dirs->appRoot."LogConfig.php");
-			// $this->logConfig = $logConfig;
+			$this->logConfig = \LogConfig::values();
 			$readyToWrite = true;
 		}
 
@@ -47,7 +75,10 @@ Class Log {
 		}
 
 
-		$logTable = $this->db->rawQuery("SHOW tables like '{LogConfig::DB_TABLE}'");
+		$logTable = $this->db->rawQuery("SHOW tables like '".\LogConfig::DB_TABLE."'");
+		// echo "SHOW tables like '".\Jeff\LogConfig::DB_TABLE."'";
+		// echo "logTable:";
+		// var_dump($logTable);
 		if(count($logTable)>0) { 
 			$this->readyToWrite=true;
 		} else {
@@ -85,25 +116,11 @@ Class Log {
 
 
 		$dbData = array_merge((Array) $data, (Array) $for, (Array) $meta);
-		$id = $this->db->insert($this->logConfig->dbTable, $dbData);
+		// var_dump($this->logConfig);
+		// var_dump($dbData);
+		// var_dump($this->db)
+		$id = $this->db->insert($this->dbTable, $dbData);
 		return $id;		
-	}
-
-
-	public function writeLoginLog($user, $loginattempt, $success) {
-		$this->user = $user;
-		$this->loginattempt = $loginattempt;
-		$this->success = $success;
-		$dbData = $this->collectData();
-		$result = $this->db->rawQuery("SHOW FULL TABLES LIKE '".\Jeff\LogConfig::DB_TABLE_LOGIN."'");
-		if(count($result)>0) {
-			$id = $this->db->insert(\Jeff\LogConfig::DB_TABLE_LOGIN, $dbData);
-			return $id;
-		} else {
-			$this->errorHandler->add(new Error(ErrorHandler::LOG_NO_TABLE_LOGIN));
-			$this->errorHandler->sendErrors();
-			exit;
-		}
 	}
 
 
@@ -123,7 +140,7 @@ Class Log {
 	}
 
 
-	private function collectData() {
+	protected function collectData() {
 		// get some infos bout browser, os, ....
 		$ua = $this->getUserAgent();
 		// get and check ip-adress
@@ -285,8 +302,63 @@ Class Log {
 		}
 		return $g;
 	}
+
+	public function getDbTable() {
+		return $this->dbTable;
+	}
 }
 
+
+Class LogLogin extends Log {
+	public $modelName = "LogLogin";
+
+	// private $dbTable = \Jeff\LogConfig::DB_TABLE_LOGIN;
+	protected $dbTable = "loglogin";
+	public $dbDefinition = Array(
+			array ('id', 'int', '11', false, false, 'auto_increment'),
+			array ('user', 'int', '11', false),
+			array ('loginattempt', 'tinyint', '1', false),
+			array ('success', 'tinyint', '1', false),
+			array ('timestamp', 'timestamp', null, false, 'CURRENT_TIMESTAMP', 'ON UPDATE CURRENT_TIMESTAMP'),
+			
+			array ('referer', 'varchar', '150', false),
+			array ('userAgent', 'varchar', '150', false),
+			array ('userAgentOs', 'varchar', '30', false),
+			array ('userAgentBrowser', 'varchar', '50', false),
+			array ('ip4', 'varchar', '15', false),
+			array ('ip6', 'varchar', '39', false),
+
+			array ('long', 'int', '11', false),
+			array ('lat', 'int', '11', false),
+			
+			array ('geoCity', 'varchar', '50', false),
+			array ('geoRegion', 'varchar', '50', false),
+			array ('geoCountry', 'varchar', '10', false),
+			array ('geoOrg', 'varchar', '50', false),
+			array ('geoPostal', 'varchar', '15', false),
+		);
+	public $dbPrimaryKey = 'id';
+
+	public function writeLoginLog($user, $loginattempt, $success) {
+		$this->user = $user;
+		$this->loginattempt = $loginattempt;
+		$this->success = $success;
+		$dbData = $this->collectData();
+		// echo "SHOW FULL TABLES LIKE '".\Jeff\LogConfig::DB_TABLE_LOGIN."'<br>\n";
+		$result = $this->db->rawQuery("SHOW FULL TABLES LIKE '".\LogConfig::DB_TABLE_LOGIN."'");
+		// var_dump($result);
+		if(count($result)>0) {
+			// echo "count > 0 : ".count($result)."<br>\n";
+			$id = $this->db->insert(\LogConfig::DB_TABLE_LOGIN, $dbData);
+			return $id;
+		} else {
+			// echo "count NOT > 0 : ".count($result)."<br>\n";
+			$this->errorHandler->add(new Error(ErrorHandler::LOG_NO_TABLE_LOGIN));
+			$this->errorHandler->sendErrors();
+			// exit;
+		}
+	}
+}
 
 
 
@@ -294,9 +366,9 @@ Class Log {
 Class LogDefaultConfig {
 	const PATH = 'apiLog';
 	const DB_TABLE = "log";
-	const DB_TABLE_LOGIN = "loginLog";
+	const DB_TABLE_LOGIN = "loglogin";
 
-	public function values() {
+	public static function values() {
 		$values = new \stdClass();
 		return $values;
 	}

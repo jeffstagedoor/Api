@@ -31,6 +31,7 @@ Class Authentication {
 	private $account;
 
 	public function __construct($ENV=null) {
+		// echo "in Auth";
 		$this->ENV = $ENV;
 		// instatiate all nesseccary classes
 		$this->errorHandler = new ErrorHandler();
@@ -52,42 +53,48 @@ Class Authentication {
 	}
 
 	public function authenticate() {
+		#echo "taths a mess here in Authentication.php authenticate - wokring on revoke";
 		$postObject = (Object) $_POST;
+		$request = ApiHelper::getRequest();
+		if($request[0]==='revoke') {
+			echo "I am revoking!!";
+		}
 		if(isset($postObject->grant_type) && $postObject->grant_type==='refresh_token') {
 			$auth = $this->account->refreshToken($postObject->refresh_token);
-		}
-
-		$identification = isset($postObject->username) ? $postObject->username : NULL;
-		if(!$identification) { $identification = isset($postObject->identification) ? $postObject->identification : NULL; }
-		$password = isset($postObject->password) ? $postObject->password : NULL;
-		if(!$password) { $password = isset($postObject->pwd) ? $postObject->pwd : NULL; }
-
-		if(strlen($identification)<5 || strlen($password)<4 || is_null($identification) || is_null($password)) {
-			$this->errorHandler->add(ErrorHandler::AUTH_CREDENTIALS_TOO_SHORT);
-			$this->errorHandler->sendApiErrors();
-			exit;
 		} else {
+			// normal authentification
+			$identification = isset($postObject->username) ? $postObject->username : NULL;
+			if(!$identification) { $identification = isset($postObject->identification) ? $postObject->identification : NULL; }
+			$password = isset($postObject->password) ? $postObject->password : NULL;
+			if(!$password) { $password = isset($postObject->pwd) ? $postObject->pwd : NULL; }
 
-			$auth = $this->account->authenticate($identification, $password);
-			if($this->errorHandler->hasErrors()) {
+			if(strlen($identification)<5 || strlen($password)<4 || is_null($identification) || is_null($password)) {
+				$this->errorHandler->add(ErrorHandler::AUTH_CREDENTIALS_TOO_SHORT);
 				$this->errorHandler->sendApiErrors();
-				$this->errorHandler->sendErrors();
 				exit;
 			} else {
-				$json = '{
-					"access_token": "'.$auth->authToken.'",
-					"token_type": "1",
-					"expires_in": "604800",
-					"account_id": '.$auth->account_id.'
-				}';
-				header("Access-Control-Allow-Origin: ".$this->ENV->urls->allowOrigin);
-				header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-				header("Access-Control-Allow-Headers: Content-Type");
-				header("HTTP/1.0 200 OK");
-				header('Content-Type: application/json; charset=UTF-8');
-				echo $json;
-				exit;
+
+				$auth = $this->account->authenticate($identification, $password);
 			}
+		}
+		if(!$auth) {
+			$this->errorHandler->sendApiErrors();
+			$this->errorHandler->sendErrors();
+			exit;
+		} else {
+			$json = '{ "access_token": "'.$auth->authToken.'",
+				"refresh_token": "'.$auth->refreshToken.'",
+				"token_type": "1",
+				"expires_in": "604800",
+				"account_id": '.$auth->account_id.'
+			}';
+			header("Access-Control-Allow-Origin: ".$this->ENV->urls->allowOrigin);
+			header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+			header("Access-Control-Allow-Headers: Content-Type");
+			header("HTTP/1.0 200 OK");
+			header('Content-Type: application/json; charset=UTF-8');
+			echo $json;
+			exit;
 		}
 	}
 }

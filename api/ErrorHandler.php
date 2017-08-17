@@ -93,7 +93,7 @@ Class ErrorHandler {
 		91 => Array("title"=>"Authentication failed", "msg"=>"Could not authenticate user.", "httpCode"=>401,				"critical"=>self::CRITICAL_LOG),
 		92 => Array("title"=>"Incorrect Password", "msg"=>"Password is not correct.", "httpCode"=>401,						"critical"=>self::CRITICAL_LOG),
 		93 => Array("title"=>"Unknown User", "msg"=>"Could not find a user with these credentials.", "httpCode"=>401,		"critical"=>self::CRITICAL_LOG),
-		93 => Array("title"=>"Authentication failed", "msg"=>"Email or password are too short", "httpCode"=>401,		"critical"=>self::CRITICAL_LOG),
+		94 => Array("title"=>"Authentication failed", "msg"=>"Email or password are too short", "httpCode"=>401,		"critical"=>self::CRITICAL_LOG),
 
 		97 => Array("title"=>"Not matching Passwords", "msg"=>"The passwords do not match.", "httpCode"=>401,			"critical"=>0),
 
@@ -187,6 +187,7 @@ Class ErrorHandler {
 	}
 
 	public function sendErrors() {
+		$txt='';
 		foreach ($this->Errors as $key => $error) {
 			$e = $error->toArray(true);
 			$txt = date('d.m.Y H:i:s').": {$e['title']} - {$e['msg']} ".PHP_EOL;
@@ -197,7 +198,7 @@ Class ErrorHandler {
 		}
 		$geoInfo = Log::getGeoInfoArray();
 		$txt.= "     ".$_SERVER['REMOTE_ADDR']." ".implode(", ",$geoInfo).PHP_EOL;
-		$logPath = (null !== \Jeff\LogConfig::getPath()) ? \Jeff\LogConfig::getPath() : "../apiLog";
+		$logPath = (null !== \LogConfig::getPath()) ? \LogConfig::getPath() : "../apiLog";
 		if (!is_dir($logPath)) {
     		mkdir($logPath, 0664, true);
 		}

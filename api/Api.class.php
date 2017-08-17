@@ -13,17 +13,21 @@
 
 namespace Jeff\Api;
 // use Jeff\Api\Models;
-header("Access-Control-Allow-Origin: ".$ENV->urls->allowOrigin);
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 
-require($ENV->dirs->vendor.'joshcam/mysqli-database-class/MysqliDb.php');
+// Api::sendPrimaryHeaders($ENV);
+// header("Access-Control-Allow-Origin: ".$ENV->urls->allowOrigin);
+// header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+// header("Access-Control-Allow-Headers: AUTHORIZATION");
 
-require("ErrorHandler.php");
-require("Log.php");
-require("DataMasker.php");
-require("ApiHelper.php");
-require("Model.php");
-require("Account.php");
+require_once($ENV->dirs->vendor.'joshcam/mysqli-database-class/MysqliDb.php');
+
+require_once("ErrorHandler.php");
+require_once("Log.php");
+require_once("DataMasker.php");
+require_once("DBHelper.php");
+require_once("ApiHelper.php");
+require_once("Model.php");
+require_once("Account.php");
 
 Class ApiInfo {
 	public static $version = "1.3.1";
@@ -58,7 +62,7 @@ Class Api {
 
 	private $ENV;
 	private $NOAUTH=false;
-	private $specialVerbs = Array('meta', 'login', 'signup', 'signin', 'task', 'sort', 'search', 'count', 'apiInfo', 'getFile', 'getImage','getFolder');
+	private $specialVerbs = Array('dbupdate','meta', 'login', 'signup', 'signin', 'task', 'sort', 'search', 'count', 'apiInfo', 'getFile', 'getImage','getFolder');
 	private $models;
 	private $request;
 	private $data;
@@ -82,6 +86,8 @@ Class Api {
 		$this->db = new \MysqliDb($this->ENV->database);
 		$this->log = new Log($this->db, $this->ENV, $this->errorHandler);
 
+		self::_sendPrimaryHeaders($ENV);
+
 		// check if we have a database ready:
 		try {
 			$this->db->connect();
@@ -100,10 +106,13 @@ Class Api {
 		// put together what was passed as parameters to this api:
 		$this->method = $_SERVER['REQUEST_METHOD'];
 		$this->requestArray = ApiHelper::getRequest();
-		if(count($this->requestArray)===0) {
-
-		}
 		$this->data = ApiHelper::getData();
+		$this->models = $this->_getAllModels();
+		$this->request = $this->_getFullRequest();
+		if(count($this->requestArray)===0 || $this->request===null || $this->request->type===self::REQUEST_TYPE_INFO) {
+			echo ApiInfo::getApiInfo();
+			exit;
+		}
 
 
 		// AUTHENTICATION
@@ -136,14 +145,18 @@ Class Api {
 		}
 		# End Authentication
 
-		$this->models = $this->_getAllModels();
-		$this->request = $this->_getFullRequest();
 
-		if($this->request===null || $this->request->type===self::REQUEST_TYPE_INFO) {
-				echo ApiInfo::getApiInfo();
-				exit;
+		// some specials before regular API call
+		// dbupdate
+		if($this->request->type==self::REQUEST_TYPE_SPECIAL && $this->request->special==='dbupdate') {
+			if(isset($this->request->requestArray[1]) && $this->request->requestArray[1]==='execute') {
+				$execute = true;
+			} else {
+				$execute = false;
+			}
+			$dbHelper = new DBHelper($this->db, $this->errorHandler);
+			$dbHelper->update($this->ENV, $execute, $this->request->requestArray);
 		}
-
 
 		switch ($this->method) {
 			case 'OPTIONS':
@@ -154,12 +167,19 @@ Class Api {
 				if($this->request->type===self::REQUEST_TYPE_SPECIAL) {
 					$response = $ApiGet->getSpecial();
 					if($response) {
-						ApiHelper::sendResponse(400,"{ \"success\": ".json_encode($reponse)."}");
+						ApiHelper::sendResponse(200,"{ \"success\": ".json_encode($reponse)."}");
 					}
 				} else {
 					$items = $ApiGet->getItems();
 					if(isset($items)) {
-						ApiHelper::postItems($this->request->model, $items, $this->request->model->modelNamePlural);
+						// add sideloads if present
+						if($this->request->model->sideload) {
+							foreach ($this->request->model->sideload as $key => $sideload) {
+								$items->{$key} = $sideload;
+							}
+						}
+						ApiHelper::sendResponse(200,json_encode($items));
+						// ApiHelper::postItems($this->request->model, $items, $this->request->model->modelNamePlural);
 					} else {
 						$this->errorHandler->throwOne(ErrorHandler::DB_NOT_FOUND);
 						exit;
@@ -187,8 +207,8 @@ Class Api {
 
 
 	/**
-	*	_getModel
-	*	tries to get one model based on it's (plural or singular) name 
+	*	_getFullrequest
+	*	getting a full Request Object with type, model, an id
 	*	
 	*	@param [object] environment configuration
 	*	@return [object] which has a type, a model, an id
@@ -201,6 +221,7 @@ Class Api {
 
 		$request = new \stdClass();
 		$request->type = $this->_determineRequestType();
+		$request->requestArray = $this->requestArray;
 
 		if($request->type === self::REQUEST_TYPE_SPECIAL) {
 			$request->special = $this->requestArray[0];
@@ -212,9 +233,12 @@ Class Api {
 			// the model to get these items from is always the "bigger" one, the right one
 			// user2prduction can be got in Model-Class Production
 			// by the method getMany2Many(id, by(id), child-model)
-			$request->model = $this->_getModel($references[1]); // always plural
-			$request->modelLeft = $this->_getModel($references[0]);	// always singular
-			$request->singularRequest = substr($request[0], 0, strlen($request[0])-1);
+			$request->model = $this->_getModel($this->references[1]); // always plural
+			$request->modelLeft = $this->_getModel($this->references[0]);	// always plural
+			if (isset($this->requestArray[1]) /*&& is_numeric($this->requestArray[1])*/) { // will be a string for Many2Many eg "24_30"
+				$request->id = $this->requestArray[1];
+			}
+			#$request->singularRequest = substr($this->requestArray[0], 0, strlen($this->requestArray[0])-1);
 		}
 		if($request->type === self::REQUEST_TYPE_NORMAL || $request->type === self::REQUEST_TYPE_QUERY) {
 			$modelName = $this->requestArray[0];
@@ -250,6 +274,7 @@ Class Api {
 		// check for comment2post type 'references'
 		$references = explode("2", $this->requestArray[0]);
 		if(count($references)===2) {
+			$this->references = $references;
 			return self::REQUEST_TYPE_REFERENCE;
 		}
 		if ((isset($this->requestArray[1]) && $this->requestArray[1]==='multiple') || isset($this->data->ids)) {
@@ -288,8 +313,8 @@ Class Api {
 				}
 			}
 		}
-
 		$modelFile = dirname(__FILE__).DIRECTORY_SEPARATOR.$this->ENV->dirs->models . ucfirst($modelName) . ".php";
+		
 		if (!file_exists($modelFile)) {
 			$this->errorHandler->throwOne(Array("Api Error", "Requested recource '{$modelName}' not found/defined.", 400, false, ErrorHandler::CRITICAL_EMAIL));
 			exit;
@@ -348,18 +373,21 @@ Class Api {
 		if($this->ENV->Api->noAuth) { 
 			return false;
 		}
+		if($this->method==='OPTIONS') {
+			return false;
+		}
 		return true;
 	}
 
 
 
 	/**
-	*	_sendPrimaryHeader
+	*	sendPrimaryHeader
 	*	
 	*	@param [object] environment configuration
 	*	@return [void]
 	**/
-	private function _sendPrimaryHeaders() {
+	private function _sendPrimaryHeaders($ENV) {
 		header("Access-Control-Allow-Origin: ".$this->ENV->urls->allowOrigin);
 		header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 		header("Access-Control-Allow-Headers: Origin, Content-Type, Authorization, X-Custom-Auth");	

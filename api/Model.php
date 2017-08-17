@@ -60,36 +60,57 @@ Class Model {
 
 	// maskFields
 	// these fields will be masked with *** according to it's properties
-	private $maskFields = Array(
+	protected $maskFields = Array(
 		// 'email' => Jeff\Api\DataMasker::MASK_TYPE_EMAIL,
 		// 'tel' => Jeff\Api\DataMasker::MASK_TYPE_TEL,
 		);
 
 	// searchSendCols
 	// what data (=db-fields) to send when querying a search 
-	private $searchSendCols = Array('id');	
+	protected $searchSendCols = Array('id');	
 
 	// hiddenProperties
 	// what properties will be unset before sending the payload
 	// allways remove password, authToken, auth, ...
-	private $hiddenProperties = Array('password', 'authToken', 'auth');
+	protected $hiddenProperties = Array('password', 'authToken', 'auth', 'refreshToken');
 
 	// validateFields
 	// what fields shall be validated before inserting/updating
-	private $validateFields = Array(
+	protected $validateFields = Array(
 		// Array('field' => 'email', 'valtype' => Jeff\Api\Validate::VAL_TYPE_EMAIL, 'arg' => null),
 		// Array('field' => 'description', 'valtype' => Jeff\Api\Validate::VAL_TYPE_LENGTH_MAX, 'arg' => 300),
 		// Array('field' => 'description', 'valtype' => Jeff\Api\Validate::VAL_TYPE_LENGTH_MIN, 'arg' => 300),
 		);
 
 	// hasMany-Fields
-	private $hasMany = Array (
-			// Array("hasManyName"=>'user2workgroups',"dbTable"=>'user2workgroup', "dbTargetFieldName"=>'workgroup', "dbSourceFieldName"=>'user', "saveToStoreField"=>'workgroup', "saveToStoreName"=>'workgroups'),
-			// Array("hasManyName"=>'user2workgroups',"dbTable"=>'user2workgroup', "dbTargetFieldName"=>'workgroup', "dbSourceFieldName"=>'user', "saveToStoreField"=>'workgroup', "saveToStoreName"=>'workgroups'),
+
+	protected $hasMany = Array (
+		/*
+			"user2workgroup"=> Array(
+				"db"=>array(
+						array('id', 'varchar', '20', false),
+						array('user', 'int','11', false),
+						array('workgroup', 'int', '11', false),
+						array('rights', 'tinyint', '4', false),
+						array('invitedBy', 'int', '11', false),
+						array('invitedDate', 'timestamp', null, false, 'CURRENT_TIMESTAMP', 'ON UPDATE CURRENT_TIMESTAMP'),
+						array('memberSince', 'timestamp', null, true, 'NULL'),
+						array('isRequest', 'tinyint', '1', true),
+						array('requestDate', 'timestamp', null, true, 'NULL'),
+						array('requestAcceptedBy', 'int', '11', true),
+						array('requestAcceptedDate', 'timestamp', null, true, 'NULL')
+				),
+				"primaryKey"=>"workgroup"
+			)
+		*/
 		);
+	// private $hasManyFields = Array (
+	// 		// Array("hasManyName"=>'user2workgroups',"dbTable"=>'user2workgroup', "dbTargetFieldName"=>'workgroup', "dbSourceFieldName"=>'user', "saveToStoreField"=>'workgroup', "saveToStoreName"=>'workgroups'),
+	// 		// Array("hasManyName"=>'user2workgroups',"dbTable"=>'user2workgroup', "dbTargetFieldName"=>'workgroup', "dbSourceFieldName"=>'user', "saveToStoreField"=>'workgroup', "saveToStoreName"=>'workgroups'),
+	// 	);
 
 	// what Items to send as sideload when doing a simple getOneById()
-	private $sideloadItems = Array( 
+	protected $sideloadItems = Array( 
 			// Array("name"=>'user2workgroups',"dbTable"=>'user2workgroup', "reference"=>'user2workgroups'),
 			// Array("name"=>'workgroups', "dbTable"=>'workgroups', "reference"=>'workgroups'),
 			// Array("name"=>'user2productions', "dbTable"=>'user2production', "reference"=>'user2productions'),
@@ -116,19 +137,19 @@ Class Model {
 		$this->account = $account;
 	}
 
-	public function hasErrors() 
-	{
-		if(sizeof($this->errors)>0) {
-			return true;
-		} else {
-			return false;
-		}
-	}
+	// public function hasErrors() 
+	// {
+	// 	if(sizeof($this->errors)>0) {
+	// 		return true;
+	// 	} else {
+	// 		return false;
+	// 	}
+	// }
 
-	public function getErrors()
-	{
-		return $this->errors;
-	}
+	// public function getErrors()
+	// {
+	// 	return $this->errors;
+	// }
 
 
 
@@ -193,14 +214,16 @@ Class Model {
 
 			// if so, get the restrictions
 			$restrictions = $this->beforeGetAll();
-			// print_r($restrictions);
 			// and apply them, depending on their type
 			foreach ($restrictions as $key => $restriction) {
+				if(!is_array($restriction->data) || count($restriction->data)==0) {
+					$restriction->data[] = -1;
+				}
+
 				switch ($restriction->type) {
 					case 'ID_IN':
 						// the model describes a list of id's that shall be returned. Usually set by the Account
 						$this->db->where($this->dbTable.'.'.$this->dbIdField, $restriction->data, "IN");
-
 						break;
 					case 'REF_IS':
 						// the model describes a definite reference the model shall be limited to.
@@ -231,19 +254,18 @@ Class Model {
 		}
 
 		$items = $this->_getResultFromDb();
-		// echo $this->db->getLastQuery();
+		// $items = array();
 		$items = $this->_getHasMany($items);
-
 		return $items;
 	}
 
 
 	/**
-	*	method _getHasMany($ids)
+	*	method _getHasMany(array $items)
 	*
-	*	@param items (Array) the main result the hasMany Items shall be added to
-	*	@param ids (Array) ids of the main result
+	*	@param (Array) items: the main result the hasMany Items shall be added to
 	*	@return (Array) items
+	*
 	**/
 	private function _getHasMany($items) {
 		if(count($this->hasMany)===0) {
@@ -262,17 +284,17 @@ Class Model {
 		}
 
 		// now we have all the ids of the main items
-		foreach ($this->hasMany as $hmf) {
-			$hmf['ids'] = array();
-			$this->db->where($hmf['dbSourceFieldName'], $ids, 'IN');
-			$hasMany = $this->db->get($hmf['dbTable'], null, array('id', $hmf['dbSourceFieldName']));
-			foreach ($hasMany as $hasManyItem) {
+		foreach ($this->hasMany as $hmName => $hasMany) {
+			// $hasMany['ids'] = array();
+			$this->db->where($this->modelName, $ids, 'IN');
+			$hm = $this->db->get($hmName, null, array('id', $this->modelName));
+			foreach ($hm as $hasManyItem) {
 				foreach ($items as &$item) {
-					if(!isset($item[$hmf['hasManyName']])) {
-						$item[$hmf['hasManyName']] = array();
+					if(!isset($item[$hmName])) {
+						$item[$hmName] = array();
 					}
-					if($item['id']===$hasManyItem[$hmf['dbSourceFieldName']]) {
-						array_push($item[$hmf['hasManyName']], $hasManyItem['id']);
+					if($item['id']===$hasManyItem[$this->modelName]) {
+						array_push($item[$hmName], $hasManyItem['id']);
 					}
 				}
 			}
@@ -306,7 +328,10 @@ Class Model {
 	*/
 	private function _getResultFromDb() {
 		global $err;
-		$tableResult = $this->db->rawQuery("SHOW FULL TABLES LIKE '".$this->dbTable."'");
+
+		$db2 = new \MysqliDb($this->ENV->database);
+		// $tableResult = $this->db->rawQuery("SHOW FULL TABLES LIKE '".$this->dbTable."'");
+		$tableResult = $db2->rawQuery("SHOW FULL TABLES LIKE '".$this->dbTable."'");
 		if(!(count($tableResult)>0)) {
 			$this->errorHandler->throwOne(Array("Database Error", "Table '{$this->dbTable}' does not exist.",500, true));
 			$this->errorHandler->throwOne(20);
@@ -325,28 +350,28 @@ Class Model {
 
 
 
-	/*
-	/	MANY TO MANY Relationships
-	/
-	/ this depends on following conventions:
-	/ db-tables/models that represent a manyToMany Relationship have this name/structure:
-	/ - dbTable= 'needle2haystack'; e.g. 'user2workgroup' (both singular)
-	/ - id-field = needle_id + '_' + haystack_id (eg 2_15)
-	/
-	/
-	/
-	/
-	*/
-	public function getMany2Many($id, $what='user', $by='id') {
+	/**
+	*	MANY TO MANY Relationships
+	*
+	* this depends on following conventions:
+	* db-tables/models that represent a manyToMany Relationship have this name/structure:
+	* - dbTable= 'needles2haystacks'; e.g. 'users2workgroups' (both plural)
+	* - id-field = needle_id + '_' + haystack_id (eg 2_15)
+	*
+	*
+	*
+	*
+	**/
+	public function getMany2Many($id=null, $what='accounts', $by='id') {
 		if(is_array($id)) {
 			// then it's likely a coalesceFindrecord call,
 			// so we should return all items where id in that array
 			$this->db->where($by, $id, 'IN');
-		} else {
+		} elseif ($id!=null) {
 			// normal singular request or referential request 'by'
 			$this->db->where($by, $id);
 		}
-		$many2many = $this->db->get($what.'2'.$this->modelName);
+		$many2many = $this->db->get($what.'2'.$this->modelNamePlural);
 		if(count($many2many)===1 && $by==='id') {
 			// one item found (and requested)
 			return $many2many[0];
@@ -519,9 +544,11 @@ Class Model {
 	// SETTERS
 	//
 
-	/*
+	/**
 	*	method add()
-	*	
+	*	possible Hooks: beforeAdd($data), afterAdd($data, $id)
+	* 	@param [array] $data	
+	*	@return [int] the new id of the item, false if an error occurred
 	*/
 	public function add($data) 
 	{
@@ -552,10 +579,9 @@ Class Model {
 			}
 		}
 		// unsetting hasMany that might come from Ember via POST:
-		foreach ($this->hasMany as $hmf) {
-			unset($data[$hmf['name']]);
+		foreach ($this->hasMany as $name => $hasMany) {
+			unset($data[$name]);
 		}
-		$this->errorHandler->testVal = "set in Model->add()";
 		// check if we have all data we need:
 		$required = Api\ApiHelper::getRequiredFields($this->dbDefinition);
 		$missingFields = Api\ApiHelper::checkRequiredFieldsSet($required, $data);
@@ -565,6 +591,9 @@ Class Model {
 			if($this->db->getLastError()>'') { 
 				$this->errorHandler->add(new Api\Error($err::DB_INSERT, $this->db->getLastError()));
 				return false;
+			}
+			if(method_exists($this, 'afterAdd')) {
+				$data = $this->afterAdd($data, $id);
 			}
 			$this->lastInsertedID = $id;
 			return $id;
@@ -811,36 +840,36 @@ Class Model {
 	public function addUser($type, $data) 
 	{
 		echo "Method addUser in Class Model is DEPRECATED. Use addMany2Many instead.";
-		$data = (Object) $data;
-		//var_dump($data);
-		$id = $data->user . '_' . $data->{$type};
-		$data->id = $id;
-		// check if the user is already Member (even with lower rights)
-		$this->db->where('id', $id);
-		$result = $this->db->getOne('user2'.$type);
-		if($result) {
-			if($result['rights']<$data->rights) {	// user had lower rights then
-				$dataArray = Array(
-					"rights"=>$data->rights,
-					"modBy"=>$data->modBy
-					);
-				// update in database
-				$this->db->where('id', $id);
-				$this->db->update('user2'.$type, $dataArray);
-				if($this->db->count) { return $id; }
-				else { return false; }
-			} else {
-				echo "already Member";
-				// user was member already
-				return false;
-			}
-		}
-		// user was not connected to this workgroup/production/audition yet, so insert him:
-		$data->memberSince = $this->db->now();
-		$dataArray = (Array) $data;
-		$success = $this->db->insert('user2'.$type, $dataArray);
-		// echo $success;
-		return ($success) ?  $id : false;
+		// $data = (Object) $data;
+		// //var_dump($data);
+		// $id = $data->user . '_' . $data->{$type};
+		// $data->id = $id;
+		// // check if the user is already Member (even with lower rights)
+		// $this->db->where('id', $id);
+		// $result = $this->db->getOne('user2'.$type);
+		// if($result) {
+		// 	if($result['rights']<$data->rights) {	// user had lower rights then
+		// 		$dataArray = Array(
+		// 			"rights"=>$data->rights,
+		// 			"modBy"=>$data->modBy
+		// 			);
+		// 		// update in database
+		// 		$this->db->where('id', $id);
+		// 		$this->db->update('user2'.$type, $dataArray);
+		// 		if($this->db->count) { return $id; }
+		// 		else { return false; }
+		// 	} else {
+		// 		echo "already Member";
+		// 		// user was member already
+		// 		return false;
+		// 	}
+		// }
+		// // user was not connected to this workgroup/production/audition yet, so insert him:
+		// $data->memberSince = $this->db->now();
+		// $dataArray = (Array) $data;
+		// $success = $this->db->insert('user2'.$type, $dataArray);
+		// // echo $success;
+		// return ($success) ?  $id : false;
 
 	}
 
@@ -850,17 +879,18 @@ Class Model {
 	// SPECIALS FOR GETTING DATA
 	//
 	private function _addHasMany($item, $id) {
+#		echo "Class Model->_addHasMany need many fixes (because of restructuring of '\$hasMany')";
 		if(!($this->hasMany) || !is_array($this->hasMany)) {
 			return $item;
 		}
-		for ($i=0; $i < count($this->hasMany); $i++) { 
-			$hmf = $this->hasMany[$i];
-			if ($this->db->tableExists($hmf['dbTable'])) {
-				$this->db->where($hmf['dbSourceFieldName'], $id);
+		foreach ($this->hasMany as $hmName => $hasMany) { 
+			#echo $this->modelName;
+			if ($this->db->tableExists($hmName)) {
+				$this->db->where($this->modelName, $id);
 				// if(isset($hmf['orderBy'])) {
 				// 	$this->db->orderBy($hmf['orderBy']['field'], $hmf['orderBy']['direction']);
 				// }
-				$one2many = $this->db->get($hmf['dbTable'], null, Array('id',$hmf['dbTargetFieldName']));
+				$one2many = $this->db->get($hmName, null, Array('id',$hasMany['targetField']));
 				// echo "one2many: \n";
 				// $this->db->getLastQuery();
 				#var_dump($one2many);
@@ -868,10 +898,10 @@ Class Model {
 				$store = Array();
 				foreach ($one2many as $key => $value) {
 					$refIds[] = $value['id'];
-					$store[] = $value[$hmf['saveToStoreField']];
+					$store[] = $value[$hasMany['targetField']];
 				}
-				$item[$hmf['name']] = $refIds;
-				$this->sideLoadTargetsStore[$hmf['saveToStoreName']] = $store;
+				$item[$hmName] = $refIds;
+				$this->sideLoadTargetsStore[$hasMany['targetPlural']] = $store;
 			}
 		}
 		return $item;
@@ -904,10 +934,9 @@ Class Model {
 		}
 		for ($i=0; $i < count($this->sideloadItems); $i++) { 
 			$sli = $this->sideloadItems[$i];
-
-			if (isset($item[$sli['reference']]) && count($item[$sli['reference']])) {	// add only if we have values linked
-				$this->db->where('id', $item[$sli['reference']] , 'IN');
-				$result = $this->db->get($sli['dbTable']);
+			if (isset($item[$sli['name']]) && count($item[$sli['name']])) {	// add only if we have values linked
+				$this->db->where('id', $item[$sli['name']] , 'IN');
+				$result = $this->db->get($sli['name']);
 				for ($r=0; $r < count($result); $r++) { 
 					$result[$r] = $this->_unsetHiddenProperties($result[$r]);
 				}
@@ -915,8 +944,8 @@ Class Model {
 			}
 
 			if(isset($this->sideLoadTargetsStore[$sli['name']]) && count($this->sideLoadTargetsStore[$sli['name']])) {
-				$this->db->where('id', $this->sideLoadTargetsStore[$sli['reference']] , 'IN');	
-				$result = $this->db->get($sli['dbTable']);
+				$this->db->where('id', $this->sideLoadTargetsStore[$sli['name']] , 'IN');	
+				$result = $this->db->get($sli['name']);
 
 				for ($r=0; $r < count($result); $r++) { 
 					$result[$r] = $this->_unsetHiddenProperties($result[$r]);

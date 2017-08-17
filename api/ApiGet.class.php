@@ -31,26 +31,31 @@ Class ApiGet
 		$this->ENV = $ENV;
 		$this->db = $db;
 		$this->errorHandler = $errorHandler;
+		$this->items = new \stdClass();
 	}
 
 	public function getItems() {
 		switch ($this->request->type) {
 			case Api::REQUEST_TYPE_REFERENCE: 
+				$id = isset($this->request->id) ? $this->request->id : null;
+				$this->items->{$this->request->requestArray[0]} = $this->request->model->getMany2Many($id, $this->request->modelLeft->modelNamePlural, 'id');
 				break;
 			case Api::REQUEST_TYPE_COALESCE:
-				$this->items = $this->request->model->getCoalesce($this->data->ids);
+				$this->items->{$this->request->model->modelNamePlural} = $this->request->model->getCoalesce($this->data->ids);
 				break;
 			case Api::REQUEST_TYPE_QUERY:
 				$filter = $this->_getFilter();
-				$this->items = $this->request->model->getAll($filter);
+				$this->items->{$this->request->model->modelNamePlural} = $this->request->model->getAll($filter);
 				break;
 			case Api::REQUEST_TYPE_NORMAL:
 				if(isset($this->request->id)) {
-					$this->items = $this->request->model->getOneById($this->request->id);
+					$this->items->{$this->request->model->modelName} = $this->request->model->getOneById($this->request->id);
+
+					
 				} elseif(isset($this->request->special)) {
 					switch ($this->request->special) {
 						case "search":
-							$this->items = $this->request->model->search($this->data);
+							$this->items->{$this->request->model->modelNamePlural} = $this->request->model->search($this->data);
 							break;
 						case "count":
 							$count = $this->request->model->count($this->data);
@@ -62,7 +67,7 @@ Class ApiGet
 					}
 				} else {
 					// get all we can get (restrictions are made in Model.php and in beforeGetAll()-hook)
-					$this->items = $this->request->model->getAll();
+					$this->items->{$this->request->model->modelNamePlural} = $this->request->model->getAll();
 				}	
 				break;
 		}

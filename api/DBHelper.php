@@ -15,12 +15,194 @@ namespace Jeff\Api;
 
 Class dbHelper {
 	private $db;
+	private $errorHandler;
 
-	public function __construct($db) {
+	public function __construct($db, $errorHandler) {
 		$this->db = $db;
+		$this->errorHandler = $errorHandler;
 	}
 
-	public function extractTableInfo($tableName) {
+	public function update($ENV, $execute=false, $requestArray) {
+		echo $execute ? "<h5 style='color: #0d0;'>execution is switched ON.</h5>" : "<h5 style='color: #bbb;'>execution is switched OFF.</h5>";
+		$this->execute = $execute;
+		echo "- getting all Models<br>\n";
+
+		$dh  = opendir($ENV->dirs->models);
+		while (false !== ($filename = readdir($dh))) {
+			if($filename!='.' && $filename!='..') {
+				require_once($ENV->dirs->models.$filename);
+				$path_parts = pathinfo($ENV->dirs->models.$filename);
+				$modelName = $path_parts['filename'];
+				echo $modelName."<br>\n";
+				$className = "\\" . __NAMESPACE__ . "\\Models\\" . $modelName;
+				$model = new $className($this->db, $ENV, $this->errorHandler, null);
+				$models[] = $model;
+			}
+		}
+		// special "Models":
+
+
+
+
+		require_once($ENV->dirs->vendor."jeffstagedoor/Api/api/Log.php");
+		$Log = new \Jeff\Api\Log($this->db, $ENV, $this->errorHandler);
+		$models[] = $Log;
+
+
+		require_once($ENV->dirs->vendor."jeffstagedoor/Api/api/Log.php");
+		$LogLogin = new \Jeff\Api\LogLogin($this->db, $ENV, $this->errorHandler);
+		
+		// Accounts/Users should be an extended model in consuming App
+		// require_once($ENV->dirs->vendor."jeffstagedoor/Api/api/Account.php");
+		// $Account = new \Jeff\Api\Models\Account($this->db, $ENV, $this->errorHandler, null);
+		// $models[] = $Account;
+		
+		$models[] = $LogLogin;
+
+		if(count($models)===0) {
+			echo "no Models found in folder AppRoot/models";
+		}
+
+		foreach($models as $model) {
+			if(!isset($model->dbDefinition)) {
+				echo "<h4 style='color: #CC0000;'>ERR: There is no dbDefinition defined for '".$model->modelName."'</h4>";
+				continue;
+			}
+
+			$tableName = $model->getDbTable();
+			$dbDefinition = $model->dbDefinition;
+			$primaryKey = $model->dbPrimaryKey;
+			
+			$this->_checkDbIsTheSame($ENV, $tableName, $dbDefinition, $requestArray, $primaryKey);
+
+			if(isset($model->hasMany)) {
+				foreach ($model->hasMany as $key => $def) {
+					$tableName = $key;
+					$dbDefinition = $def['db'];
+					$primaryKey = $def['primaryKey'];
+					$this->_checkDbIsTheSame($ENV, $tableName, $dbDefinition, $requestArray, $primaryKey);
+					# code...
+				}
+			}
+
+		}
+
+
+	}
+
+	private function _checkDbIsTheSame($ENV, $tableName, $dbDefinition, $requestArray, $primaryKey) {
+
+			$result = $this->db->rawQuery("SHOW FULL TABLES LIKE '".$tableName."'");
+			if(count($result)>0) {
+				// TABLE EXISTS -> check for possible updates
+				echo "\n\n<br><br>Table <b>'{$tableName}'</b> <span style='color: #00CC00;'>exists</span>"; //, <i>checking for updates:</i>";
+
+				foreach($dbDefinition as $column) {
+						$tableInfo = $this->getTableInfo($tableName);
+
+
+						echo "\n<br> &nbsp;&nbsp;&nbsp;&nbsp;".$column[0];
+						$field = $this->_findColumn($tableInfo, $column[0]);
+						$mismatch = false;
+						if($field) {
+							echo " - <span style='color: #00CC00;'>exists</span> ";
+							if($field->type != $column[1]) {
+								echo "- <b>TYPES MISMATCH</b>";
+								$mismatch=true;
+							}
+							if($field->length != $column[2]) {
+								echo "- <b>LENGTH MISMATCH</b>";
+								$mismatch=true;
+							}
+							if(isset($column[3]) && $field->hasNull != $column[3]) {
+								echo "- <b>HASNULL MISMATCH (and set)</b>";
+								$mismatch=true;
+							} elseif(!isset($column[3])) {
+								if($field->hasNull===true) {
+								echo "- <b>HASNULL MISMATCH</b>";
+								$mismatch=true;
+								}
+							}
+																// default as NULL    OR  default as 					'NULL'
+							if(isset($column[4]) && $field->default != $column[4] && (is_null($field->default) && strtoupper($column[4])!='NULL') ) {
+								echo "- <b>DEFAULT MISMATCH</b>";
+								$mismatch=true;
+							} elseif(!isset($column[4])) {
+								if($field->default!=NULL || $field->default!='') {
+								echo "- <b>DEFAULT MISMATCH</b>";
+								$mismatch=true;
+								}
+							}
+							if($mismatch) {
+								// ALTER TABLE
+								$this->_alterTable($tableName, $column);
+							} else {
+								echo "<span style='color: #00CC00;'>and matches</span> ";
+							}
+						} else {
+								echo " - IS MISSING IN TABLE<br>";
+								$this->_addColumn($tableName, $column);
+						}
+				}
+
+
+				// KEYS / INDEXES:
+				$indexes = $this->_getIndexes($tableName);
+				#var_dump($indexes);
+				$foundPrimaryInDB = false;
+				foreach ($indexes as $index) {
+					if($index['Key_name']==='PRIMARY') {
+						if(isset($primaryKey) && $primaryKey===$index['Column_name']) {
+							// Primary Key matches
+						} else {
+							echo "<br>- <b>PRIMARY KEY MISMATCH</b>";
+							if(is_null($primaryKey)) {
+								echo "\n<br>Primary key exists in DB (on '{$index['Column_name']}') , but is NOT set in Model";
+							}
+						}
+						$foundPrimaryInDB=true;
+					}
+				}
+				if(!is_null($primaryKey) && !$foundPrimaryInDB) {
+					echo "- <b>PRIMARY KEY MISMATCH</b>";
+					echo "\n<br>Primary key is defined in Model (on '{$model->dbPrimaryKey}') , but is NOT defined in DB";
+				}
+
+
+				// got the INFO from Database, now let's compare what we've got in definitions:
+				if(isset($requestArray[1]) && $requestArray[1]==='showDbDefinition' && isset($requestArray[2]) && $requestArray[2]===$tableName) {
+						echo "<pre>";
+						echo $this->_extractDbDefinition($tableInfo);
+						echo "</pre>";
+				} else {
+					echo "<br><a href=\"{$ENV->urls->baseUrl}{$ENV->urls->apiUrl}dbupdate/showDbDefinition/$tableName/\">showDbDefinition</a><br>";
+				}
+			} else {
+				// TABLE DOESN'T EXIST -> create it
+				echo "\n\n<br><br>Table <b>'{$tableName}'</b> <span style='color: #d00;'>does NOT exist</span>, let's create it:<br>\n";
+				$table = new dbTable($tableName);
+				foreach ($dbDefinition as $column) {
+					$table->addColumn(new dbColumn($column));
+				}
+
+				if(isset($primaryKey)) {
+					$table->setPrimaryKey($primaryKey);
+				}
+				if(isset($model->dbKeys)) {
+					foreach ($model->dbKeys as $dbKey) {
+						$table->addKey(new dbKey($dbKey[0], $dbKey[1]));
+					}
+				}
+				$sql = $table->getSql();
+				$this->_showQuery($sql);
+				$this->_dbExecute($sql);
+			}
+
+
+
+	}
+
+	public function getTableInfo($tableName) { // used: true
 		$result = $this->db->rawQuery("DESCRIBE `".$tableName."`");
 
 		// $tableInfo=$result;
@@ -40,13 +222,90 @@ Class dbHelper {
 		return $tableInfo;
 	}
 
-	public function getIndexes($tableName) {
+
+	private function _getIndexes($tableName) {
 		$result = $this->db->rawQuery("SHOW INDEX FROM `".$tableName."`");
 		return $result;
 		// print_r($result);
 	}
 
+	private function _extractDbDefinition($tableInfo) {
+		$array = [];
+		foreach ($tableInfo as $key => $field) {
+			$fieldDefinition = [];
+			$fieldDefinition[0] = $field->name;
+			$fieldDefinition[1] = $field->type;
+			$fieldDefinition[2] = $field->length;
+			$fieldDefinition[3] = $field->hasNull;
+			$fieldDefinition[4] = $field->default;
+			$fieldDefinition[5] = $field->extra;
+			$array[] = $fieldDefinition;
+		}
+		// $array = $tableInfo;
+		return var_export($array, true);
+	}
 
+	private function _findColumn($tableInfo, $column) {
+		foreach($tableInfo as $ti) {
+			if($ti->name==$column) {
+				return $ti;
+			}
+		}
+		return false;
+	}
+
+	private function _alterTable($tableName, $column) {
+		$s = "ALTER TABLE `$tableName` CHANGE `{$column[0]}` ";
+		$s .= $this->_Column($column);
+		$this->_showQuery($s);
+		$this->_dbExecute($s);
+	}
+
+
+	private function _addColumn($tableName, $column) {
+		$s = "ALTER TABLE `$tableName` ADD ";
+		$s .= $this->_Column($column);
+		echo "<br>\n<pre>".$s."</pre>";
+		$this->_dbExecute($s);
+	}
+
+	private function _Column($column) {
+		$s="`".$column[0]."` ".$column[1];
+		if(isset($column[2]) && $column[2]) {
+			$s.= '('.$column[2].')';
+		}
+		if(isset($column[3]) && !$column[3]) {
+			$s.= ' NOT NULL';
+		}
+		if(isset($column[4]) && $column[4]!=NULL) {
+			if($column[4]==='CURRENT_TIMESTAMP') {
+				$s.= ' DEFAULT CURRENT_TIMESTAMP';
+			// } elseif($column[4]==='CURRENT_DATE') {
+			// 	$s.= ' DEFAULT CURRENT_DATE';
+			} else {
+				$s.= ' DEFAULT \''.$column[4].'\'';
+			}
+		}
+		if(isset($column[5])) {
+			$s.= ' '.$column[5];
+		}
+		return $s;
+	}
+
+	private function _showQuery($sql) {
+		echo "<div style='margin-left: 50px;'><pre>$sql</pre></div>";
+	}
+
+	private function _dbExecute($sql) {
+		if($this->execute) {
+			$result = $this->db->rawQuery($sql);
+		}
+		if($this->db->getLastErrno() === 0) {
+			echo $this->execute ? "<i>..executed</i><br>" : "";
+		} else {
+			echo "\n<br><b style='color: #d00;'>a database error occured: {$this->db->getLastErrno()}</b><br><i style='background: #ffa; padding: 3px;'>{$this->db->getLastError()}</i><br>";
+		}
+	}
 
 	private function _getLength($info) {
 		$pattern = '/\({1}([\d\W]*)\){1}/';
