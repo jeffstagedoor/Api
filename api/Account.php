@@ -26,7 +26,7 @@ Class Account extends Model
 	public $isAuthenticated = false;
 	protected $db = null;
 	protected $dbIdField = 'id';
-	protected $dbTable = 'users';
+	protected $dbTable = 'accounts';
 
 
 	// defaults
@@ -41,32 +41,38 @@ Class Account extends Model
 	protected $minPasswordLength = 6;
 	protected $minIdentificationLength = 6; // 6 is minimum for email: a@b.cd
 
-	public $modelFields = array(	'id',
-									'email',
-									'password',
-									'authToken',
-									'fullName',
-									'firstName',
-									'middleName',
-									'prefixName',
-									'lastName',
-									'lastOnline',
-									'lostLogin'
-							);
+	public $dbDefinition = Array(
+			array ('id', 'int', '11', false, NULL, 'auto_increment'),
+			array ('email', 'varchar', '80', false),
+			array ('password', 'varchar', '250', false),
+			array ('rights', 'tinyint', '4', false, '0'),
+			array ('authToken', 'varchar', '250', true),
+			array ('refreshToken', 'varchar', '250', true),
+			array ('fullName', 'varchar', '80', false),
+			array ('firstName', 'varchar', '20', false),
+			array ('middleName', 'varchar', '20', false),
+			array ('prefixName', 'varchar', '20', false),
+			array ('lastName', 'varchar', '30', false),
+			array ('lastOnline', 'timestamp', null, true),
+			array ('lastLogin', 'timestamp', null, true),
+
+		);
+	public $dbPrimaryKey = 'id';
+
 	private $dbColsToFetch = array('id', 'email', 'fullName', 'firstName', 'middleName', 'prefixName', 'lastName', 'lastOnline', 'lastLogin');
 	
 	// Sideloads & References (hasMany-Fields)
-	public $hasManyFields = Array (
-			Array("name"=>'user2workgroups',"dbTable"=>'user2workgroup', "dbTargetFieldName"=>'workgroup', "dbSourceFieldName"=>'user', "saveToStoreField"=>'workgroup', "saveToStoreName"=>'workgroups'),
-			Array("name"=>'user2productions',"dbTable"=>'user2production', "dbTargetFieldName"=>'production', "dbSourceFieldName"=>'user', "saveToStoreField"=>'production', "saveToStoreName"=>'productions'),
-		);
+	// public $hasManyFields = Array (
+	// 		Array("name"=>'user2workgroups',"dbTable"=>'user2workgroup', "dbTargetFieldName"=>'workgroup', "dbSourceFieldName"=>'user', "saveToStoreField"=>'workgroup', "saveToStoreName"=>'workgroups'),
+	// 		Array("name"=>'user2productions',"dbTable"=>'user2production', "dbTargetFieldName"=>'production', "dbSourceFieldName"=>'user', "saveToStoreField"=>'production', "saveToStoreName"=>'productions'),
+	// 	);
 
-	public $sideloadItems = Array(
-			Array("name"=>'user2workgroups',"dbTable"=>'user2workgroup', "reference"=>'user2workgroups'),
-			Array("name"=>'workgroups', "dbTable"=>'workgroups', "reference"=>'workgroups', "class"=>'Workgroups'),
-			Array("name"=>'user2productions', "dbTable"=>'user2production', "reference"=>'user2productions'),
-			Array("name"=>'productions', "dbTable"=>'productions', "reference"=>'productions', "class"=>'Productions'),
-		);
+	// public $sideloadItems = Array(
+	// 		Array("name"=>'user2workgroups',"dbTable"=>'user2workgroup', "reference"=>'user2workgroups'),
+	// 		Array("name"=>'workgroups', "dbTable"=>'workgroups', "reference"=>'workgroups', "class"=>'Workgroups'),
+	// 		Array("name"=>'user2productions', "dbTable"=>'user2production', "reference"=>'user2productions'),
+	// 		Array("name"=>'productions', "dbTable"=>'productions', "reference"=>'productions', "class"=>'Productions'),
+	// 	);
 
 
 
@@ -77,7 +83,7 @@ Class Account extends Model
 	* method reAuth
 	* reauthenticate a user by sent authToken
 	* @param $authToken
-	* @return obj $user or false if reAuth failed
+	* @return true or false if reAuth failed
 	*/
 	public function reAuthenticate($authToken) 
 	{
@@ -92,6 +98,47 @@ Class Account extends Model
 			return false;
 		}
 	}
+
+
+	/**
+	* method refreshToken
+	* refresh the authToken for a user, identified by sent refreshToken
+	* @param $refreshToken
+	* @return obj $user or false if reAuth failed
+	*/
+	public function refreshToken($refreshToken) 
+	{
+		$this->db->where('refreshToken', $refreshToken);
+		$user = $this->db->ObjectBuilder()->getOne($this->dbTable, null, $this->dbColsToFetch);
+		if($user) {
+			// make a new authToken, save it to db and send it back to client
+			$return = new \stdClass();
+			$return->account_id = $user->id;
+			$return->authToken = $this->makeAuthCode();
+			$return->refreshToken = $this->makeAuthCode();
+
+			$data = Array (
+				'lastOnline' => $this->db->now(),
+				'refreshToken' => $return->refreshToken,
+				'authToken' => $return->authToken
+			);
+			$this->db->where('id', $user->id);
+			$this->db->update($this->dbTable, $data);
+			// make new entry in logLogin
+			require_once("Log.php");
+			$log = new Api\LogLogin($this->db, $this->ENV, $this->errorHandler);
+			$id = $log->writeLoginLog($user->id,true,true);
+			
+			$this->isAuthenticated = true;
+			$this->id = $user->id;
+			$this->data = $this->buildAccountObject($user);
+			return $return;
+		} else {
+			return false;
+		}
+	}
+
+
 
 	/**
 	* method getAuthById
@@ -191,40 +238,44 @@ Class Account extends Model
 					'lastOnline' => $this->db->now()
 				);
 
-				if(strlen($user['authToken'])<10) {
-					$return->authToken = $this->makeAuthCode();
-					$data['authToken'] = $return->authToken;
-				} else {
-					$return->authToken = $user['authToken'];
-				}
+				$return->authToken = $this->makeAuthCode();
+				$data['authToken'] = $return->authToken;
+				$return->refreshToken = $this->makeAuthCode();
+				$data['refreshToken'] = $return->refreshToken;
+
 				$return->account_id = $user['id'];
 				$this->db->where('id', $user['id']);
-				$this->db->update('users', $data);
+				$this->db->update($this->dbTable, $data);
 				// make new entry in logLogin
 				require_once("Log.php");
-				$log = new Api\Log($this->db, $this->ENV, $this->errorHandler);
+				$log = new Api\LogLogin($this->db, $this->ENV, $this->errorHandler);
 				$id = $log->writeLoginLog($user['id'],true,true);
 
 			} else {
 				// password wrong
-				$err->add(91);
+				$this->errorHandler->add(91);
 				// make new entry in logLogin
 				require_once("Log.php");
-				$log = new Api\Log($this->db, $this->ENV, $this->errorHandler);
+				$log = new Api\LogLogin($this->db, $this->ENV, $this->errorHandler);
 				$id = $log->writeLoginLog($user['id'],true,false);
+				return false;
 			}
 
 		} else {
 			// identification is wrong
 			$this->errorHandler->add(91);
+			return false;
 		}
 		return $return;
 	}
+
 
 	// authenticate = pseudo for LOGIN
 	public function authenticate($identification, $password) {
 		return $this->login($identification, $password);
 	}
+
+
 
 	/**
 	* method changePassword
@@ -343,28 +394,29 @@ Class Account extends Model
 	*/
 	public function getWorkgroups() 
 	{
-		if (isset($this->data->workgroups)) {
-			return $this->data->workgroups;
-		}
-		if (func_num_args()>0) {
-			$args = func_get_args();
-			$id = $args[0];
-		} else {
-			$id = $this->id;
-		}
+		echo "DEPRECATED getWorkgroups - in Class Account - move to somewhere else. somehow.";
+		// if (isset($this->data->workgroups)) {
+		// 	return $this->data->workgroups;
+		// }
+		// if (func_num_args()>0) {
+		// 	$args = func_get_args();
+		// 	$id = $args[0];
+		// } else {
+		// 	$id = $this->id;
+		// }
 
-		$cols = Array('workgroup','rights');
-		$this->db->where('user', $id);
-		$this->db->orderBy('workgroup', 'asc');
-		$u2ws = $this->db->get('user2workgroup', null, $cols);
+		// $cols = Array('workgroup','rights');
+		// $this->db->where('user', $id);
+		// $this->db->orderBy('workgroup', 'asc');
+		// $u2ws = $this->db->get('user2workgroup', null, $cols);
 
-		$workgroups = Array();
-		if ($this->db->count>0) {
-			foreach ($u2ws as $u2w) {
-				$workgroups[$u2w['workgroup']] = $u2w['rights'];
-			}
-		}
-		return $workgroups;
+		// $workgroups = Array();
+		// if ($this->db->count>0) {
+		// 	foreach ($u2ws as $u2w) {
+		// 		$workgroups[$u2w['workgroup']] = $u2w['rights'];
+		// 	}
+		// }
+		// return $workgroups;
 	}
 
 
@@ -375,44 +427,45 @@ Class Account extends Model
 	*/
 	public function getProductions() 
 	{
-		if (isset($this->data->productions)) {
-			return $this->data->productions;
-		}
-		$id = $this->id;
-		// fetch the productions the user is connected to (user2production), and add those of the workgroups he's connected to.
-		$cols = Array('production','rights');
-		$this->db->where('user', $id);
-		$this->db->orderBy('production', 'asc');
-		$u2ps = $this->db->get('user2production', null, $cols);
-		$productions = Array();
-		if($this->db->count>0) {
-			foreach ($u2ps as $u2p) {
-				$productions[$u2p['production']] = $u2p['rights'];
-			}
-		}
-		// add all productions from workgroups the user is member in (rights>=1)
-		$y = Array();
-		$wgs = $this->getWorkgroups();
-		foreach ($wgs as $id => $rights) {
-			if($rights>0) {
-				$y[] = $id;
-			}
-		}
-		$cols = Array('id');
-		$this->db->where('workgroup', $y, 'IN');
+		echo "DEPRECATED getProductions - in Class Account - move to somewhere else. somehow.";
+		// if (isset($this->data->productions)) {
+		// 	return $this->data->productions;
+		// }
+		// $id = $this->id;
+		// // fetch the productions the user is connected to (user2production), and add those of the workgroups he's connected to.
+		// $cols = Array('production','rights');
+		// $this->db->where('user', $id);
+		// $this->db->orderBy('production', 'asc');
+		// $u2ps = $this->db->get('user2production', null, $cols);
+		// $productions = Array();
+		// if($this->db->count>0) {
+		// 	foreach ($u2ps as $u2p) {
+		// 		$productions[$u2p['production']] = $u2p['rights'];
+		// 	}
+		// }
+		// // add all productions from workgroups the user is member in (rights>=1)
+		// $y = Array();
+		// $wgs = $this->getWorkgroups();
+		// foreach ($wgs as $id => $rights) {
+		// 	if($rights>0) {
+		// 		$y[] = $id;
+		// 	}
+		// }
+		// $cols = Array('id');
+		// $this->db->where('workgroup', $y, 'IN');
 
-		if(count($productions)) {
-			$this->db->where('id', array_keys($productions), 'NOT IN');	// exclude those just added above!
-		}
-		$this->db->orderBy('id', 'asc');
-		$ps = $this->db->get('productions', null, $cols);
-		if($this->db->count>0) {
-			foreach ($ps as $pItem) {
-				$productions[$pItem['id']] = null;
-			}
-		}
-		$this->data->productions = $productions;
-		return $productions;
+		// if(count($productions)) {
+		// 	$this->db->where('id', array_keys($productions), 'NOT IN');	// exclude those just added above!
+		// }
+		// $this->db->orderBy('id', 'asc');
+		// $ps = $this->db->get('productions', null, $cols);
+		// if($this->db->count>0) {
+		// 	foreach ($ps as $pItem) {
+		// 		$productions[$pItem['id']] = null;
+		// 	}
+		// }
+		// $this->data->productions = $productions;
+		// return $productions;
 	}
 
 
@@ -465,12 +518,9 @@ Class Account extends Model
 		return self::GetRandomString(self::AUTHCODE_LENGTH);
 	}
 
-	private static function GetRandomString($length) {
-		$template = "1234567890abcdefghijklmnopqrstuvwxyz";
-		settype($length, "integer");
-		settype($rndstring, "string");
-		settype($a, "integer");
-		settype($b, "integer");
+	private static function GetRandomString($length=250) {
+		$template = '1234567890abcdefghijklmnopqrstuvwxyz';
+		$rndstring='';
 		for ($a = 0; $a <= $length; $a++) {
 			   $b = rand(0, strlen($template) - 1);
 			   $rndstring .= $template[$b];
