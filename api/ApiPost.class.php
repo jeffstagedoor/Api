@@ -24,17 +24,13 @@ Class ApiPost
 	private $ENV;
 	private $items;
 
-	function __construct($request, $data, $ENV, $db, $errorHandler, $Account, $log=NULL) {
+	function __construct($request, $data, $ENV, $db, $errorHandler, $Account, $log) {
 		$this->request = $request;
 		$this->data = $data;
 		$this->ENV = $ENV;
 		$this->db = $db;
 		$this->errorHandler = $errorHandler;
 		$this->Account = $Account;
-		if($log===NULL) {
-			require_once("Log.php");
-			$log = new Log($this->db, $this->ENV, $this->errorHandler);
-		}
 		$this->log = $log;
 	}
 
