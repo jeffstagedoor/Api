@@ -70,26 +70,6 @@ Class ApiHelper {
 	}
 
 	/**
-	*	getModel
-	*	tries to find the requested model
-	*	@param [string] modelName
-	*	@return [string] className
-	**/
-	public static function getModel($modelName, $ENV) {
-		$modelFile = dirname(__FILE__).DIRECTORY_SEPARATOR.$ENV->dirs->models . ucfirst($modelName) . ".php";
-		
-		// if (!file_exists($modelFile)) {
-		// 		$errors[] = "API Error. Requested recource '{$modelName}' not found/defined.";
-		// 		self::sendResponse(400,"{ \"errors\": ".json_encode($errors)."}");
-		// 		exit;
-		// } else {
-		require_once($modelFile); 
-		// }
-		$className = "\\" . __NAMESPACE__ . "\\Models\\" . ucfirst($modelName);
-		return $className;
-	}
-
-	/**
 	*	getRequiredFields
 	*	tries to find the requested model
 	*	@param [string] dbDefinitions
@@ -120,8 +100,6 @@ Class ApiHelper {
 	**/
 	public static function checkRequiredFieldsSet($required, $data) {
 		$missing = Array();
-		// $data;
-		// var_dump($data);
 		foreach ($required as $key => $field) {
 			if(!isset($data[$field[0]])) {
 				$missing[] = $field[0];
@@ -196,6 +174,7 @@ Class ApiHelper {
 	}
 
 	private static function addSideload($sideload) {
+		echo "DEPRECATED: ApiHelper->addSideLoad\n";
 		$x="";
 		foreach ($sideload as $key => $value) {
 			$x .= ", \"".$key."\": ".json_encode($value);
@@ -206,10 +185,10 @@ Class ApiHelper {
 
 
 	public static function writeLog($itemName, $data, $action, $ENV, $Account, $log) {
-		
+		echo "DEPRECATED: ApiHelper->writeLog\n";
 		$logConfig = __DIR__.DIRECTORY_SEPARATOR.$ENV->dirs->appRoot."LogConfig.php";
 		if(file_exists($logConfig)) {
-			include($logConfig);
+			include_once($logConfig);
 			$log->write($Account->id, $action, $itemName, $data);
 		} else {
 			$err = new Error(ErrorHandler::LOG_NO_CONFIG);
