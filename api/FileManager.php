@@ -38,7 +38,7 @@ Class FileManager {
 	public $maxFileSize = 5242880;  // = 5MB
 
 	public $dbTable = 'files';
-	public $targetFolder = "../../files";
+	public $targetFolder = "../../filesDefaultInFileManager/";
 
 	// contructor with optional properties to be set
 	public function __construct($myFile, $properties = null) {
@@ -158,7 +158,7 @@ Class FileManager {
 				$x.=$prefs->addonLabel.'_';
 			}
 		}
-		$x.=uniqid().'.'.$ext;
+		$x.= ApiHelper::getRandomString(30).'.'.$ext;
 		#echo "new Filename: ".$x."\n";
 		return $x;
 	}

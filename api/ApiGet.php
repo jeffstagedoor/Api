@@ -19,18 +19,19 @@ namespace Jeff\Api;
 Class ApiGet 
 {
 	private $db;
-	private $Account;
 	private $request;
 	private $ENV;
 	private $items;
+	private $account;
 
-	function __construct($request, $data, $ENV, $db, $errorHandler) {
+	function __construct($request, $data, $ENV, $db, $errorHandler, $account) {
 		// global $ENV;
 		$this->request = $request;
 		$this->data = $data;
 		$this->ENV = $ENV;
 		$this->db = $db;
 		$this->errorHandler = $errorHandler;
+		$this->account = $account;
 		$this->items = new \stdClass();
 	}
 
@@ -38,9 +39,11 @@ Class ApiGet
 		switch ($this->request->type) {
 			case Api::REQUEST_TYPE_REFERENCE: 
 				$id = isset($this->request->id) ? $this->request->id : null;
-				$this->items->{$this->request->requestArray[0]} = $this->request->model->getMany2Many($id, $this->request->modelLeft->modelNamePlural, 'id');
+				$filter = $this->_getFilter();
+				$this->items->{$this->request->requestArray[0]} = $this->request->model->getMany2Many($id, $this->request->modelLeft->modelNamePlural, 'id', $filter); // I might need the by='id' somehwhere..?
 				break;
 			case Api::REQUEST_TYPE_COALESCE:
+				// var_dump($this->request);
 				$this->items->{$this->request->model->modelNamePlural} = $this->request->model->getCoalesce($this->data->ids);
 				break;
 			case Api::REQUEST_TYPE_QUERY:
@@ -50,12 +53,19 @@ Class ApiGet
 			case Api::REQUEST_TYPE_NORMAL:
 				if(isset($this->request->id)) {
 					$this->items->{$this->request->model->modelName} = $this->request->model->getOneById($this->request->id);
-
+					if(is_null($this->items->{$this->request->model->modelName})) {
+						$this->errorHandler->addSendAllExit(21);
+						exit;
+					}
 					
 				} elseif(isset($this->request->special)) {
 					switch ($this->request->special) {
 						case "search":
-							$this->items->{$this->request->model->modelNamePlural} = $this->request->model->search($this->data);
+							#echo "DEPRECATED: use api/search[/modelName](+data) instead of api/modelName/search";
+							$result = $this->request->model->search($this->data);
+							$response = new \stdClass();
+							$response->result = $result;
+							return $response;
 							break;
 						case "count":
 							$count = $this->request->model->count($this->data);
@@ -77,15 +87,75 @@ Class ApiGet
 	public function getSpecial() {
 		// echo "GET REQUEST_TYPE_SPECIAL: ".$this->request->special;
 		switch ($this->request->special) {
+			case "search":
+				if(isset($this->request->requestArray[1])) {
+					// search only in one model
+
+					$modelName = $this->request->requestArray[1];
+					// get the Model
+					if($modelName==='accounts') {
+						$model = $this->account;
+					} else {
+						$modelFile = $this->ENV->dirs->models . ucfirst($modelName) . ".php";
+						if (!file_exists($modelFile)) {
+							$this->errorHandler->throwOne(Array("Api Error", "Requested recource '{$modelName}' not found/defined.", 400, ErrorHandler::CRITICAL_EMAIL, false));
+							exit;
+						} else {	
+							require_once($modelFile);
+							$classNameNamespaced = "\\Jeff\\Api\\Models\\" . ucfirst($modelName);
+							$model = new $classNameNamespaced($this->db, $this->ENV, $this->errorHandler,$this->account);
+						}
+					}
+					$result = $model->search($this->data);
+					$response = new \stdClass();
+					$response->result = $result;
+					return $response;
+					#ApiHelper::sendResponse(200, json_encode($response));
+				} else {
+					// search only in complete db?!?
+					echo "complete search not yet implemented";
+				}
+				break;
+				exit;
 			case "getFolder":
 				$this->_getFolder();
 				exit;
 			case "getFile":
-				$this->errorHandler->throwOne(Array("API-Error", "getFile not yet implemented."));
+				$this->_getFile();
 				exit;
 			case "getImage":
 				$this->_getImage();
 				exit;
+			case "task":
+				require_once("TasksPrototype.php");
+				require_once($this->ENV->dirs->appRoot."Tasks.php");
+				$tasks = new \Jeff\Api\Tasks($this->db, $this->ENV, $this->errorHandler, $this->account);
+				// var_dump($this->request->requestArray);
+				
+				$taskName = 'not defined';
+				if(isset($this->request->requestArray[1])) {
+					// der task ist im request zb: task/addUserToWorkgroup (die Daten in postData)
+					// check if we have a fitting method defined:
+					$taskName = $this->request->requestArray[1];
+				} elseif (isset($this->data->task)) {
+					// ist der task woanders versteckt
+					$taskName = $this->data;
+				}
+				if(method_exists($tasks, $taskName)){
+					$response = $tasks->{$taskName}($this->data, $this->request);
+				} elseif ($tasks->getTaskByCode($this->request->requestArray[1])){
+					#$response = new \stdClass();
+					$response = $tasks->getTaskByCode($this->request->requestArray[1]);
+					// $response = $task;
+				} elseif($task->getTaskById($this->request->requestArray[1])) {
+					#$response = new \stdClass();
+					$response = $tasks->getTaskById($this->request->requestArray[1]);
+				} else {
+					$this->errorHandler->throwOne(ErrorHandler::TASK_NOT_DEFINED);
+					exit;
+				}
+				return $response;
+				break;
 		}
 	}
 
@@ -168,14 +238,14 @@ Class ApiGet
 
 
 	private function _getImage() {
-		if(isset($data->file)) {
+		if(isset($this->data->file)) {
 			// VERSION 1 (filename directly given):
-			$filename = $data->file;
+			$filename = $this->data->file;
 			// the path is ../files/itemType[/type]:
-			$path = $ENV->dirs->files;
-			if(isset($data->itemType)) $path.=$data->itemType.DIRECTORY_SEPARATOR;
-			if(isset($data->type)) $path.=$data->type.DIRECTORY_SEPARATOR;
-		} elseif (isset($data->imageId)) {
+			$path = $this->ENV->dirs->files;
+			if(isset($this->data->itemType)) $path.=$this->data->itemType.DIRECTORY_SEPARATOR;
+			if(isset($this->data->type)) $path.=$this->data->type.DIRECTORY_SEPARATOR;
+		} elseif (isset($this->data->imageId)) {
 			// VERSION 2 (filename & path has to be fetched from db-table files)
 			// TODO
 			$this->errorHandler->throwOne(Array("API-Error", "Image fetching from DB not yet implemented (ApiGet.class.php line 176)"));
@@ -192,6 +262,10 @@ Class ApiGet
 			$image->resizeMax($width,$height);
 		}
 		$image->show();
+	}
+
+	private function _getFile() {
+		$this->errorHandler->throwOne(Array("API-Error", "getFile not yet implemented."));
 	}
 
 }

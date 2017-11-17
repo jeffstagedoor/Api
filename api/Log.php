@@ -88,45 +88,73 @@ Class Log {
 		}
 	}
 
-	/** Basic API Write to DBLog - Method, will be overridden by special logs
-	*
-	*
-	*/
-	public function write($user, $type, $itemName, $data) {
-		if(!$this->readyToWrite) { 
+	/** 
+	*	Basic API Write to DBLog - Method, will be overridden by special logs
+	*	@param accountId [int]: the account id of the current operating user
+	*	@param type [string]: the type of current action like 'update', 'delete', 'create'
+	*	@param $itemname [string]: name of the manipulated item like 'post', 'comment', 'event' (has to match LogConfig items)
+	*	@param data [mixed]: either an array with the manipulating data (as arriving from client), 
+	*						OR an object containing a LogDefaultFor and a LogDefaultMeta as data->for, data->meta[, data->dataset]
+	*	
+	**/
+	public function write($accountId, $type, $itemName, $data) {
+		if(!$this->readyToWrite) {
 			return null;
 		}
-		// first Prepare from custom LogConfig
-		// so let's see if we have a configuration for the given item:
-		if (isset( $this->logConfig->{$itemName} )) {
-			$for = $this->extractDataFromConfig($this->logConfig->{$itemName}->for, $data);
-			$meta = $this->extractDataFromConfig($this->logConfig->{$itemName}->meta, $data);
+		// check if we have a 'for' and a 'meta' given in $data
+		if(isset($data->for) && isset($data->meta)) {
+			$for = $data->for;
+			$meta = $data->meta;
+
 		} else {
-			// fallback to default
-			$logForConfig = new LogDefaultFor(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
-			$logMetaConfig = new LogDefaultMeta(Array($itemName,"id"),NULL,NULL,NULL,NULL);
-			$for = $this->extractDataFromConfig($logForConfig, $data);
-			$meta = $this->extractDataFromConfig($logMetaConfig, $data);
+			// first Prepare from custom LogConfig
+			// so let's see if we have a configuration for the given item:
+			// echo "itemName:" .$itemName."\n";
+			if (isset( $this->logConfig->{$itemName} )) {
+				$for = $this->extractDataFromConfig($this->logConfig->{$itemName}->for, $data);
+				$meta = $this->extractDataFromConfig($this->logConfig->{$itemName}->meta, $data);
+			} else {
+				// fallback to default
+				$logForConfig = new LogDefaultFor(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+				#var_dump($data);
+				if(is_int($data->{$itemName}['id'])) {
+					// if id is an int, store it in meta1
+					$logMetaConfig = new LogDefaultMeta(Array($itemName,"id"),NULL,NULL,NULL,NULL);
+				} else {
+					// otherwise (for relational tables like accounts2workgroup) store it in meta4, which is a varchar
+					$logMetaConfig = new LogDefaultMeta(NULL,NULL,NULL,Array($itemName,"id"),NULL);
+				}
+				$for = $this->extractDataFromConfig($logForConfig, $data);
+				$meta = $this->extractDataFromConfig($logMetaConfig, $data);
+			}
 		}
 
 		$data = new \stdClass();
-		$data->user = $user;
+		$data->user = $accountId;
 		$data->type = $type;
 		$data->item = $itemName;
 
 
 		$dbData = array_merge((Array) $data, (Array) $for, (Array) $meta);
 		// var_dump($this->logConfig);
-		// var_dump($dbData);
+		#var_dump($dbData);
 		// var_dump($this->db)
+
 		$id = $this->db->insert($this->dbTable, $dbData);
+		#echo "return from insert: ".$id;
+		#echo $this->db->getLastError();
 		return $id;		
 	}
 
 
 	private function extractDataFromConfig($logConfig, $data) {
 		foreach ($logConfig as $key => $value) {
+			#echo "extracting Values. value=".$value."\n";
 			if(is_array($value)) {
+				#echo "is_array:\n";
+				#print_r($value);
+				#echo "data:\n";
+				#var_dump($data->{$value[0]});
 				// extract specified values from $data
 				if(isset($data->{$value[0]}[$value[1]])) {
 					$v = $data->{$value[0]}[$value[1]];
@@ -136,6 +164,8 @@ Class Log {
 				$logConfig->{$key} = $v;
 			}
 		}
+		#echo "logConfig:\n";
+		#var_dump($logConfig);
 		return $logConfig;		
 	}
 
@@ -315,7 +345,7 @@ Class LogLogin extends Log {
 	// private $dbTable = \Jeff\LogConfig::DB_TABLE_LOGIN;
 	protected $dbTable = "loglogin";
 	public $dbDefinition = Array(
-			array ('id', 'int', '11', false, false, 'auto_increment'),
+			array ('id', 'int', '11', false, NULL, 'auto_increment'),
 			array ('user', 'int', '11', false),
 			array ('loginattempt', 'tinyint', '1', false),
 			array ('success', 'tinyint', '1', false),
@@ -394,7 +424,7 @@ Class LogDefaultFor {
 	function __construct($A, $ARights, $B, $BRights, $C, $CRights, $D, $DRights) {
 		$this->A 		= $A;
 		$this->ARights 	= $ARights;
-		$this->B 		= $B;
+		$this->B 		= $B;	
 		$this->BRights 	= $BRights;
 		$this->C 		= $C;
 		$this->CRights 	= $CRights;

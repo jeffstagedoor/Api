@@ -28,6 +28,8 @@ require_once("DBHelper.php");
 require_once("ApiHelper.php");
 require_once("Model.php");
 require_once("Account.php");
+require_once("MailerPrototype.php");
+require_once("Authorizor/Authorizor.php");
 
 Class ApiInfo {
 	public static $version = "1.3.1";
@@ -43,7 +45,7 @@ Class ApiInfo {
 	*	@param [string] format ('array', 'json'=default)
 	*	@return [array]
 	**/
-	public static function getApiInfo($format='json') {
+	public static function getApiInfo(string $format='json') {
 		$array = Array(
 			"version"=>self::$version,
 			"author"=>self::$author,
@@ -62,7 +64,10 @@ Class Api {
 
 	private $ENV;
 	private $NOAUTH=false;
-	private $specialVerbs = Array('dbupdate','meta', 'login', 'signup', 'signin', 'task', 'sort', 'search', 'count', 'apiInfo', 'getFile', 'getImage','getFolder');
+	private $specialVerbs = Array('dbupdate','meta', 'login', 'signup', 'signin', 'task', 'sort', 'search', 'count', 'apiInfo', 
+									'getFile', 'getImage','getFolder',
+									'fileUpload', 'changePassword'
+									);
 	private $models;
 	private $request;
 	private $data;
@@ -78,7 +83,7 @@ Class Api {
 	
 
 
-	public function __construct($ENV=null) {
+	public function __construct(Environment $ENV=null) {
 		
 		$this->ENV = $ENV;
 		// instatiate all nesseccary classes
@@ -100,7 +105,7 @@ Class Api {
 		}
 
 
-		$this->NOAUTH = isset($this->ENV->Api->noAuth) ? $this->ENV->Api->noAuth : false;
+		$this->NOAUTH = isset($this->ENV->api->noAuth) ? $this->ENV->api->noAuth : false;
 		$this->account = new Models\Account($this->db, $this->ENV, $this->errorHandler, null);
 
 		// put together what was passed as parameters to this api:
@@ -109,6 +114,7 @@ Class Api {
 		$this->data = ApiHelper::getData();
 		$this->models = $this->_getAllModels();
 		$this->request = $this->_getFullRequest();
+		#var_dump($this->models);
 		if(count($this->requestArray)===0 || $this->request===null || $this->request->type===self::REQUEST_TYPE_INFO) {
 			echo ApiInfo::getApiInfo();
 			exit;
@@ -119,17 +125,30 @@ Class Api {
 		if($this->_needsAuthentication()) {
 			// check if and where we got an authToken
 			$headers = getallheaders();
-			if(isset($headers['Authorization'])) {
-				$auth = explode(" ", $headers['Authorization']);
+			if(isset($headers['Authorization']) || isset($headers['authorization'])) { // sometimes it's send in lowercase... f.e. in AdvancedRestClient
+				$authorization = isset($headers['Authorization']) ? $headers['Authorization'] : $headers['authorization'];
+				$auth = explode(" ", $authorization);
 				$authToken = $auth[1];
 				$authType = $auth[0];
 			} elseif (isset($this->data->authToken)) {
 				$authToken = $this->data->authToken;
-			} else {	// no authtoken found -> send error & exit script!
-				$this->errorHandler->throwOne(ErrorHandler::AUTH_NO_AUTHTOKEN);
-				exit;
+			} else {	
+				// no authToken found.
+
+				// now we have one special case when an invitationCode is sent - when on publicPage to accept invitation.
+				if(isset($this->data->filter['invitationToken']) && $this->requestArray[0]==='accounts') {
+					$invitationToken = $this->data->filter['invitationToken'];
+				} else {
+					// no authtoken, no invitationToken found -> send error & exit script!
+					$this->errorHandler->throwOne(ErrorHandler::AUTH_NO_AUTHTOKEN);
+					exit;
+				}
 			}
-			$success = $this->account->reAuthenticate($authToken);
+			if(isset($invitationToken)) {
+				$success = $this->account->reAuthenticateByInvitationToken($invitationToken);
+			} else {
+				$success = $this->account->reAuthenticate($authToken);
+			}
 
 			if(!$this->account->isAuthenticated) {	
 				// authorization failed
@@ -140,7 +159,7 @@ Class Api {
 				$this->account->updateLastOnline();
 			}
 		} 
-		if($this->ENV->Api->noAuth) {
+		if($this->ENV->api->noAuth) {
 			$this->account->mockAccount();
 		}
 		# End Authentication
@@ -148,7 +167,7 @@ Class Api {
 
 		// some specials before regular API call
 		// dbupdate
-		if($this->request->type==self::REQUEST_TYPE_SPECIAL && $this->request->special==='dbupdate') {
+		if($this->request->type===self::REQUEST_TYPE_SPECIAL && $this->request->special==='dbupdate') {
 			if(isset($this->request->requestArray[1]) && $this->request->requestArray[1]==='execute') {
 				$execute = true;
 			} else {
@@ -162,12 +181,12 @@ Class Api {
 			case 'OPTIONS':
 				exit;
 			case 'GET':
-				require_once('ApiGet.class.php');
-				$ApiGet = new ApiGet($this->request, $this->data, $this->ENV, $this->db, $this->errorHandler);
+				require_once('ApiGet.php');
+				$ApiGet = new ApiGet($this->request, $this->data, $this->ENV, $this->db, $this->errorHandler, $this->account);
 				if($this->request->type===self::REQUEST_TYPE_SPECIAL) {
 					$response = $ApiGet->getSpecial();
 					if($response) {
-						ApiHelper::sendResponse(200,"{ \"success\": ".json_encode($reponse)."}");
+						ApiHelper::sendResponse(200,json_encode($response));
 					}
 				} else {
 					$items = $ApiGet->getItems();
@@ -187,20 +206,38 @@ Class Api {
 				}
 				break;
 			case 'POST':
-				require_once('ApiPost.class.php');
+				require_once('ApiPost.php');
 				$ApiPost = new ApiPost($this->request, $this->data, $this->ENV, $this->db, $this->errorHandler, $this->account, $this->log);
-				$items = $ApiPost->postItem();
-				ApiHelper::postItems($this->request->model, $items, $this->request->model->modelNamePlural);
+				if($this->request->type===self::REQUEST_TYPE_SPECIAL) {
+					$response = $ApiPost->postSpecial();
+					if($response) {
+						ApiHelper::sendResponse(200,json_encode($response));
+					}
+				} else {
+					$response = $ApiPost->postItem();
+					#echo "response in Api.php Line ".__LINE__."\n";
+					#var_dump($response);
+					ApiHelper::sendResponse(200, json_encode($response));
+				}
 				break;
 			case 'PUT':
+				require_once('ApiPut.php');
+				$ApiPut = new ApiPut($this->request, $this->data, $this->ENV, $this->db, $this->errorHandler, $this->account, $this->log);
+				if($this->request->type===self::REQUEST_TYPE_SPECIAL) {
+					$response = $ApiPut->putSpecial($this->models);
+					if($response) {
+						ApiHelper::sendResponse(200,json_encode($response));
+					}
+				} else {
+					$response = $ApiPut->putItem();
+					ApiHelper::sendResponse(200,json_encode($response));
+				}
 				break;
 			case 'DELETE':
-				require_once('ApiDelete.class.php');
+				require_once('ApiDelete.php');
 				$ApiDelete = new ApiDelete($this->request, $this->data, $this->ENV, $this->db, $this->errorHandler, $this->account, $this->log);
-				$items = $ApiDelete->deleteItem();
-				if($items) {
-					ApiHelper::postItems($this->request->model, $items, $this->request->model->modelNamePlural);
-				}
+				$response = $ApiDelete->deleteItem();
+				ApiHelper::sendResponse(200,json_encode($response));
 				break;
 		}
 	} // end __construct()
@@ -240,7 +277,10 @@ Class Api {
 			}
 			#$request->singularRequest = substr($this->requestArray[0], 0, strlen($this->requestArray[0])-1);
 		}
-		if($request->type === self::REQUEST_TYPE_NORMAL || $request->type === self::REQUEST_TYPE_QUERY) {
+		if($request->type === self::REQUEST_TYPE_NORMAL 
+			|| $request->type === self::REQUEST_TYPE_QUERY 
+			|| $request->type=== self::REQUEST_TYPE_COALESCE) {
+			
 			$modelName = $this->requestArray[0];
 			$model = $this->_getModel($modelName);
 			$request->model = $model;
@@ -295,10 +335,10 @@ Class Api {
 	*	_getModel
 	*	tries to get one model based on it's (plural or singular) name 
 	*	
-	*	@param [object] environment configuration
+	*	@param [string] name of the desired model
 	*	@return [array of models]
 	**/
-	private function _getModel($modelName) {
+	public function _getModel(string $modelName) {
 		if($this->models) {
 			// if we already scanned the directory (which we should have done already), we can simply check if it's in there and return true
 			if(isset($this->models[$modelName])) {
@@ -308,12 +348,12 @@ Class Api {
 			// now check for singular version.
 			// I think we need to walk through all available models and get the singleName out of that.
 			foreach ($this->models as $model) {
-				if($model->modelName==$modelName) {
+				if($model->modelName===$modelName) {
 					return $model;
 				}
 			}
 		}
-		$modelFile = dirname(__FILE__).DIRECTORY_SEPARATOR.$this->ENV->dirs->models . ucfirst($modelName) . ".php";
+		$modelFile = $this->ENV->dirs->models . ucfirst($modelName) . ".php";
 		
 		if (!file_exists($modelFile)) {
 			$this->errorHandler->throwOne(Array("Api Error", "Requested recource '{$modelName}' not found/defined.", 400, false, ErrorHandler::CRITICAL_EMAIL));
@@ -321,7 +361,7 @@ Class Api {
 		} else {
 			include_once($modelFile);
 			$classNameNamespaced = "\\Jeff\\Api\\Models\\" . ucfirst($modelName);
-			$model = new $classNameNamespaced($this->db, $this->ENV, $this->errorHandler);
+			$model = new $classNameNamespaced($this->db, $this->ENV, $this->errorHandler, $this->account);
 			return $model;
 		}
 		return null;
@@ -333,10 +373,10 @@ Class Api {
 	*	walkes the App's models folder and instanciates every found model 
 	*	and returns them as array of models with the modelName as key
 	*	
-	*	@param [object] environment configuration
-	*	@return [array of models]
+	*	@param
+	*	@return array of models
 	**/
-	private function _getAllModels() {
+	private function _getAllModels(): array {
 		$models = Array();
 		$folder = $this->ENV->dirs->models;
 		$files = array_diff(scandir($folder), array('.', '..'));
@@ -352,25 +392,26 @@ Class Api {
 
 
 	/**
-	*	_needsAuthentication
+	*	Checks if a route needs to be authenticated
+	* 
+	*	in Config we can defaine a set of routes (=the request string 'posts', 'login', 'task/redirect')
+	*	which will be accessable without authentication.
+	*	This is especially needed for singup, login, special tasks.
 	*	
 	*	@param [array] the uri request, [object] environment configuration
-	*	@return [bool]
+	*	@return boolean
 	**/
 	private function _needsAuthentication() {
-		// in Config we can defaine a set of routes (=the request string 'posts', 'login', 'task/redirect')
-		// which will be accessable without authentication.
-		// This is especially needed for singup, login, special tasks.
-
-		if(isset($this->ENV->Api->noAuthRoutes) && is_array($this->ENV->Api->noAuthRoutes) && is_array($this->requestArray)) {
+		#echo __FILE__." ". __FUNCTION__ ."() - Line: ". __LINE__."\n";
+		if(isset($this->ENV->api->noAuthRoutes) && is_array($this->ENV->api->noAuthRoutes) && is_array($this->requestArray)) {
 			$requestRoute = implode('/', $this->requestArray);
-			foreach ($this->ENV->Api->noAuthRoutes as $key => $route) {
+			foreach ($this->ENV->api->noAuthRoutes as $key => $route) {
 				if($route===$requestRoute) {
 					return false;
 				}
 			}
 		}
-		if($this->ENV->Api->noAuth) { 
+		if($this->ENV->api->noAuth) { 
 			return false;
 		}
 		if($this->method==='OPTIONS') {
@@ -382,10 +423,13 @@ Class Api {
 
 
 	/**
-	*	sendPrimaryHeader
+	*	sends a default primary header
+	*
+	*	This is needed at least for an _OPTIONS_ request
+	* 	But this headers will be sent with _every_ response.
 	*	
-	*	@param [object] environment configuration
-	*	@return [void]
+	*	@param stdClass environment configuration
+	*	@return void
 	**/
 	private function _sendPrimaryHeaders($ENV) {
 		header("Access-Control-Allow-Origin: ".$this->ENV->urls->allowOrigin);

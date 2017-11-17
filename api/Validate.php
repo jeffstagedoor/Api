@@ -37,11 +37,6 @@ Class Validate {
 			case self::VAL_TYPE_LENGTH_MIN: 
 				return false;
 				break;
-
-
 		}
 	}
-
 }
-
-?>

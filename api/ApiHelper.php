@@ -40,28 +40,33 @@ Class ApiHelper {
 	public static function getData() {
 		// check where the data came to (and if at all):
 		$fgc = file_get_contents("php://input");
-		#var_dump($fgc);
-		$inputData = (Object) json_decode($fgc, true);
 
-		#var_dump($inputData);
-		if(isset($inputData) && count(get_object_vars($inputData))>0) {
-			$data = $inputData;
+		// test if sent body is a json (that's the usual case for POST, DELETE requests)
+		$json = json_decode($fgc, true);
+		if($json) {
+			$inputData = (Object) $json;
+			if(isset($inputData) && count(get_object_vars($inputData))>0) {
+				$data = $inputData;
+				return $data;
+			}
+		} else {
+			// check for PUT (or 'application/x-www-form-urlencoded')
+			parse_str($fgc, $putData);
+			if($putData && count($putData)>0) {
+				$data = (Object) $putData;
+				return $data;
+			}
 		}
-		#var_dump($data);
 		$postObject = (Object) $_POST;
 		if(isset($postObject) && count(get_object_vars($postObject))>0) {
 			$data = $postObject;
 		}
-		#var_dump($data);
 
 		// check for get-parameters
 		if(!isset($data)) {	
 			$data = (Object) $_GET;
 			unset($data->request);
 		}
-		// check for PUT
-		#parse_str($fgc, $putData);
-		#var_dump($putData);
 		// if nothing found anywhere make an empty object
 		if(!isset($data)) {
 			$data = new \stdClass();
@@ -81,9 +86,9 @@ Class ApiHelper {
 			if(
 				(!isset($field[3]) || (isset($field[3]) && $field[3]===false))	// may NOT be NULL
 				&&
-				(!isset($field[5]) || (isset($field[5]) && $field[5]!='AUTO_INCREMENT')) // no Auto_Increment
+				(!isset($field[5]) || (isset($field[5]) && strtoupper($field[5])!='AUTO_INCREMENT')) // no Auto_Increment
 				&&
-				(!isset($field[4]) || (isset($field[4]) && ($field[4]===false || $field[4]==null))) // has no Default
+				(!isset($field[4]) || (isset($field[4]) && ($field[4]===false || $field[4]===null))) // has no Default
 				) 
 			{
 				$required[]=$field;
@@ -199,5 +204,16 @@ Class ApiHelper {
 		global $apiInfo;
 		echo json_encode($apiInfo);
 	}
+
+	public static function getRandomString($length) {
+		$template = "1234567890abcdefghijklmnopqrstuvwxyz";
+		settype($rndstring, "string");
+		for ($a = 0; $a <= $length; $a++) {
+			   $b = rand(0, strlen($template) - 1);
+			   $rndstring .= $template[$b];
+		}
+		return $rndstring;
+	}
+
 
 }

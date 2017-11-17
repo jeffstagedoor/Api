@@ -16,6 +16,7 @@ namespace Jeff\Api;
 Class dbHelper {
 	private $db;
 	private $errorHandler;
+	private $processIndexes = false;
 
 	public function __construct($db, $errorHandler) {
 		$this->db = $db;
@@ -52,6 +53,11 @@ Class dbHelper {
 		require_once($ENV->dirs->vendor."jeffstagedoor/Api/api/Log.php");
 		$LogLogin = new \Jeff\Api\LogLogin($this->db, $ENV, $this->errorHandler);
 		
+		require_once($ENV->dirs->vendor."jeffstagedoor/Api/api/TasksPrototype.php");
+		require_once($ENV->dirs->appRoot."Tasks.php");
+		$Task = new \Jeff\Api\Tasks($this->db, $ENV, $this->errorHandler);
+		$models[] = $Task;
+
 		// Accounts/Users should be an extended model in consuming App
 		// require_once($ENV->dirs->vendor."jeffstagedoor/Api/api/Account.php");
 		// $Account = new \Jeff\Api\Models\Account($this->db, $ENV, $this->errorHandler, null);
@@ -78,10 +84,11 @@ Class dbHelper {
 			if(isset($model->hasMany)) {
 				foreach ($model->hasMany as $key => $def) {
 					$tableName = $key;
-					$dbDefinition = $def['db'];
-					$primaryKey = $def['primaryKey'];
-					$this->_checkDbIsTheSame($ENV, $tableName, $dbDefinition, $requestArray, $primaryKey);
-					# code...
+					if(isset($def['db'])) {
+						$dbDefinition = $def['db'];
+						$primaryKey = $def['primaryKey'];
+						$this->_checkDbIsTheSame($ENV, $tableName, $dbDefinition, $requestArray, $primaryKey);
+					}
 				}
 			}
 
@@ -123,12 +130,14 @@ Class dbHelper {
 								$mismatch=true;
 								}
 							}
-																// default as NULL    OR  default as 					'NULL'
-							if(isset($column[4]) && $field->default != $column[4] && (is_null($field->default) && strtoupper($column[4])!='NULL') ) {
+								// echo "field->default: -".($field->default==='')."- column[4]:";
+								// echo isset($column[4]) ? "-".($column[4]==='')."-" : "not set ";
+																				// default as NULL    OR  default as 					'NULL'
+							if(isset($column[4]) && $field->default !== $column[4] && (is_null($field->default) && strtoupper($column[4])!=='NULL') ) {
 								echo "- <b>DEFAULT MISMATCH</b>";
 								$mismatch=true;
 							} elseif(!isset($column[4])) {
-								if($field->default!=NULL || $field->default!='') {
+								if($field->default!==NULL || $field->default==='') {
 								echo "- <b>DEFAULT MISMATCH</b>";
 								$mismatch=true;
 								}
@@ -147,26 +156,29 @@ Class dbHelper {
 
 
 				// KEYS / INDEXES:
-				$indexes = $this->_getIndexes($tableName);
-				#var_dump($indexes);
-				$foundPrimaryInDB = false;
-				foreach ($indexes as $index) {
-					if($index['Key_name']==='PRIMARY') {
-						if(isset($primaryKey) && $primaryKey===$index['Column_name']) {
-							// Primary Key matches
-						} else {
-							echo "<br>- <b>PRIMARY KEY MISMATCH</b>";
-							if(is_null($primaryKey)) {
-								echo "\n<br>Primary key exists in DB (on '{$index['Column_name']}') , but is NOT set in Model";
+
+				if($this->processIndexes) {
+					$indexes = $this->_getIndexes($tableName);
+					#var_dump($indexes);
+					$foundPrimaryInDB = false;
+					foreach ($indexes as $index) {
+						if($index['Key_name']==='PRIMARY') {
+							if(isset($primaryKey) && $primaryKey===$index['Column_name']) {
+								// Primary Key matches
+							} else {
+								echo "<br>- <b>PRIMARY KEY MISMATCH</b>";
+								if(is_null($primaryKey)) {
+									echo "\n<br>Primary key exists in DB (on '{$index['Column_name']}') , but is NOT set in Model";
+								}
 							}
+							$foundPrimaryInDB=true;
 						}
-						$foundPrimaryInDB=true;
 					}
-				}
-				if(!is_null($primaryKey) && !$foundPrimaryInDB) {
-					echo "- <b>PRIMARY KEY MISMATCH</b>";
-					echo "\n<br>Primary key is defined in Model (on '{$model->dbPrimaryKey}') , but is NOT defined in DB";
-				}
+					if(!is_null($primaryKey) && !$foundPrimaryInDB) {
+						echo "- <b>PRIMARY KEY MISMATCH</b>";
+						echo "\n<br>Primary key is defined in Model (on '{$model->dbPrimaryKey}') , but is NOT defined in DB";
+					}
+				} // if $processIndexes
 
 
 				// got the INFO from Database, now let's compare what we've got in definitions:
@@ -277,7 +289,7 @@ Class dbHelper {
 		if(isset($column[3]) && !$column[3]) {
 			$s.= ' NOT NULL';
 		}
-		if(isset($column[4]) && $column[4]!=NULL) {
+		if(isset($column[4]) && $column[4]!==NULL) {
 			if($column[4]==='CURRENT_TIMESTAMP') {
 				$s.= ' DEFAULT CURRENT_TIMESTAMP';
 			// } elseif($column[4]==='CURRENT_DATE') {
@@ -417,7 +429,7 @@ Class dbColumn {
 				// we have an array with the column definition
 				$column = func_get_arg(0);
 			} elseif ($numargs===0) {
-				throw new Exception("Error: Ivalid argument count in Class dbFlied. Must be an array or at least 2 column descriptors: name, type", 1);
+				throw new Exception("Error: Ivalid argument count in Class dbField. Must be an array or at least 2 column descriptors: name, type", 1);
 			} else {
 				$column = func_get_args();	
 			}

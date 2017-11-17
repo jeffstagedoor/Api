@@ -37,7 +37,7 @@ Class Model {
 		    	),
 		    */
 			);
-	public $modifiedByField = null;
+	public $modifiedByField = 'modBy';
 	// Models with isSortable=true MUST have a field 'sort' in dbTable
 	public $isSortable = false;
 	public $sortBy = 'referenceField';
@@ -128,6 +128,7 @@ Class Model {
 
 	// CONSTRUCTOR
 	// always pass the fitting db-object to contructor
+	// possible Hook: initializeHook()
 	public function __construct($db, $ENV, $errorHandler, $account) 
 	{
 		$this->db = $db;
@@ -135,23 +136,11 @@ Class Model {
 		$this->errorHandler = $errorHandler;
 		$this->cols = $this->_makeAssociativeFieldsArray($this->dbTable, $this->dbDefinition);
 		$this->account = $account;
+
+		if(method_exists($this, "initializeHook")) {
+			$this->initializeHook();
+		}
 	}
-
-	// public function hasErrors() 
-	// {
-	// 	if(sizeof($this->errors)>0) {
-	// 		return true;
-	// 	} else {
-	// 		return false;
-	// 	}
-	// }
-
-	// public function getErrors()
-	// {
-	// 	return $this->errors;
-	// }
-
-
 
 	//
 	// STANDARD GETTERS
@@ -173,10 +162,35 @@ Class Model {
 
 	/*
 	*	method getOneById()
-	*	
 	*/
 	public function getOneById($id) 
 	{
+		// check if the child-model has the beforeGetAll-Hook implemented
+		// Standard Example for such a hook: 
+		// 
+		// 	 function beforeGetOne($id) {
+		// 		global $Account;
+		// 		$restriction = new ModelRestriction('REF_ID', 'account', $Account->id);
+		// 		$restrictions = Array();
+		// 		$restrictions[] = $restriction;
+		// 		return $restrictions;
+		//   }
+		//
+		// checking for quthorization first:
+		if(file_exists($this->ENV->dirs->appRoot."AuthorizationConfig.php")) {
+			include_once($this->ENV->dirs->appRoot."AuthorizationConfig.php");
+			$Authorizor = new \Jeff\Api\Authorizor\Authorizor($Settings, $this->account, $this->db);
+			// check if we have settings for that model
+			$isAuthorized = $Authorizor->authorize($this->modelName, $this->modelNamePlural, $id, 'mayView');
+			if(!$isAuthorized) {
+				$this->errorHandler->throwOne(Array('Not allowed', 'You are not allowed to access this recource', 200, \Jeff\Api\ErrorHandler::CRITICAL_LOG,false));
+				exit;
+			}
+
+		} else {
+			$isAuthorized = true;
+		}
+
 		$this->db->where($this->dbIdField,$id);
 		$item = $this->db->getOne($this->dbTable);
 		if($item) {
@@ -190,8 +204,6 @@ Class Model {
 		}
 	}
 
-
-
 	/*
 	*	method getAll()
 	*	
@@ -203,7 +215,7 @@ Class Model {
 		// 
 		// 	 function beforeGetAll() {
 		// 		global $Account;
-		// 		$restriction = new ModelRestriction('REF_ID', 'account', $Account->id);
+		// 		$restriction = new ModelRestriction('REF_IS', 'account', $Account->id);
 		// 		$restrictions = Array();
 		// 		$restrictions[] = $restriction;
 		// 		return $restrictions;
@@ -214,6 +226,7 @@ Class Model {
 
 			// if so, get the restrictions
 			$restrictions = $this->beforeGetAll();
+			// var_dump($restrictions);
 			// and apply them, depending on their type
 			foreach ($restrictions as $key => $restriction) {
 				if(!is_array($restriction->data) || count($restriction->data)==0) {
@@ -254,54 +267,14 @@ Class Model {
 		}
 
 		$items = $this->_getResultFromDb();
+		foreach ($items as &$item) {
+			$item = $this->_unsetHiddenProperties($item);
+		}
+		unset($item);
 		// $items = array();
 		$items = $this->_getHasMany($items);
 		return $items;
 	}
-
-
-	/**
-	*	method _getHasMany(array $items)
-	*
-	*	@param (Array) items: the main result the hasMany Items shall be added to
-	*	@return (Array) items
-	*
-	**/
-	private function _getHasMany($items) {
-		if(count($this->hasMany)===0) {
-			// if there are no hasMany to get, just return what you have gotten....
-			return $items;
-		}
-		
-		// walk all the items, save them ids in an array, do select with 'IN', walk the items again to add the hasMany
-		if(!count($items)) { // no items -> so we don't need to walk them, just return the empty array of items
-			return $items;
-		} else {
-			$ids = array();
-			foreach ($items as $item) {
-				$ids[]=$item[$this->dbIdField];
-			}
-		}
-
-		// now we have all the ids of the main items
-		foreach ($this->hasMany as $hmName => $hasMany) {
-			// $hasMany['ids'] = array();
-			$this->db->where($this->modelName, $ids, 'IN');
-			$hm = $this->db->get($hmName, null, array('id', $this->modelName));
-			foreach ($hm as $hasManyItem) {
-				foreach ($items as &$item) {
-					if(!isset($item[$hmName])) {
-						$item[$hmName] = array();
-					}
-					if($item['id']===$hasManyItem[$this->modelName]) {
-						array_push($item[$hmName], $hasManyItem['id']);
-					}
-				}
-			}
-		}
-		return $items;
-	}
-
 
 	/**
 	*	method getCoalesce($coalesceIds)
@@ -310,11 +283,12 @@ Class Model {
 	*	
 	*	@param coalesceIds (Array)
 	**/
-	public function getCoalesce($coalesceIds=null) {
+	public function getCoalesce(array $coalesceIds=null) {
 		if($coalesceIds) {
 			$this->db->where($this->dbTable.'.id', $coalesceIds,'IN');
 			$items = $this->_getResultFromDb();
 			$items = $this->_getHasMany($items);
+			$items = $this->_unsetHiddenPropertiesMultiple($items);
 			return $items;
 		} else {
 			$this->errorHandler->throwOne(ErrorHadler::API_INVALID_GET_REQUEST);
@@ -323,30 +297,6 @@ Class Model {
 	}
 
 
-	/*
-	* private function _getResultFromDb()
-	*/
-	private function _getResultFromDb() {
-		global $err;
-
-		$db2 = new \MysqliDb($this->ENV->database);
-		// $tableResult = $this->db->rawQuery("SHOW FULL TABLES LIKE '".$this->dbTable."'");
-		$tableResult = $db2->rawQuery("SHOW FULL TABLES LIKE '".$this->dbTable."'");
-		if(!(count($tableResult)>0)) {
-			$this->errorHandler->throwOne(Array("Database Error", "Table '{$this->dbTable}' does not exist.",500, true));
-			$this->errorHandler->throwOne(20);
-			exit;
-		}
-		$result = Array();
-		try {
-			$result = $this->db->get($this->dbTable, null, $this->cols);
-		} 
-		catch (Exception $e) {
-			$this->errorHandler->throwOne(Array("Database Error", $this->db->getLastError(),500, true));
-			$this->errorHandler->throwOne(20);
-		}
-		return $result;
-	}
 
 
 
@@ -362,7 +312,8 @@ Class Model {
 	*
 	*
 	**/
-	public function getMany2Many($id=null, $what='accounts', $by='id') {
+	public function getMany2Many(string $id=null, string $modelLeftNamePlural, $by='id', $filters=null) {
+		$tableName = $modelLeftNamePlural.'2'.$this->modelNamePlural;
 		if(is_array($id)) {
 			// then it's likely a coalesceFindrecord call,
 			// so we should return all items where id in that array
@@ -371,11 +322,19 @@ Class Model {
 			// normal singular request or referential request 'by'
 			$this->db->where($by, $id);
 		}
-		$many2many = $this->db->get($what.'2'.$this->modelNamePlural);
-		if(count($many2many)===1 && $by==='id') {
+		if(!is_null($filters) && is_array($filters) && count($filters)>0) {
+			// we have a filter applied
+			foreach ($filters as $filter) {
+				$this->db->where($tableName.'.'.$filter['key'], $filter['value'], $filter['comp']);
+			}
+		}
+
+		$many2many = $this->db->get($tableName);
+		#echo $this->db->getLastQuery();
+		if(count($many2many)===1 && !is_null($id)) {
 			// one item found (and requested)
 			return $many2many[0];
-		} elseif (count($many2many)>1) {
+		} elseif (count($many2many)>0) {
 			return $many2many;
 		} else {
 			// nothing found, return empty array
@@ -388,32 +347,34 @@ Class Model {
 	// public function beforeUpdateMany2Many($id, $what, $data) {
 	// 	return $data;
 	// }
-	public function updateMany2Many($id, $what, $data) {
+	public function updateMany2Many($modelLeft, $id, $data) {
 		// call the hook beforeUpdateMany2Many if existing:
 		if(method_exists($this, 'beforeUpdateMany2Many')) {
-			$data = $this->beforeUpdateMany2Many($id, $what, $data);
+			$data = $this->beforeUpdateMany2Many($modelLeft, $id, $data);
 		}
 
 		$this->db->where('id', $id);
-		$success = $this->db->update($what.'2'.$this->modelName, $data);
+		$success = $this->db->update($modelLeft->modelNamePlural.'2'.$this->modelNamePlural, $data);
+		#echo $this->db->getLastQuery();
+		#echo $this->db->getLastError();
 		return ($success) ?  $id : false;
 	}
 
 
 	// possible HOOK:
-	// public function beforedeleteMany2Many($id, $what) {
+	// public function beforedeleteMany2Many($modelLeft, $id) {
 	// 	return $true;
 	// }
-	public function deleteMany2Many($id, $what) {
+	public function deleteMany2Many($modelLeft, $id) {
 		// call the hook beforeDeleteMany2Many if existing:
 		if(method_exists($this, 'beforeUpdateMany2Many')) {
-			$bool = $this->beforeUpdateMany2Many($id, $what);
+			$bool = $this->beforeUpdateMany2Many($modelLeft, $id);
 		} else {
 			$bool = true;
 		}
 		if($bool) {
 			$this->db->where('id', $id);
-			$success = $this->db->delete($what.'2'.$this->modelName);
+			$success = $this->db->delete($modelLeft->modelNamePlural.'2'.$this->modelNamePlural);
 			return ($success) ? $id : false;
 		}
 		return false;
@@ -496,16 +457,25 @@ Class Model {
 		if($cnt) { // if I have minimum one search item, give a result
 			$cols = (count($this->searchSendCols)>1) ? $this->searchSendCols : $this->cols;
 			$result = $this->db->get($this->dbTable, NULL, $cols);
-			// Mask properties/fields that where defined to be masked in the Model ('maskFields')
+			// Mask properties/fields that where defined to be masked in the Model ('maskFields') and remove the properties, that shall be removed
 			for ($i=0; $i <count($result) ; $i++) {
 				foreach ($this->maskFields as $field => $type) {
 					if(isset($result[$i][$field])) {
-						$result[$i][$field] = Jeff\Api\DataMasker::mask($result[$i][$field], $type);
+						$result[$i][$field] = \Jeff\Api\DataMasker::mask($result[$i][$field], $type);
 					}
 				}
+				foreach ($this->hiddenProperties as $key => $field) {
+					unset($result[$i][$field]);
+				}
+					
 			}
-		} else { // else return nothing...
+		} else { // else generate an error
 			$result = null;
+			$this->errorHandler->add(Array("API Error", "search: no search value found: Model ".$this->modelName, 500, true, Api\ErrorHandler::CRITICAL_EMAIL));
+			$this->errorHandler->add(Array("API Error", "no value to search for was found", 500, false, Api\ErrorHandler::CRITICAL_LOG));
+			$this->errorHandler->sendErrors();
+			$this->errorHandler->sendApiErrors();
+			exit;
 		}
 		return $result;
 	}
@@ -588,15 +558,21 @@ Class Model {
 		if(count($missingFields)===0) {
 			// the actual insert into database:
 			$id = $this->db->insert($this->dbTable, $data);
-			if($this->db->getLastError()>'') { 
-				$this->errorHandler->add(new Api\Error($err::DB_INSERT, $this->db->getLastError()));
-				return false;
-			}
-			if(method_exists($this, 'afterAdd')) {
-				$data = $this->afterAdd($data, $id);
-			}
-			$this->lastInsertedID = $id;
-			return $id;
+			if($id) {
+				if(method_exists($this, 'afterAdd')) {
+					$data = $this->afterAdd($data, $id);
+				}
+				$this->lastInsertedID = $id;
+				return $id;
+			} else {
+				$e = Array("DB-Error", "Could not insert item because: ".$this->db->getLastError()."\nin Model ".__FUNCTION__." ".__LINE__, 500, true, Api\ErrorHandler::CRITICAL_EMAIL);
+				$this->errorHandler->add($e);
+				$e = Array("DB-Error", "Could not insert item", 500, false, Api\ErrorHandler::CRITICAL_LOG);
+				$this->errorHandler->add($e);
+				$this->errorHandler->sendErrors();
+				$this->errorHandler->sendApiErrors();
+				exit;
+			} 
 		} else {
 			$e = Array("API-Error", "Not all required fields were sent. I missed: ".implode(",", $missingFields), 400, false, Api\ErrorHandler::CRITICAL_EMAIL);
 			$this->errorHandler->add(new Api\Error($e));
@@ -614,14 +590,21 @@ Class Model {
 	// public function beforeAddMany2Many($what, $data) {
 	// 	return $data;
 	// }
-	public function addMany2Many($what, $data) {
-
-		$id = $data[$what] . '_' . $data[$this->modelName];
+	public function addMany2Many($modelLeft, $data) {
+		$id = $data[$modelLeft->modelName] . '_' . $data[$this->modelName];
 		$data['id'] = $id;
+		$relationTableName = $modelLeft->modelNamePlural.'2'.$this->modelNamePlural;
+		
 		// check if the artist is already Member (even with other role)
 		$this->db->where('id', $id);
-		$result = $this->db->getOne($what.'2'.$this->modelName);
-
+		try {
+			$result = $this->db->getOne($relationTableName);
+		} catch (Exception $e) {
+			$this->errorHandler->add(20);
+			$this->errorHandler->add(Array("DB-Error", "could not get relationTable '".$relationTableName."'", true, Api\ErrorHandler::CRITICAL_EMAIL, $e));
+			$this->errorHandler->sendAllErrorsAndExit();
+		}
+			
 		if($result) {
 			if(isset($data[$this->many2manyParam]) && $result[$this->many2manyParam]!=$data[$this->many2manyParam]) {	// artist had other role then
 				$udData = Array(
@@ -631,26 +614,38 @@ Class Model {
 
 				// call the hook beforeUpdateMany2Many if existing:
 				if(method_exists($this, 'beforeUpdateMany2Many')) {
-					$udData = $this->beforeUpdateMany2Many($id, $what, $udData);
+					$udData = $this->beforeUpdateMany2Many($id, $modelLeft, $udData);
 				}
 
 				// update in database
 				$this->db->where('id', $id);
-				$this->db->update($what.'2'.$this->modelName, $udData);
+				$this->db->update($relationTableName, $udData);
 				if($this->db->count) { return $id; }
 				else { return false; }
 			} else {
 				// artist was connected with same role already
-				return $result['id'];
+				$this->errorHandler->add(array('API-Error','Relation already existst',400,$this->errorHandler::CRITICAL_LOG,false));
+				$this->errorHandler->sendAllErrorsAndExit();
 			}
 		}
 		// call the hook beforeAddMany2Many if existing:
 		if(method_exists($this, 'beforeAddMany2Many')) {
-			$data = $this->beforeAddMany2Many($what, $data);
+			$data = $this->beforeAddMany2Many($modelLeft, $data);
 		}
 		// artist/user was not connected to this production/track/whatever yet, so insert him:
-		$success = $this->db->insert($what.'2'.$this->modelName, $data);
-		return ($success) ?  $id : false;
+		if(isset($data['memberSince']) || is_null($data['memberSince'])) {
+			$data['memberSince'] = $this->db->now();
+		} 
+		$success = $this->db->insert($relationTableName, $data);
+		if($success) {
+			return $id;
+		} else {
+			$this->errorHandler->add(20);
+			$this->errorHandler->add(Array("DB-Error", "could not add relation '".$relationTableName."'. DB-Error: ".$this->db->getLastError(), true, Api\ErrorHandler::CRITICAL_EMAIL));
+			$this->errorHandler->sendErrors();
+			$this->errorHandler->sendApiErrors();
+			return false;
+		}
 	}
 
 	/*
@@ -695,7 +690,7 @@ Class Model {
 
 	public function update($id, $data) 
 	{
-		global $err;
+		
 
 		// call the hook beforeUpdate if existing:
 		if(method_exists($this, 'beforeUpdate')) {
@@ -707,24 +702,21 @@ Class Model {
 			$data = (Array) $data;
 		}
 		// unsetting hasMany-Fields that might come from Ember via POST:
-		foreach ($this->hasMany as $hmf) {
-			unset($data[$hmf['name']]);
+		foreach ($this->hasMany as $hasManyName => $hasManyItem) {
+			unset($data[$hasManyName]);
 		}
 
 
 		$this->db->where($this->dbIdField, $id);
 		// print_r($data);
 		if ($this->db->update($this->dbTable, $data)) {
-			// var_dump($data['invoiceDate']);
-			// echo "\n\nRows Updated: ".$this->db->count;
-			// echo "\n\n".$this->db->getLastQuery();
-			return $this->db->count; // $db->count.' records were updated';
+			$return = new \stdClass();
+			$return->count = $this->db->count;
+			$return->id = $id;
+			return $return; // $db->count.' records were updated';
 		} else {
-			// echo "im else";
-			// echo 'update failed: ' . $this->db->getLastError();
 			if($this->db->getLastError()>'') { 
-				$err->add(22);
-				$this->errors[] = "Database-Error: " .$this->db->getLastError();
+				$this->errorHandler->add(new Api\Error($err::DB_UPDATE, $this->db->getLastError()));
 				return false;
 			}
 			return false; 
@@ -780,9 +772,7 @@ Class Model {
 					// returnung all items in this reference:
 					$this->db->where($this->sortBy, $reference);
 					$items = $this->db->get($this->dbTable);
-					foreach ($items as $i => $item) {
-						$items[$i] = $this->_unsetHiddenProperties($item);
-					}
+					$items = $this->_unsetHiddenPropertiesMultiple($items);
 					return $items;
 				}
 
@@ -797,7 +787,7 @@ Class Model {
 				// echo "maxSort: ".$maxSort."\n";
 				// echo "currentSort: " .$currentSort."\n";
 				if($maxSort===$currentSort) {
-				 	$err->add($err::MODEL_SORT_OOR);
+				 	$this->errorHandler->add(Api\ErrorHandler::MODEL_SORT_OOR);
 					return false;
 				}
 				// first reset the one that the new sort is replacing
@@ -809,15 +799,13 @@ Class Model {
 				$params = Array($targetSort, $id);
 				$this->db->rawQuery($sql, $params);
 				if($this->db->getLastError()) {
-					$err->add(20);
+					$this->errorHandler->add(20);
 					return false;
 				} else {
 					// returning all items in this reference:
 					$this->db->where($this->sortBy, $reference);
 					$items = $this->db->get($this->dbTable);
-					foreach ($items as $i => $item) {
-						$items[$i] = $this->_unsetHiddenProperties($item);
-					}
+					$items = $this->_unsetHiddenPropertiesMultiple($items);
 					return $items;
 				}
 				break;
@@ -832,54 +820,13 @@ Class Model {
 	}
 
 
-	/*
-	*	method addUser
-	* DEPRECATED use addMany2Many instead!!!
-	*
-	*/
-	public function addUser($type, $data) 
-	{
-		echo "Method addUser in Class Model is DEPRECATED. Use addMany2Many instead.";
-		// $data = (Object) $data;
-		// //var_dump($data);
-		// $id = $data->user . '_' . $data->{$type};
-		// $data->id = $id;
-		// // check if the user is already Member (even with lower rights)
-		// $this->db->where('id', $id);
-		// $result = $this->db->getOne('user2'.$type);
-		// if($result) {
-		// 	if($result['rights']<$data->rights) {	// user had lower rights then
-		// 		$dataArray = Array(
-		// 			"rights"=>$data->rights,
-		// 			"modBy"=>$data->modBy
-		// 			);
-		// 		// update in database
-		// 		$this->db->where('id', $id);
-		// 		$this->db->update('user2'.$type, $dataArray);
-		// 		if($this->db->count) { return $id; }
-		// 		else { return false; }
-		// 	} else {
-		// 		echo "already Member";
-		// 		// user was member already
-		// 		return false;
-		// 	}
-		// }
-		// // user was not connected to this workgroup/production/audition yet, so insert him:
-		// $data->memberSince = $this->db->now();
-		// $dataArray = (Array) $data;
-		// $success = $this->db->insert('user2'.$type, $dataArray);
-		// // echo $success;
-		// return ($success) ?  $id : false;
-
-	}
-
-
 
 	//
 	// SPECIALS FOR GETTING DATA
 	//
+
+
 	private function _addHasMany($item, $id) {
-#		echo "Class Model->_addHasMany need many fixes (because of restructuring of '\$hasMany')";
 		if(!($this->hasMany) || !is_array($this->hasMany)) {
 			return $item;
 		}
@@ -890,7 +837,7 @@ Class Model {
 				// if(isset($hmf['orderBy'])) {
 				// 	$this->db->orderBy($hmf['orderBy']['field'], $hmf['orderBy']['direction']);
 				// }
-				$one2many = $this->db->get($hmName, null, Array('id',$hasMany['targetField']));
+				$one2many = $this->db->get($hmName, null, Array('id',$hasMany['sourceField']));
 				// echo "one2many: \n";
 				// $this->db->getLastQuery();
 				#var_dump($one2many);
@@ -898,13 +845,55 @@ Class Model {
 				$store = Array();
 				foreach ($one2many as $key => $value) {
 					$refIds[] = $value['id'];
-					$store[] = $value[$hasMany['targetField']];
+					$store[] = $value[$hasMany['sourceField']];
 				}
 				$item[$hmName] = $refIds;
-				$this->sideLoadTargetsStore[$hasMany['targetPlural']] = $store;
+				$this->sideLoadTargetsStore[$hasMany['storeField']] = $store;
 			}
 		}
 		return $item;
+	}
+
+	/**
+	*	method _getHasMany(array $items)
+	*
+	*	@param (Array) items: the main result the hasMany Items shall be added to
+	*	@return (Array) items
+	*
+	**/
+	private function _getHasMany($items) {
+		if(count($this->hasMany)===0) {
+			// if there are no hasMany to get, just return what you have gotten....
+			return $items;
+		}
+		
+		// walk all the items, save them ids in an array, do select with 'IN', walk the items again to add the hasMany
+		if(!count($items)) { // no items -> so we don't need to walk them, just return the empty array of items
+			return $items;
+		} else {
+			$ids = array();
+			foreach ($items as $item) {
+				$ids[]=$item[$this->dbIdField];
+			}
+		}
+
+		// now we have all the ids of the main items
+		foreach ($this->hasMany as $hmName => $hasMany) {
+			$this->db->where($this->modelName, $ids, 'IN');
+			$hm = $this->db->get($hmName, null, array('id', $this->modelName));
+
+			foreach ($items as &$item) {
+				if(!isset($item[$hmName])) {
+					$item[$hmName] = array();
+				}
+				foreach ($hm as $hasManyItem) {
+					if($item['id']===$hasManyItem[$this->modelName]) {
+						array_push($item[$hmName], $hasManyItem['id']);
+					}
+				}
+			}
+		}
+		return $items;
 	}
 
 	private function _addHasManyForSideload($item, $id, $hasMany=NULL) {
@@ -937,39 +926,81 @@ Class Model {
 			if (isset($item[$sli['name']]) && count($item[$sli['name']])) {	// add only if we have values linked
 				$this->db->where('id', $item[$sli['name']] , 'IN');
 				$result = $this->db->get($sli['name']);
+
+				
+
 				for ($r=0; $r < count($result); $r++) { 
 					$result[$r] = $this->_unsetHiddenProperties($result[$r]);
 				}
 				$this->sideload->{$sli['name']} = $result;
 			}
 
-			if(isset($this->sideLoadTargetsStore[$sli['name']]) && count($this->sideLoadTargetsStore[$sli['name']])) {
-				$this->db->where('id', $this->sideLoadTargetsStore[$sli['name']] , 'IN');	
-				$result = $this->db->get($sli['name']);
 
-				for ($r=0; $r < count($result); $r++) { 
-					$result[$r] = $this->_unsetHiddenProperties($result[$r]);
-					// add hasMany from child Class
-					if(isset($sli['class'])) {
-						#echo 'require_once class: '.$sli['class']."\n";
-						require_once($sli['class'].'.php');
-						$className = __NAMESPACE__ . "\\" . $sli['class'];
-						$class = new $className();
-						$result[$r] = $this->_addHasManyForSideload($result[$r], $result[$r]['id'], $class->hasMany);
-					}
-				}
-				$this->sideload->{$sli['name']} = $result;
-			}
+			// wozu brauch ich das???
+			// das funktioniert nämlich nicht, seit Umbau von hasMany-declaration
+			// if(isset($this->sideLoadTargetsStore[$sli['name']]) && count($this->sideLoadTargetsStore[$sli['name']])) {
+			// 	echo "bin in Model _addSideloads - sideLoadTargetsStore !?";
+			// 	$this->db->where('id', $this->sideLoadTargetsStore[$sli['name']] , 'IN');	
+			// 	$result = $this->db->get($sli['name']);
+			// 	echo $this->db->getLastQuery();
+			// 	var_dump($result);
+			// 	for ($r=0; $r < count($result); $r++) { 
+			// 		$result[$r] = $this->_unsetHiddenProperties($result[$r]);
+			// 		// add hasMany from child Class
+			// 		if(isset($sli['class'])) {
+			// 			#echo 'require_once class: '.$sli['class']."\n";
+			// 			require_once($sli['class'].'.php');
+			// 			$className = __NAMESPACE__ . "\\" . $sli['class'];
+			// 			$class = new $className();
+			// 			$result[$r] = $this->_addHasManyForSideload($result[$r], $result[$r]['id'], $class->hasMany);
+			// 		}
+			// 	}
+			// 	$this->sideload->{$sli['name']} = $result;
+			// }
 		}
 	}
 
 	// HELPERS
+	/*
+	* private function _getResultFromDb()
+	*/
+	private function _getResultFromDb() {
+		global $err;
+
+		$db2 = new \MysqliDb($this->ENV->database);
+		// $tableResult = $this->db->rawQuery("SHOW FULL TABLES LIKE '".$this->dbTable."'");
+		$tableResult = $db2->rawQuery("SHOW FULL TABLES LIKE '".$this->dbTable."'");
+		if(!(count($tableResult)>0)) {
+			$this->errorHandler->throwOne(Array("Database Error", "Table '{$this->dbTable}' does not exist.",500, true));
+			$this->errorHandler->throwOne(20);
+			exit;
+		}
+		$result = Array();
+		try {
+			$result = $this->db->get($this->dbTable, null, $this->cols);
+		} 
+		catch (Exception $e) {
+			$this->errorHandler->throwOne(Array("Database Error", $this->db->getLastError(),500, true));
+			$this->errorHandler->throwOne(20);
+		}
+		return $result;
+	}
+
 	private function _unsetHiddenProperties($item) {
 		for ($i=0; $i < count($this->hiddenProperties); $i++) { 
 			unset($item[$this->hiddenProperties[$i]]);
 		}
 		return $item;
 	}
+
+	private function _unsetHiddenPropertiesMultiple($items) {
+		foreach ($items as &$item) {
+			$item = $this->_unsetHiddenProperties($item);
+		}
+		return $items;
+	}
+
+
 
 
 	/*
@@ -992,6 +1023,8 @@ Class Model {
 }
 
 // SUB Classes
+
+// NOT USED YET. MIGHT BE TOO COMPLICATED. Now done as simple stdClass
 class ModelRestriction {
 	public $type;
 	public $referenceField;

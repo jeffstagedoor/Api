@@ -1,17 +1,11 @@
 <?php
-/**
-*	File tasks
-*	
-*	@author Jeff Frohner
-*	@copyright Copyright (c) 2015
-*	@license   private
-*	@version   0.8
-*
-**/
+
 
 
 
 namespace Jeff\Api;
+
+
 
 function task($type, $data) {
 	global $Account, $db, $ENV;

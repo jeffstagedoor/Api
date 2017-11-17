@@ -37,9 +37,25 @@ Class ErrorHandler {
 	Const API_INVALID_POSTPUT_REQUEST = 44;
 	Const API_ID_MISSING = 				45;
 
+
 	Const LOG_NO_CONFIG = 				50;
 	Const LOG_NO_TABLE = 				51;
 	Const LOG_NO_TABLE_LOGIN = 			52;
+
+	Const FILE_NO_CONFIG = 				60;
+	Const FILE_NO_TABLE = 				61;
+	Const FILE_SAVE_ERROR = 			62;
+
+	Const TASK_NOT_DEFINED = 			70;
+	Const TASK_INVALID =	 			71;
+	Const TASK_DB_ERROR =	 			72;
+	Const TASK_NOT_FOUND_OR_FULFILLED =	73;
+
+
+
+	Const MAIL_DEFAULT =	 			80;
+	Const MAILER_NOT_DEFINED = 			81;
+
 
 
 	Const AUTH_NO_AUTHTOKEN =		 	90;
@@ -48,6 +64,7 @@ Class ErrorHandler {
 	Const AUTH_USER_UNKNOWN =		 	93;
 	Const AUTH_CREDENTIALS_TOO_SHORT =	94;
 
+	Const AUTH_PWD_NOT_VALID =			96;
 	Const AUTH_PWD_NOT_MATCHING =		97;
 	Const AUTH_INT_ACCOUNTNOTSET =		99;
 	Const CUSTOM =						100;
@@ -69,7 +86,8 @@ Class ErrorHandler {
 		24 => Array("title"=>"Database Error", "msg"=>"Could not delete record.", "httpCode"=>400,				"critical"=>self::CRITICAL_EMAIL),
 
 	// MODELS
-		30 => Array("title"=>"Model Error", "msg"=>"This Model is not defined", "httpCode"=>400,										"critical"=>self::CRITICAL_ALL),
+		30 => Array("title"=>"Model Error", "msg"=>"This Model is not defined", "httpCode"=>400,				"critical"=>self::CRITICAL_ALL),
+		31 => Array("title"=>"Model Error", "msg"=>"Not allowed", "httpCode"=>400,								"critical"=>self::CRITICAL_LOG),
 		33 => Array("title"=>"Model Error", "msg"=>"Trying to sort an item, \nthat is not defined as sortable.", "httpCode"=>400,				"critical"=>self::CRITICAL_EMAIL),
 		34 => Array("title"=>"Model Error", "msg"=>"Trying to sort an item, \nbut that item is already first/last of group.", "httpCode"=>400,	"critical"=>self::CRITICAL_EMAIL),
 		35 => Array("title"=>"Model Error", "msg"=>"The Database Table for this Model does not exist", "httpCode"=>400,							"critical"=>self::CRITICAL_ALL),
@@ -87,6 +105,21 @@ Class ErrorHandler {
 		51 => Array("title"=>"Log DB Error", "msg"=>"Log Table not found", "httpCode"=>500, 	"critical"=>self::CRITICAL_EMAIL, "internal"=>true),
 		52 => Array("title"=>"Log DB Error", "msg"=>"LogLogin Table not found", "httpCode"=>500, 	"critical"=>self::CRITICAL_EMAIL, "internal"=>true),
 
+	// FILE
+		60 => Array("title"=>"File Error", "msg"=>"No File Config found", "httpCode"=>500,	"critical"=>self::CRITICAL_EMAIL, "internal"=>false),
+		61 => Array("title"=>"File DB Error", "msg"=>"File Table not found", "httpCode"=>500, 	"critical"=>self::CRITICAL_EMAIL, "internal"=>true),
+		62 => Array("title"=>"File Save Error", "msg"=>"File could not be saved", "httpCode"=>500, 	"critical"=>self::CRITICAL_EMAIL, "internal"=>true),
+		
+	// TASK
+		70 => Array("title"=>"Task Error", "msg"=>"This task is not defined", "httpCode"=>500,	"critical"=>self::CRITICAL_EMAIL, "internal"=>false),
+		71 => Array("title"=>"Task Error", "msg"=>"Invalid request", "httpCode"=>500,	"critical"=>self::CRITICAL_EMAIL, "internal"=>false),
+		72 => Array("title"=>"Task DB Error", "msg"=>"Could not complete this task due to an internal database error", "httpCode"=>500,	"critical"=>self::CRITICAL_EMAIL, "internal"=>false),
+		73 => Array("title"=>"Task Error", "msg"=>"This task was already fulfilled/rejected or was not found", "httpCode"=>400,	"critical"=>self::CRITICAL_LOG, "internal"=>false),
+
+	// MAILER
+		80 => Array("title"=>"Mail Error", "msg"=>"Unknown mail error", "httpCode"=>500,	"critical"=>self::CRITICAL_EMAIL, "internal"=>false),
+		81 => Array("title"=>"Mail Error", "msg"=>"Mailer request not defined", "httpCode"=>500,	"critical"=>self::CRITICAL_EMAIL, "internal"=>false),
+
 
 	// Authorization
 		90 => Array("title"=>"No AuthToken found", "msg"=>"Could not find a valid authorization token.", "httpCode"=>401,	"critical"=>self::CRITICAL_LOG),
@@ -94,8 +127,8 @@ Class ErrorHandler {
 		92 => Array("title"=>"Incorrect Password", "msg"=>"Password is not correct.", "httpCode"=>401,						"critical"=>self::CRITICAL_LOG),
 		93 => Array("title"=>"Unknown User", "msg"=>"Could not find a user with these credentials.", "httpCode"=>401,		"critical"=>self::CRITICAL_LOG),
 		94 => Array("title"=>"Authentication failed", "msg"=>"Email or password are too short", "httpCode"=>401,		"critical"=>self::CRITICAL_LOG),
-
-		97 => Array("title"=>"Not matching Passwords", "msg"=>"The passwords do not match.", "httpCode"=>401,			"critical"=>0),
+		96 => Array("title"=>"No valid Password", "msg"=>"The password is not valid. It's either too short or contains not allowed characters", "httpCode"=>401,			"critical"=>0, "internal"=>false),
+		97 => Array("title"=>"Not matching Passwords", "msg"=>"The passwords do not match.", "httpCode"=>401,			"critical"=>0, "internal"=>false),
 
 		99 => Array("title"=>"Internal Error", "msg"=>"Account not set", "httpCode"=>500, 	"critical"=>self::CRITICAL_ALL),
 		100 => Array("title"=>"Custom", "msg"=>"Custom", "httpCode"=>500, "critical"=>self::CRITICAL_EMAIL),
@@ -119,7 +152,7 @@ Class ErrorHandler {
 			// so lets make this a real Error Instance
 			$this->Errors[] = new Error($e);
 		} elseif(is_array($e)) {
-			// if I get an Array, it's a custom error in format ['title', 'msg']
+			// if I get an Array, it's a custom error in format ['title', 'msg', {int} 'httpCode', {int} 'Critical', {Boolean} 'Internal']
 			$this->Errors[] = new Error($e);
 
 		} elseif($e instanceof Error) {
@@ -156,13 +189,19 @@ Class ErrorHandler {
 		return $arr;
 	}
 
+	// dummy for get()
+	public function getErrors() {
+		return $this->get();
+	}
+
 	// returns all public Errors as array
 	public function getPublic() {
 		$arr = Array();
 		foreach ($this->Errors as $key => $error) {
+			#echo $error->msg . " internal: ".$error->internal."\n";
 			if($error->isPublic()) {
-			#	echo "isPublic:";
-			#	var_dump($error);
+				#echo "isPublic:";
+				#var_dump($error);
 				$arr[] = $error->toArray();
 			}
 		}
@@ -187,10 +226,11 @@ Class ErrorHandler {
 	}
 
 	public function sendErrors() {
+
 		$txt='';
 		foreach ($this->Errors as $key => $error) {
 			$e = $error->toArray(true);
-			$txt = date('d.m.Y H:i:s').": {$e['title']} - {$e['msg']} ".PHP_EOL;
+			$txt .= date('d.m.Y H:i:s').": {$e['title']} - {$e['msg']} ".PHP_EOL;
 			if(isset($e['stackTrace']) && $e['stackTrace']>'') {
 				$txt .= $e['stackTrace'].PHP_EOL;
 			}
@@ -203,8 +243,20 @@ Class ErrorHandler {
     		mkdir($logPath, 0664, true);
 		}
 		$logFileName = "ApiLog ".date('Ymd').".txt";
+		// echo "fileName: ".$logPath.DIRECTORY_SEPARATOR.$logFileName." line ".__LINE__."\n";
 		$myfile = file_put_contents($logPath.DIRECTORY_SEPARATOR.$logFileName, $txt.PHP_EOL , FILE_APPEND | LOCK_EX);
 		// depending on what errors we've got we either echo them as json, or write it to the log, or send an email.
+	}
+
+	public function sendAllErrorsAndExit() {
+		$this->sendApiErrors();
+		$this->sendErrors();
+		exit;
+	}
+
+	public function addSendAllExit($e) {
+		$this->add($e);
+		$this->sendAllErrorsAndExit();
 	}
 
 
@@ -213,8 +265,8 @@ Class ErrorHandler {
 Class Error {
 	private $httpCode;
 	private $title;
-	private $msg;
-	private $internal = false;
+	public $msg;
+	public $internal = false;
 	private $critical = 0;
 	private $stackTrace;
 	Const DEFAULT_INTERNAL = false;
@@ -227,19 +279,19 @@ Class Error {
 		if(is_integer($e)) {
 			$err = ErrorHandler::$Codes[$e];
 			// var_dump($err);
-			$this->httpCode = $err['httpCode'];
 			$this->title = $err['title'];
 			$this->msg = $err['msg'];
-			$this->stackTrace = $info;
+			$this->httpCode = $err['httpCode'];
 			$this->critical = $err['critical'];
 			$this->internal = isset($err['internal']) ? $err['internal'] : false;
+			$this->stackTrace = $info;
 		} elseif(is_array($e)) {
-			// if I get an Array, it's a custom error in format ['title', 'msg', [bool] internal, [int] critical, [object] Exception]
+			// if I get an Array, it's a custom error in format ['title', 'msg', [int] code, [int] critical, [bool] internal, [object] Exception]
 			$this->title = $e[0];
 			$this->msg = $e[1];
 			$this->httpCode = isset($e[2]) ? $e[2] : self::DEFAULT_CODE;
-			$this->internal = isset($e[3]) ? $e[3] : self::DEFAULT_INTERNAL;
-			$this->critical = isset($e[4]) ? $e[4] : self::DEFAULT_CRITICAL;
+			$this->critical = isset($e[3]) ? $e[3] : self::DEFAULT_CRITICAL;
+			$this->internal = isset($e[4]) ? $e[4] : self::DEFAULT_INTERNAL;
 			if(isset($e[5]) && is_a($e[5], "Exception")) {
 				$this->stackTrace = $this->_ExceptionToLogString($e[5]);
 			}
@@ -248,6 +300,7 @@ Class Error {
 			$this->httpCode = 500;
 			$this->title = "Custom Error";
 			$this->msg = $e;
+			$this->critical = self::CRITICAL_LOG;
 			$this->internal = true;
 			$this->stackTrace = $info;
 		}

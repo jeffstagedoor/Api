@@ -38,23 +38,27 @@ Class Account extends Model
 	// additional model-specific requirements
 	protected $identification = "email";
 	protected $identificationIsEmail = true;
-	protected $minPasswordLength = 6;
+	protected $minPasswordLength = 8;
 	protected $minIdentificationLength = 6; // 6 is minimum for email: a@b.cd
 
 	public $dbDefinition = Array(
 			array ('id', 'int', '11', false, NULL, 'auto_increment'),
 			array ('email', 'varchar', '80', false),
-			array ('password', 'varchar', '250', false),
+			array ('password', 'varchar', '250', true),
 			array ('rights', 'tinyint', '4', false, '0'),
 			array ('authToken', 'varchar', '250', true),
 			array ('refreshToken', 'varchar', '250', true),
-			array ('fullName', 'varchar', '80', false),
-			array ('firstName', 'varchar', '20', false),
-			array ('middleName', 'varchar', '20', false),
-			array ('prefixName', 'varchar', '20', false),
-			array ('lastName', 'varchar', '30', false),
+			array ('fullName', 'varchar', '80', false, ''),
+			array ('firstName', 'varchar', '20', false, ''),
+			array ('middleName', 'varchar', '20', false, ''),
+			array ('prefixName', 'varchar', '20', false, ''),
+			array ('lastName', 'varchar', '30', false, ''),
 			array ('lastOnline', 'timestamp', null, true),
 			array ('lastLogin', 'timestamp', null, true),
+			array ('invitationToken', 'varchar', '250', true),
+			array ('invitedBy', 'int', '11', true),
+			array ('modDate', 'timestamp', NULL, false, 'CURRENT_TIMESTAMP', 'on update CURRENT_TIMESTAMP'),
+			array ('modBy', 'int', '11', true),
 
 		);
 	public $dbPrimaryKey = 'id';
@@ -80,7 +84,7 @@ Class Account extends Model
 
 
 	/**
-	* method reAuth
+	* method reAuthenticate
 	* reauthenticate a user by sent authToken
 	* @param $authToken
 	* @return true or false if reAuth failed
@@ -99,6 +103,25 @@ Class Account extends Model
 		}
 	}
 
+	/**
+	* method reAuthenticateByInvitationToken
+	* reauthenticate a user by sent invitationToken
+	* @param $invitationToken
+	* @return true or false if reAuth failed
+	*/
+	public function reAuthenticateByInvitationToken($invitationToken) 
+	{
+		$this->db->where('invitationToken', $invitationToken);
+		$user = $this->db->ObjectBuilder()->getOne($this->dbTable, null, $this->dbColsToFetch);
+		if($user) {
+			$this->isAuthenticated = true;
+			$this->id = $user->id;
+			$this->data = $this->buildAccountObject($user);
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	/**
 	* method refreshToken
@@ -212,6 +235,25 @@ Class Account extends Model
 	}
 	// END SIGNUP
 
+	public function verifyCredentials($identification, $password) {
+		$this->db->where('email', $identification);
+		$cols = Array("id", "password", "authToken");
+		$user = $this->db->getOne($this->dbTable, $cols);
+		if($user) {
+			$return = new \stdClass();
+			$return->user = $user;
+			// identification found, check password:
+			if(password_verify($password, $user['password'])) {
+				$return->success = true;
+				return $return;
+			} else {
+				$return->success = false;
+				return $return;
+			}
+		}
+		return false;
+	}
+
 	/**
 	* method LOGIN
 	* used to login as a user
@@ -221,22 +263,15 @@ Class Account extends Model
 	public function login($identification, $password) {
 		
 		$return = new \stdClass();
-
-
-
-		$this->db->where('email', $identification);
-		$cols = Array("id", "password", "authToken");
-		$user = $this->db->getOne($this->dbTable, $cols);
-		// var_dump($user);
-		if($user) {
-			// identification correct, check password:
-			if(password_verify($password, $user['password'])) {
-				// echo "password_verify failed with pw: ".$password;
+		$verifyCredentials = $this->verifyCredentials($identification, $password);
+		if($verifyCredentials->success) {
+				$user = $verifyCredentials->user;
 				// update login-timestamp and maybe authToken in db
 				$data = Array (
 					'lastLogin' => $this->db->now(),
 					'lastOnline' => $this->db->now()
 				);
+
 
 				$return->authToken = $this->makeAuthCode();
 				$data['authToken'] = $return->authToken;
@@ -251,20 +286,16 @@ Class Account extends Model
 				$log = new Api\LogLogin($this->db, $this->ENV, $this->errorHandler);
 				$id = $log->writeLoginLog($user['id'],true,true);
 
-			} else {
-				// password wrong
-				$this->errorHandler->add(91);
-				// make new entry in logLogin
-				require_once("Log.php");
-				$log = new Api\LogLogin($this->db, $this->ENV, $this->errorHandler);
-				$id = $log->writeLoginLog($user['id'],true,false);
-				return false;
-			}
-
 		} else {
-			// identification is wrong
+			// password wrong
 			$this->errorHandler->add(91);
+			// make new entry in logLogin
+			require_once("Log.php");
+			$user = isset($verifyCredentials->user) ? isset($verifyCredentials->user) : array("id"=>-1);
+			$log = new Api\LogLogin($this->db, $this->ENV, $this->errorHandler);
+			$id = $log->writeLoginLog($user['id'],true,false);
 			return false;
+
 		}
 		return $return;
 	}
@@ -353,7 +384,7 @@ Class Account extends Model
 	*			....
 	*		},
 	*		rights: 1-5, 
-	*		workgroups: [1=>3, 2=>0, 3=>4, ...], // id=>rights
+	*		// workgroups: [1=>3, 2=>0, 3=>4, ...], // id=>rights
 	*		
 	*		// productions: [3=>0, ...], // not anymore added automaticly, shall be retreived only when needed in Model-Hook 'beforeGetAll()'
 	*		...
