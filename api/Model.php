@@ -633,7 +633,7 @@ Class Model {
 			$data = $this->beforeAddMany2Many($modelLeft, $data);
 		}
 		// artist/user was not connected to this production/track/whatever yet, so insert him:
-		if(isset($data['memberSince']) || is_null($data['memberSince'])) {
+		if(isset($data['memberSince']) || (isset($data['memberSince']) && is_null($data['memberSince']))) {
 			$data['memberSince'] = $this->db->now();
 		} 
 		$success = $this->db->insert($relationTableName, $data);
