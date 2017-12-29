@@ -17,7 +17,7 @@ Class Image {
 	private $image = null;
 
 
-	function __construct($filename) {
+	public function __construct($filename) {
 		$this->filename = $filename;
 		switch ($this->getType()) {
 			case IMAGETYPE_GIF:
@@ -37,18 +37,18 @@ Class Image {
 		
 	}
 
-	function getSize() {
+	public function getSize() {
 		$width = imageSx($this->image);
 		$height = imageSy($this->image);
 		return Array($width, $height);
 	}
 
-	function getType() {
+	public function getType() {
 		$x = getimagesize($this->filename);
 		return $x[2];
 	}
 
-	function show() {
+	public function show() {
 		switch ($this->getType()) {
 			case IMAGETYPE_GIF:
 				return imagegif($this->image, null);
@@ -65,14 +65,14 @@ Class Image {
 		}
 	}
 
-	function resize($new_width, $new_height) {
+	public function resize($new_width, $new_height) {
 		list($orig_width, $orig_height) = $this->getSize();
 		$image_resized = imagecreatetruecolor($new_width, $new_height);
 		imagecopyresampled($image_resized, $this->image, 0, 0, 0, 0, $new_width, $new_height, $orig_width, $orig_height);
 		$this->image = $image_resized;
 	}
 
-	function resizeMax($max_width, $max_height) {
+	public function resizeMax($max_width, $max_height) {
 		list($orig_width, $orig_height) = $this->getSize();
 		$ratio = round($orig_width/$orig_height,4);
 
@@ -104,7 +104,7 @@ Class Image {
 	}
 
 
-	function crop($x, $y, $width, $height) {
+	public function crop($x, $y, $width, $height) {
 		list($orig_width, $orig_height) = $this->getSize();
 		// error-testing:
 		if($x>$orig_width) return false;
@@ -123,7 +123,7 @@ Class Image {
 		$this->image = $image_cropped;
 	}
 
-	function cropCenter($width, $height) {
+	public function cropCenter($width, $height) {
 		list($orig_width, $orig_height) = $this->getSize();
 		
 		if($width>$orig_width) {
@@ -147,7 +147,7 @@ Class Image {
 
 	}
 
-	function save($path, $filename, $type=0) {
+	public function save($path, $filename, $type=0) {
 		#echo "in image.php saving to: ".$path.$filename;
 		switch ($type) {
 			case IMAGETYPE_GIF:
@@ -166,7 +166,7 @@ Class Image {
 		
 	}
 
-	function getHeader() {
+	public function getHeader() {
 		switch ($this->getType()) {
 			case IMAGETYPE_GIF:
 				return 'image/gif';
@@ -183,7 +183,7 @@ Class Image {
 		}
 	}
 
-	function getImage() {
+	public function getImage() {
 		return $this->image;
 	}
 }
