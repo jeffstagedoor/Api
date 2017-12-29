@@ -56,3 +56,4 @@ Temporary Items
 
 #3rd Party repos
 vendor/
+*.ffs_db
