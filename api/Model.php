@@ -104,10 +104,6 @@ Class Model {
 			)
 		*/
 		);
-	// private $hasManyFields = Array (
-	// 		// Array("hasManyName"=>'user2workgroups',"dbTable"=>'user2workgroup', "dbTargetFieldName"=>'workgroup', "dbSourceFieldName"=>'user', "saveToStoreField"=>'workgroup', "saveToStoreName"=>'workgroups'),
-	// 		// Array("hasManyName"=>'user2workgroups',"dbTable"=>'user2workgroup', "dbTargetFieldName"=>'workgroup', "dbSourceFieldName"=>'user', "saveToStoreField"=>'workgroup', "saveToStoreName"=>'workgroups'),
-	// 	);
 
 	// what Items to send as sideload when doing a simple getOneById()
 	protected $sideloadItems = Array( 
@@ -267,12 +263,10 @@ Class Model {
 		}
 
 		$items = $this->_getResultFromDb();
-		foreach ($items as &$item) {
-			$item = $this->_unsetHiddenProperties($item);
-		}
-		unset($item);
-		// $items = array();
-		$items = $this->_getHasMany($items);
+		// echo $this->db->getLastQuery()."\n";
+		$items = $this->_unsetHiddenPropertiesMultiple($items);
+		$items = $this->_addHasManyMultiple($items);
+		$this->_addSideloadsMultiple($items); 			// add sideloads, defined in Child-Model Class as $sideloadItems
 		return $items;
 	}
 
@@ -287,8 +281,9 @@ Class Model {
 		if($coalesceIds) {
 			$this->db->where($this->dbTable.'.id', $coalesceIds,'IN');
 			$items = $this->_getResultFromDb();
-			$items = $this->_getHasMany($items);
+			$items = $this->_addHasManyMultiple($items);
 			$items = $this->_unsetHiddenPropertiesMultiple($items);
+			$this->_addSideloadsMultiple($items);
 			return $items;
 		} else {
 			$this->errorHandler->throwOne(ErrorHadler::API_INVALID_GET_REQUEST);
@@ -383,8 +378,7 @@ Class Model {
 
 
 
-	public function getLastInsertedId() 
-	{
+	public function getLastInsertedId() {
 		return $this->lastInsertedID;
 	}
 
@@ -394,8 +388,7 @@ Class Model {
 	*	method search()
 	*	
 	*/
-	public function search($data) 
-	{
+	public function search($data) {
 		if(isset($data->condition) && $data->condition==='or') {
 			$or = true;
 			unset($data->condition);
@@ -484,8 +477,7 @@ Class Model {
 	*	method count()
 	*	
 	*/
-	public function count($delimiters=null) 
-	{
+	public function count($delimiters=null) {
 		if(is_object($delimiters)) {
 
 			foreach ($delimiters as $key => $value) {
@@ -520,8 +512,7 @@ Class Model {
 	* 	@param [array] $data	
 	*	@return [int] the new id of the item, false if an error occurred
 	*/
-	public function add($data) 
-	{
+	public function add($data) {
 
 		// call the hook beforeAdd if existing:
 		if(method_exists($this, 'beforeAdd')) {
@@ -653,34 +644,29 @@ Class Model {
 	*	needs function addMultipleHook implemented in childModel
 	*
 	*/
-	public function addMultiple($data, $multipleParams) 
-	{
-		global $err;
-
+	public function addMultiple($data, $multipleParams) {
 		// call the hook beforeAdd if existing:
 		if(method_exists($this, 'beforeAddMultiple')) {
 			$data = $this->beforeAddMultiple($data, $multipleParams);
 		}
 
 		// unsetting hasMany-Fields that might come from Ember via POST:
-		foreach ($this->hasMany as $hmf) {
-			unset($data[$hmf['name']]);
+		foreach ($this->hasMany as $hmfName=>$hmf) {
+			unset($data[$hmfName]);
 		}
 
 
 		if(method_exists($this, 'addMultipleHook')) {
 			$insertedIds = $this->addMultipleHook($data, $multipleParams);
 		} else {
-			$err->add(41);
-			$this->errors[] = "No method addMultipleHook implemented for this itemType";
-			throw new Exception("Error: No method addMultipleHook implemented", 1);
+			$this->errorHandler->throwOne(\Jeff\Api\ErrorHandler::API_INVALID_POST_REQUEST);
 		}
 
 		// now return all newly inserted events/items:
 		if(count($insertedIds)) {
 			$this->db->where($this->dbTable.'.'.$this->dbIdField, $insertedIds, "IN");
 			$result = $this->_getResultFromDb();
-			$items = $this->_getHasMany($result);
+			$items = $this->_addHasManyMultiple($result);
 		} else {
 			$items = array();
 		}
@@ -688,8 +674,7 @@ Class Model {
 	}
 
 
-	public function update($id, $data) 
-	{
+	public function update($id, $data) {
 		
 
 		// call the hook beforeUpdate if existing:
@@ -725,8 +710,7 @@ Class Model {
 
 
 
-	public function delete($id) 
-	{
+	public function delete($id) {
 		// I should check here if the user MAY delete that model at all!?
 
 		// call the hook beforeDelete if existing:
@@ -746,8 +730,7 @@ Class Model {
 	*	method sort
 	*
 	*/
-	public function sort($reference, $id, $direction=null, $currentSort=null) 
-	{
+	public function sort($reference, $id, $direction=null, $currentSort=null) {
 		global $err;
 		switch ($direction) {
 			case 'up':
@@ -822,47 +805,70 @@ Class Model {
 
 
 	//
-	// SPECIALS FOR GETTING DATA
+	// SPECIALS/INTERNALS FOR GETTING DATA
 	//
 
-
-	private function _addHasMany($item, $id) {
-		if(!($this->hasMany) || !is_array($this->hasMany)) {
+	/**
+	*	method _addHasManyForSideload(array $items, int $id, array $hasMany)
+	*
+	*	@param 	(Array)	items: the main result the hasMany Items shall be added to
+	*			(int) 	id: the actual id of the main (parent) model
+	*			(Array)	hasMany: only needed when called from _addSideload(), because then we are not inside this model anymore.
+	*	@return (Array) items
+	*
+	**/
+	private function _addHasMany($item, $id, $hasMany=NULL) {
+		// if I'm coming from addSideload, I'll also get hasMany passed in, 
+		// if not, take that from the current model, as we are there already
+		if(is_null($hasMany)) {	
+			$hasMany = $this->hasMany;
+		}
+		// if there are still no hasMany to get, just return what you have gotten....
+		if(!($hasMany) || !is_array($hasMany)) {
 			return $item;
 		}
-		foreach ($this->hasMany as $hmName => $hasMany) { 
-			#echo $this->modelName;
+		foreach ($hasMany as $hmName => $hasManyItem) { 
 			if ($this->db->tableExists($hmName)) {
-				$this->db->where($this->modelName, $id);
-				// if(isset($hmf['orderBy'])) {
-				// 	$this->db->orderBy($hmf['orderBy']['field'], $hmf['orderBy']['direction']);
-				// }
-				$one2many = $this->db->get($hmName, null, Array('id',$hasMany['sourceField']));
-				// echo "one2many: \n";
-				// $this->db->getLastQuery();
-				#var_dump($one2many);
+				$this->db->where($hasManyItem['sourceField'], $id);
+				$one2many = $this->db->get($hmName, null, Array('id',$hasManyItem['sourceField']));
 				$refIds = Array();
-				$store = Array();
 				foreach ($one2many as $key => $value) {
 					$refIds[] = $value['id'];
-					$store[] = $value[$hasMany['sourceField']];
 				}
 				$item[$hmName] = $refIds;
-				$this->sideLoadTargetsStore[$hasMany['storeField']] = $store;
+			}
+		}
+		return $item;
+	}
+
+	private function _addHasManyForSideload($item, $id, $hasMany) {
+		if(!($hasMany) || !is_array($hasMany)) {
+			return $item;
+		}
+		foreach ($hasMany as $hmName => $hasManyItem) {
+
+			if ($this->db->tableExists($hmName)) {
+				$this->db->where($hasManyItem['sourceField'], $id);
+				$one2many = $this->db->get($hmName, null, Array('id',$hasManyItem['sourceField']));
+				$refIds = Array();
+				foreach ($one2many as $key => $value) {
+					$refIds[] = $value['id'];
+				}
+				$item[$hmName] = $refIds;
 			}
 		}
 		return $item;
 	}
 
 	/**
-	*	method _getHasMany(array $items)
+	*	method _addHasManyMultiple(array $items)
 	*
 	*	@param (Array) items: the main result the hasMany Items shall be added to
 	*	@return (Array) items
 	*
 	**/
-	private function _getHasMany($items) {
-		if(count($this->hasMany)===0) {
+	private function _addHasManyMultiple($items) {
+		if(!($this->hasMany) || !is_array($this->hasMany)) {
 			// if there are no hasMany to get, just return what you have gotten....
 			return $items;
 		}
@@ -896,47 +902,44 @@ Class Model {
 		return $items;
 	}
 
-	private function _addHasManyForSideload($item, $id, $hasMany=NULL) {
-		if(!($hasMany) || !is_array($hasMany)) {
-			return $item;
-		}
-		for ($i=0; $i < count($hasMany); $i++) { 
-			$hmf = $hasMany[$i];
-			
-			if ($this->db->tableExists ($hmf['dbTable'])) {
-				$this->db->where($hmf['dbSourceFieldName'], $id);
-				$one2many = $this->db->get($hmf['dbTable'], null, Array('id',$hmf['dbTargetFieldName']));
-				#echo "\n".$this->db->getLastQuery()."\n\n";
-				$refIds = Array();
-				foreach ($one2many as $key => $value) {
-					$refIds[] = $value['id'];
-				}
-				$item[$hmf['name']] = $refIds;
-			}
-		}
-		return $item;
-	}
 
 	private function _addSideloads($item) {
 		if(count($this->sideloadItems)) {
 			$this->sideload = new \stdClass();
 		}
 		for ($i=0; $i < count($this->sideloadItems); $i++) { 
-			$sli = $this->sideloadItems[$i];
-			if (isset($item[$sli['name']]) && count($item[$sli['name']])) {	// add only if we have values linked
-				$this->db->where('id', $item[$sli['name']] , 'IN');
-				$result = $this->db->get($sli['name']);
-
-				
+			$sideloadItem = $this->sideloadItems[$i];
+			if (isset($item[$sideloadItem['name']]) && count($item[$sideloadItem['name']])) {	// add only if we have values linked
+				$this->db->where('id', $item[$sideloadItem['name']] , 'IN');
+				$result = $this->db->get($sideloadItem['name']);
 
 				for ($r=0; $r < count($result); $r++) { 
 					$result[$r] = $this->_unsetHiddenProperties($result[$r]);
+					
+					// hier muss ich die hasMany hinzufügen:
+					if(count(explode("2",$sideloadItem['name']))===2) { 
+						//skip reference-requests, that would be something like accounts2workgroups
+						continue;
+					}
+					if(!isset($models[$sideloadItem['name']])) {
+						// only load the model once...
+
+						$sideloadModelFileName = $sideloadItem['name'].".php";
+						
+						include_once($this->ENV->dirs->models.DIRECTORY_SEPARATOR.$sideloadModelFileName);
+						$className = $sideloadItem['name'];
+						// echo "className: $className\n";
+						$classNameNamespaced = "\\Jeff\\Api\\Models\\" . ucfirst($className);
+						$models[$sideloadItem['name']] = new $classNameNamespaced($this->db, $this->ENV, $this->errorHandler, $this->account);
+					}
+					$result[$r] = $this->_addHasManyForSideload($result[$r], $result[$r]['id'], $models[$sideloadItem['name']]->hasMany);
+
 				}
-				$this->sideload->{$sli['name']} = $result;
+				$this->sideload->{$sideloadItem['name']} = $result;
 			}
 
 
-			// wozu brauch ich das???
+			// wozu brauch ich das??? ANSWER: to addhasManyForSideloads
 			// das funktioniert nämlich nicht, seit Umbau von hasMany-declaration
 			// if(isset($this->sideLoadTargetsStore[$sli['name']]) && count($this->sideLoadTargetsStore[$sli['name']])) {
 			// 	echo "bin in Model _addSideloads - sideLoadTargetsStore !?";
@@ -957,6 +960,33 @@ Class Model {
 			// 	}
 			// 	$this->sideload->{$sli['name']} = $result;
 			// }
+		}
+	}
+
+	private function _addSideloadsMultiple($items) {
+		if(count($this->sideloadItems)) {
+			$this->sideload = new \stdClass();
+		}
+
+		// var_dump($items);
+		$tmpSideloadIds = new \stdClass();
+		foreach ($items as $item) {
+			// search through the sideloadItems in the item
+			for ($i=0; $i < count($this->sideloadItems); $i++) { 
+				$sideloadItem = $this->sideloadItems[$i];
+				// init the tmp-array
+				if(!isset($tmpSideloadIds->{$sideloadItem['name']})) {
+					$tmpSideloadIds->{$sideloadItem['name']} = [];
+				}
+				$tmpSideloadIds->{$sideloadItem['name']} = array_merge($tmpSideloadIds->{$sideloadItem['name']}, $item[$sideloadItem['name']]);
+			}
+		}
+		foreach ($tmpSideloadIds as $key => $ids) {
+			if(is_array($ids) && count($ids)) {
+				$this->db->where('id', $ids , 'IN');
+				$result = $this->db->get($key);
+				$this->sideload->{$key} = $result;
+			}
 		}
 	}
 
