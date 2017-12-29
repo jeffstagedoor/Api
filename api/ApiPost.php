@@ -57,8 +57,19 @@ Class ApiPost
 				return $this->response;
 				break;
 			case Api::REQUEST_TYPE_COALESCE:
-				echo "ApiPost - Coalesce not yet implemented.";
-				#$this->items = $this->request->model->getCoalesce($this->data->ids);
+				#echo "data\n";
+				#var_dump($this->data->{$this->request->model->modelName});
+				#echo "multipleParams\n";
+				#var_dump($this->data->multipleParams);
+				$items = $this->request->model->addMultiple($this->data->{$this->request->model->modelName}, $this->data->multipleParams);
+				#echo "items added:\n";
+				#var_dump($items);
+				$this->response->{$this->request->model->modelNamePlural} = $items;
+				$logData = new \stdClass();
+				$logData->for = new LogDefaultFor(NULL,\Constants::USER_ADMIN,NULL,NULL,NULL,NULL,NULL,NULL);
+				$logData->meta = new LogDefaultMeta(NULL,NULL, count($items),NULL, json_encode($this->data->multipleParams));
+				$this->log->write($this->account->id, "createMultiple", $this->request->model->modelName, $logData);
+				return $this->response;
 				break;
 			case Api::REQUEST_TYPE_QUERY:
 				$this->errorHandler->add(array("API Error", "I received a Post request with a filter. Not implemented, doesn't make sense.",500,true, Api::CRITICAL_EMAIL));
@@ -66,10 +77,11 @@ Class ApiPost
 				$this->errorHandler->sendAllErrorsAndExit();
 			case Api::REQUEST_TYPE_NORMAL:
 				if(isset($this->request->special)) {
-					switch ($this->request->special) {
+					// switch ($this->request->special) {
 
 
-					}
+					// }
+					
 					echo "POST normal-special (??) not implemented.\nIn ApiPost ".__FUNCTION__." Line ".__LINE__."\n";
 				} else {
 					if($this->request->model->modifiedByField) {
