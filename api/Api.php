@@ -72,6 +72,7 @@ Class Api {
 	private $request;
 	private $data;
 	private $log;
+	// public static $instance;
 
 	Const REQUEST_TYPE_NORMAL = 1;
 	Const REQUEST_TYPE_REFERENCE = 2;
@@ -85,6 +86,7 @@ Class Api {
 
 	public function __construct(Environment $ENV=null) {
 		
+		// self::$instance = $this;
 		$this->ENV = $ENV;
 		// instatiate all nesseccary classes
 		$this->errorHandler = new ErrorHandler();
