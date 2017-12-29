@@ -343,6 +343,8 @@ Class Account extends Model
 	{
 		$this->id = $id;
 		$x = new \stdClass();
+		$x->id = 0;
+		$x->rights = 9;
 		$x->workgroups = $workgroups;
 		$this->data = $x;
 	}
