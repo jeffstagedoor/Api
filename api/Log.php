@@ -117,7 +117,7 @@ Class Log {
 				// fallback to default
 				$logForConfig = new LogDefaultFor(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 				#var_dump($data);
-				if(is_int($data->{$itemName}['id'])) {
+				if(isset($data->{$itemName}['id']) && is_int($data->{$itemName}['id'])) {
 					// if id is an int, store it in meta1
 					$logMetaConfig = new LogDefaultMeta(Array($itemName,"id"),NULL,NULL,NULL,NULL);
 				} else {
