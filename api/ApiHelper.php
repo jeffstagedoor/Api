@@ -217,3 +217,12 @@ Class ApiHelper {
 
 
 }
+
+// function debug($var) {
+// 	#echo __FILE__.__FUNCTION__.__LINE__."\n";
+// 	#var_dump($var);
+
+// 	echo "debug_backtrace()\n";
+// 	$dbb = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS,6);
+// 	var_dump($dbb);
+// }
