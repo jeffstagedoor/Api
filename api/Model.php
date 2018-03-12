@@ -82,6 +82,9 @@ Class Model {
 		// Array('field' => 'description', 'valtype' => Jeff\Api\Validate::VAL_TYPE_LENGTH_MIN, 'arg' => 300),
 		);
 
+	// list of db fields that shall not be updated in a normal api-update. Those have to be set via task (or special account-api calls such as 'signin')
+	protected $doNotUpdateFields = [];
+
 	// hasMany-Fields
 
 	protected $hasMany = Array (
@@ -113,6 +116,12 @@ Class Model {
 			// Array("name"=>'productions', "dbTable"=>'productions', "reference"=>'productions'),
 		);
 
+	/**
+	*	A list of methods that can be called via special api call www.example.com/api/modelname/specialMethod
+	*	Unless the method is listed here it won't be called (for security)
+	*
+	*/
+	public $specialMethods = Array();
 
 	// CONSTANTS
 	const SEARCH_TYPE_STRICT = "strict";
@@ -125,13 +134,14 @@ Class Model {
 	// CONSTRUCTOR
 	// always pass the fitting db-object to contructor
 	// possible Hook: initializeHook()
-	public function __construct($db, $ENV, $errorHandler, $account) 
+	public function __construct($db, $ENV, $errorHandler, $account, $request=NULL) 
 	{
 		$this->db = $db;
 		$this->ENV = $ENV;
 		$this->errorHandler = $errorHandler;
 		$this->cols = $this->_makeAssociativeFieldsArray($this->dbTable, $this->dbDefinition);
 		$this->account = $account;
+		$this->request = $request;
 
 		if(method_exists($this, "initializeHook")) {
 			$this->initializeHook();
@@ -173,18 +183,21 @@ Class Model {
 		//   }
 		//
 		// checking for quthorization first:
-		if(file_exists($this->ENV->dirs->appRoot."AuthorizationConfig.php")) {
-			include_once($this->ENV->dirs->appRoot."AuthorizationConfig.php");
-			$Authorizor = new \Jeff\Api\Authorizor\Authorizor($Settings, $this->account, $this->db);
-			// check if we have settings for that model
-			$isAuthorized = $Authorizor->authorize($this->modelName, $this->modelNamePlural, $id, 'mayView');
-			if(!$isAuthorized) {
-				$this->errorHandler->throwOne(Array('Not allowed', 'You are not allowed to access this recource', 200, \Jeff\Api\ErrorHandler::CRITICAL_LOG,false));
-				exit;
-			}
 
-		} else {
-			$isAuthorized = true;
+
+		if( isset($this->request->type) && $this->request->type!=Api\Api::REQUEST_TYPE_SPECIAL) {
+			if(file_exists($this->ENV->dirs->appRoot."AuthorizationConfig.php")) {
+				include_once($this->ENV->dirs->appRoot."AuthorizationConfig.php");
+				$Authorizor = new \Jeff\Api\Authorizor\Authorizor($Settings, $this->account, $this->db);
+				// check if we have settings for that model
+				$isAuthorized = $Authorizor->authorize($this->modelName, $this->modelNamePlural, $id, 'mayView');
+				if(!$isAuthorized) {
+					$this->errorHandler->throwOne(Array('Not allowed', 'You are not allowed to access this recource', 200, \Jeff\Api\ErrorHandler::CRITICAL_LOG,false));
+					exit;
+				}
+			// } else {
+			// 	$isAuthorized = true;
+			}
 		}
 
 		$this->db->where($this->dbIdField,$id);
@@ -261,6 +274,7 @@ Class Model {
 				$this->db->where($this->dbTable.'.'.$filter['key'], $filter['value'], $filter['comp']);
 			}
 		}
+
 
 		$items = $this->_getResultFromDb();
 		// echo $this->db->getLastQuery()."\n";
@@ -417,7 +431,7 @@ Class Model {
 
 		foreach ($data as $key => $value) {
 			if(!is_string($value)) {
-				$this->errorHandler->throwOne(Array("API-Error", "No valid search data found. Please consult readme to find needed format."));
+				$this->errorHandler->throwOne(Array("API-Error", "No valid search data found. Please consult readme to find needed format.", ErrorHandler::CRITICAL_EMAIL, false));
 				exit;
 			}
 			// for security, I first replace any placeholder with a questionmark
@@ -464,8 +478,8 @@ Class Model {
 			}
 		} else { // else generate an error
 			$result = null;
-			$this->errorHandler->add(Array("API Error", "search: no search value found: Model ".$this->modelName, 500, true, Api\ErrorHandler::CRITICAL_EMAIL));
-			$this->errorHandler->add(Array("API Error", "no value to search for was found", 500, false, Api\ErrorHandler::CRITICAL_LOG));
+			$this->errorHandler->add(Array("API Error", "search: no search value found: Model ".$this->modelName, 500, Api\ErrorHandler::CRITICAL_EMAIL, false));
+			$this->errorHandler->add(Array("API Error", "no value to search for was found", 500, Api\ErrorHandler::CRITICAL_LOG, false));
 			$this->errorHandler->sendErrors();
 			$this->errorHandler->sendApiErrors();
 			exit;
@@ -558,7 +572,7 @@ Class Model {
 			} else {
 				$e = Array("DB-Error", "Could not insert item because: ".$this->db->getLastError()."\nin Model ".__FUNCTION__." ".__LINE__, 500, true, Api\ErrorHandler::CRITICAL_EMAIL);
 				$this->errorHandler->add($e);
-				$e = Array("DB-Error", "Could not insert item", 500, false, Api\ErrorHandler::CRITICAL_LOG);
+				$e = Array("DB-Error", "Could not insert item", 500, Api\ErrorHandler::CRITICAL_LOG, false);
 				$this->errorHandler->add($e);
 				$this->errorHandler->sendErrors();
 				$this->errorHandler->sendApiErrors();
@@ -567,6 +581,7 @@ Class Model {
 		} else {
 			$e = Array("API-Error", "Not all required fields were sent. I missed: ".implode(",", $missingFields), 400, false, Api\ErrorHandler::CRITICAL_EMAIL);
 			$this->errorHandler->add(new Api\Error($e));
+			$this->errorHandler->add(Api\ErrorHandler::API_INVALID_POST_REQUEST);
 			return false;
 		}
 	}
@@ -691,15 +706,27 @@ Class Model {
 			unset($data[$hasManyName]);
 		}
 
+		if(isset($this->doNotUpdateFields)) {
+			foreach ($this->doNotUpdateFields as $fieldName) {
+				unset($data[$fieldName]);
+			}
+		}
+
 
 		$this->db->where($this->dbIdField, $id);
 		// print_r($data);
-		if ($this->db->update($this->dbTable, $data)) {
-			$return = new \stdClass();
-			$return->count = $this->db->count;
-			$return->id = $id;
-			return $return; // $db->count.' records were updated';
-		} else {
+		try {
+			if ($this->db->update($this->dbTable, $data)) {
+				#echo $this->db->getLastQuery();
+				$return = new \stdClass();
+				$return->count = $this->db->count;
+				$return->id = $id;
+				return $return; // $db->count.' records were updated';
+			}
+			
+		} 
+		catch (Exception $e) {
+			$this->errorHandler->add(array("Model Update Error", "Standard update failed", Api\ErrorHandler::CRITICAL_EMAIL, true, $e));
 			if($this->db->getLastError()>'') { 
 				$this->errorHandler->add(new Api\Error($err::DB_UPDATE, $this->db->getLastError()));
 				return false;
@@ -809,7 +836,7 @@ Class Model {
 	//
 
 	/**
-	*	method _addHasManyForSideload(array $items, int $id, array $hasMany)
+	*	method _addHasMany(array $items, int $id, array $hasMany)
 	*
 	*	@param 	(Array)	items: the main result the hasMany Items shall be added to
 	*			(int) 	id: the actual id of the main (parent) model
@@ -828,9 +855,12 @@ Class Model {
 			return $item;
 		}
 		foreach ($hasMany as $hmName => $hasManyItem) { 
+			// echo "hasManyName: ".$hmName."\n";
 			if ($this->db->tableExists($hmName)) {
+				// echo "tableExists\n";
 				$this->db->where($hasManyItem['sourceField'], $id);
 				$one2many = $this->db->get($hmName, null, Array('id',$hasManyItem['sourceField']));
+				// echo $this->db->getLastQuery()."\n\n";
 				$refIds = Array();
 				foreach ($one2many as $key => $value) {
 					$refIds[] = $value['id'];
@@ -841,24 +871,24 @@ Class Model {
 		return $item;
 	}
 
-	private function _addHasManyForSideload($item, $id, $hasMany) {
-		if(!($hasMany) || !is_array($hasMany)) {
-			return $item;
-		}
-		foreach ($hasMany as $hmName => $hasManyItem) {
+	// private function _addHasManyForSideload($item, $id, $hasMany) {
+	// 	if(!($hasMany) || !is_array($hasMany)) {
+	// 		return $item;
+	// 	}
+	// 	foreach ($hasMany as $hmName => $hasManyItem) {
 
-			if ($this->db->tableExists($hmName)) {
-				$this->db->where($hasManyItem['sourceField'], $id);
-				$one2many = $this->db->get($hmName, null, Array('id',$hasManyItem['sourceField']));
-				$refIds = Array();
-				foreach ($one2many as $key => $value) {
-					$refIds[] = $value['id'];
-				}
-				$item[$hmName] = $refIds;
-			}
-		}
-		return $item;
-	}
+	// 		if ($this->db->tableExists($hmName)) {
+	// 			$this->db->where($hasManyItem['sourceField'], $id);
+	// 			$one2many = $this->db->get($hmName, null, Array('id',$hasManyItem['sourceField']));
+	// 			$refIds = Array();
+	// 			foreach ($one2many as $key => $value) {
+	// 				$refIds[] = $value['id'];
+	// 			}
+	// 			$item[$hmName] = $refIds;
+	// 		}
+	// 	}
+	// 	return $item;
+	// }
 
 	/**
 	*	method _addHasManyMultiple(array $items)
@@ -932,7 +962,7 @@ Class Model {
 						$classNameNamespaced = "\\Jeff\\Api\\Models\\" . ucfirst($className);
 						$models[$sideloadItem['name']] = new $classNameNamespaced($this->db, $this->ENV, $this->errorHandler, $this->account);
 					}
-					$result[$r] = $this->_addHasManyForSideload($result[$r], $result[$r]['id'], $models[$sideloadItem['name']]->hasMany);
+					$result[$r] = $this->_addHasMany($result[$r], $result[$r]['id'], $models[$sideloadItem['name']]->hasMany);
 
 				}
 				$this->sideload->{$sideloadItem['name']} = $result;

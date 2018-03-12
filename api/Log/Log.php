@@ -9,7 +9,10 @@
 *
 **/
 
-namespace Jeff\Api;
+namespace Jeff\Api\Log;
+use Jeff\Api;
+
+require_once('LogDefault.php');
 
 
 Class Log {
@@ -180,6 +183,7 @@ Class Log {
 
 		$data = Array(
 			'user' => $this->user,
+			'authType' => $this->type,
 			'loginattempt' => $this->loginattempt,
 			'success' => $this->success,
 			'timestamp' => $this->db->now(),
@@ -339,112 +343,4 @@ Class Log {
 }
 
 
-Class LogLogin extends Log {
-	public $modelName = "LogLogin";
 
-	// private $dbTable = \Jeff\LogConfig::DB_TABLE_LOGIN;
-	protected $dbTable = "loglogin";
-	public $dbDefinition = Array(
-			array ('id', 'int', '11', false, NULL, 'auto_increment'),
-			array ('user', 'int', '11', false),
-			array ('loginattempt', 'tinyint', '1', false),
-			array ('success', 'tinyint', '1', false),
-			array ('timestamp', 'timestamp', null, false, 'CURRENT_TIMESTAMP', 'ON UPDATE CURRENT_TIMESTAMP'),
-			
-			array ('referer', 'varchar', '150', false),
-			array ('userAgent', 'varchar', '150', false),
-			array ('userAgentOs', 'varchar', '30', false),
-			array ('userAgentBrowser', 'varchar', '50', false),
-			array ('ip4', 'varchar', '15', false),
-			array ('ip6', 'varchar', '39', false),
-
-			array ('long', 'int', '11', false),
-			array ('lat', 'int', '11', false),
-			
-			array ('geoCity', 'varchar', '50', false),
-			array ('geoRegion', 'varchar', '50', false),
-			array ('geoCountry', 'varchar', '10', false),
-			array ('geoOrg', 'varchar', '50', false),
-			array ('geoPostal', 'varchar', '15', false),
-		);
-	public $dbPrimaryKey = 'id';
-
-	public function writeLoginLog($user, $loginattempt, $success) {
-		$this->user = $user;
-		$this->loginattempt = $loginattempt;
-		$this->success = $success;
-		$dbData = $this->collectData();
-		// echo "SHOW FULL TABLES LIKE '".\Jeff\LogConfig::DB_TABLE_LOGIN."'<br>\n";
-		$result = $this->db->rawQuery("SHOW FULL TABLES LIKE '".\LogConfig::DB_TABLE_LOGIN."'");
-		// var_dump($result);
-		if(count($result)>0) {
-			// echo "count > 0 : ".count($result)."<br>\n";
-			$id = $this->db->insert(\LogConfig::DB_TABLE_LOGIN, $dbData);
-			return $id;
-		} else {
-			// echo "count NOT > 0 : ".count($result)."<br>\n";
-			$this->errorHandler->add(new Error(ErrorHandler::LOG_NO_TABLE_LOGIN));
-			$this->errorHandler->sendErrors();
-			// exit;
-		}
-	}
-}
-
-
-
-// These are the default classes that shall be used by LogConfig.php
-Class LogDefaultConfig {
-	const PATH = 'apiLog';
-	const DB_TABLE = "log";
-	const DB_TABLE_LOGIN = "loglogin";
-
-	public static function values() {
-		$values = new \stdClass();
-		return $values;
-	}
-
-	public static function getPath() {
-		return dirname(__FILE__).DIRECTORY_SEPARATOR.self::PATH.DIRECTORY_SEPARATOR;;
-	}
-
-	public static function getDbTable() {
-		return self::DB_TABLE;
-	}
-}
-Class LogDefaultFor {
-	public $A;
-	public $ARights;
-	public $B;
-	public $BRights;
-	public $C;
-	public $CRights;
-	public $D;
-	public $DRights;
-
-	function __construct($A, $ARights, $B, $BRights, $C, $CRights, $D, $DRights) {
-		$this->A 		= $A;
-		$this->ARights 	= $ARights;
-		$this->B 		= $B;	
-		$this->BRights 	= $BRights;
-		$this->C 		= $C;
-		$this->CRights 	= $CRights;
-		$this->D 		= $D;
-		$this->DRights 	= $DRights;
-	}
-}
-
-Class LogDefaultMeta {
-	public $Meta1;
-	public $Meta2;
-	public $Meta3;
-	public $Meta4;
-	public $Meta5;
-
-	function __construct($A=null, $B=null, $C=null, $D=null, $E=null) {
-		$this->Meta1 = $A;
-		$this->Meta2 = $B;
-		$this->Meta3 = $C;
-		$this->Meta4 = $D;
-		$this->Meta5 = $E;
-	}
-}

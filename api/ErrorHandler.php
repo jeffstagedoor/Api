@@ -13,6 +13,10 @@
 
 namespace Jeff\Api;
 
+/*
+*	basic Error syntax as array:
+*	Array("title", "msg", "httpCode", "critical", "internal", Exception)
+*/
 
 
 
@@ -50,6 +54,8 @@ Class ErrorHandler {
 	Const TASK_INVALID =	 			71;
 	Const TASK_DB_ERROR =	 			72;
 	Const TASK_NOT_FOUND_OR_FULFILLED =	73;
+	Const TASK_NOT_ALLOWED =			74;
+	Const TASK_NOT_IMPLEMENTED =		79;
 
 
 
@@ -98,7 +104,7 @@ Class ErrorHandler {
 		42 => Array("title"=>"Invalid get request", "msg"=>"Invalid get request", "httpCode"=>400, 			"critical"=>self::CRITICAL_LOG),
 		43 => Array("title"=>"Invalid put request", "msg"=>"Invalid put request", "httpCode"=>400, 			"critical"=>self::CRITICAL_LOG),
 		44 => Array("title"=>"Invalid post/put request", "msg"=>"Not all required fields received", "httpCode"=>400, "critical"=>self::CRITICAL_LOG),
-		44 => Array("title"=>"Invalid post/put request", "msg"=>"Recource id is missing", "httpCode"=>400, "critical"=>self::CRITICAL_LOG),
+		45 => Array("title"=>"Invalid post/put request", "msg"=>"Recource id is missing", "httpCode"=>400, "critical"=>self::CRITICAL_LOG, "internal"=>false),
 
 	// LOG
 		50 => Array("title"=>"Log Error", "msg"=>"No Log Config found", "httpCode"=>500,	"critical"=>self::CRITICAL_EMAIL, "internal"=>true),
@@ -115,6 +121,9 @@ Class ErrorHandler {
 		71 => Array("title"=>"Task Error", "msg"=>"Invalid request", "httpCode"=>500,	"critical"=>self::CRITICAL_EMAIL, "internal"=>false),
 		72 => Array("title"=>"Task DB Error", "msg"=>"Could not complete this task due to an internal database error", "httpCode"=>500,	"critical"=>self::CRITICAL_EMAIL, "internal"=>false),
 		73 => Array("title"=>"Task Error", "msg"=>"This task was already fulfilled/rejected or was not found", "httpCode"=>400,	"critical"=>self::CRITICAL_LOG, "internal"=>false),
+		74 => Array("title"=>"Task - not allowed", "msg"=>"Unfortunately you are not allowed to do that, because you don't have sufficient rights.", "httpCode"=>401,	"critical"=>self::CRITICAL_LOG, "internal"=>false),
+
+		79 => Array("title"=>"Task Error", "msg"=>"Tasks are not implemented. No Task-File found", "httpCode"=>500,	"critical"=>self::CRITICAL_LOG, "internal"=>false),
 
 	// MAILER
 		80 => Array("title"=>"Mail Error", "msg"=>"Unknown mail error", "httpCode"=>500,	"critical"=>self::CRITICAL_EMAIL, "internal"=>false),
@@ -236,7 +245,7 @@ Class ErrorHandler {
 			}
 
 		}
-		$geoInfo = Log::getGeoInfoArray();
+		$geoInfo = Log\Log::getGeoInfoArray();
 		$txt.= "     ".$_SERVER['REMOTE_ADDR']." ".implode(", ",$geoInfo).PHP_EOL;
 		$logPath = (null !== \LogConfig::getPath()) ? \LogConfig::getPath() : "../apiLog";
 		if (!is_dir($logPath)) {
@@ -252,6 +261,12 @@ Class ErrorHandler {
 		$this->sendApiErrors();
 		$this->sendErrors();
 		exit;
+	}
+
+	// sendApiErrors() AND sendErrors()
+	public function sendAll() {
+		$this->sendApiErrors();
+		$this->sendErrors();
 	}
 
 	public function addSendAllExit($e) {

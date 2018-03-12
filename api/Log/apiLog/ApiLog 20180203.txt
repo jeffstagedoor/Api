@@ -1,0 +1,270 @@
+03.02.2018 00:47:20: Authentication failed - Could not authenticate user. 
+     ::1 , , , , 
+
+03.02.2018 00:49:09: Authentication failed - Could not authenticate user. 
+     ::1 , , , , 
+
+03.02.2018 00:49:40: Authentication failed - Could not authenticate user. 
+     ::1 , , , , 
+
+03.02.2018 00:51:04: Authentication failed - Could not authenticate user. 
+     ::1 , , , , 
+
+03.02.2018 00:52:34: Authentication failed - Could not authenticate user. 
+     ::1 , , , , 
+
+03.02.2018 00:53:53: Authentication failed - Could not authenticate user. 
+     ::1 , , , , 
+
+03.02.2018 00:55:24: Authentication failed - Could not authenticate user. 
+     ::1 , , , , 
+
+03.02.2018 00:55:37: Authentication failed - Could not authenticate user. 
+     ::1 , , , , 
+
+03.02.2018 00:56:23: Authentication failed - Could not authenticate user. 
+     ::1 , , , , 
+
+03.02.2018 00:57:23: Authentication failed - Could not authenticate user. 
+     ::1 , , , , 
+
+03.02.2018 00:58:03: Authentication failed - Could not authenticate user. 
+     ::1 , , , , 
+
+03.02.2018 00:59:43: Authentication failed - Could not authenticate user. 
+     ::1 , , , , 
+
+03.02.2018 01:10:22: No AuthToken found - Could not find a valid authorization token. 
+     ::1 , , , , 
+
+03.02.2018 01:34:33: Authentication failed - Could not authenticate user. 
+03.02.2018 01:34:33: Database Error - An undefined database error occured. 
+03.02.2018 01:34:33: DB-LogLogin - db Error: 
+Unknown column 'type' in 'field list'
+on query:
+
+in File C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Log\LogLogin.php:59 - Jeff\Api\Log\LogLogin 
+  Unknown column 'type' in 'field list' query: INSERT  INTO loglogin (`user`, `type`, `loginattempt`, `success`, `timestamp`, `referer`, `userAgent`, `userAgentOs`, `userAgentBrowser`, `ip4`, `ip6`, `geoCity`, `geoRegion`, `geoCountry`, `geoOrg`, `geoPostal`)  VALUES (?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+   in File: C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php - Line 1819
+   StackTrace: 
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:1427, class: MysqliDb, function: _prepareQuery
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:1367, class: MysqliDb, function: _buildQuery
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:679, class: MysqliDb, function: _buildInsert
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Log\LogLogin.php:55, class: MysqliDb, function: insert
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Account.php:333, class: Jeff\Api\Log\LogLogin, function: writeLoginLog
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Account.php:343, class: Jeff\Api\Models\Account, function: login
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Authentication.php:78, class: Jeff\Api\Models\Account, function: authenticate
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\api\authenticate.php:5, class: Jeff\Api\Authentication, function: authenticate
+
+     ::1 , , , , 
+
+03.02.2018 01:34:33: Authentication failed - Could not authenticate user. 
+03.02.2018 01:34:33: Database Error - An undefined database error occured. 
+03.02.2018 01:34:33: DB-LogLogin - db Error: 
+Unknown column 'type' in 'field list'
+on query:
+
+in File C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Log\LogLogin.php:59 - Jeff\Api\Log\LogLogin 
+  Unknown column 'type' in 'field list' query: INSERT  INTO loglogin (`user`, `type`, `loginattempt`, `success`, `timestamp`, `referer`, `userAgent`, `userAgentOs`, `userAgentBrowser`, `ip4`, `ip6`, `geoCity`, `geoRegion`, `geoCountry`, `geoOrg`, `geoPostal`)  VALUES (?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+   in File: C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php - Line 1819
+   StackTrace: 
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:1427, class: MysqliDb, function: _prepareQuery
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:1367, class: MysqliDb, function: _buildQuery
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:679, class: MysqliDb, function: _buildInsert
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Log\LogLogin.php:55, class: MysqliDb, function: insert
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Account.php:333, class: Jeff\Api\Log\LogLogin, function: writeLoginLog
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Account.php:343, class: Jeff\Api\Models\Account, function: login
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Authentication.php:78, class: Jeff\Api\Models\Account, function: authenticate
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\api\authenticate.php:5, class: Jeff\Api\Authentication, function: authenticate
+
+     ::1 , , , , 
+
+03.02.2018 01:35:11: Authentication failed - Could not authenticate user. 
+03.02.2018 01:35:11: Database Error - An undefined database error occured. 
+03.02.2018 01:35:11: DB-LogLogin - db Error: 
+Unknown column 'type' in 'field list'
+on query:
+INSERT  INTO loglogin (`user`, `type`, `loginattempt`, `success`, `timestamp`, `referer`, `userAgent`, `userAgentOs`, `userAgentBrowser`, `ip4`, `ip6`, `geoCity`, `geoRegion`, `geoCountry`, `geoOrg`, `geoPostal`)  VALUES ('5', 'login', '1', '', NOW(), '', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36', 'Windows 10', 'Google Chrome 63.0.3239.132', '', '::1', '', '', '', '', '')
+in File C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Log\LogLogin.php:59 - Jeff\Api\Log\LogLogin 
+  Unknown column 'type' in 'field list' query: INSERT  INTO loglogin (`user`, `type`, `loginattempt`, `success`, `timestamp`, `referer`, `userAgent`, `userAgentOs`, `userAgentBrowser`, `ip4`, `ip6`, `geoCity`, `geoRegion`, `geoCountry`, `geoOrg`, `geoPostal`)  VALUES (?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+   in File: C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php - Line 1819
+   StackTrace: 
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:1427, class: MysqliDb, function: _prepareQuery
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:1367, class: MysqliDb, function: _buildQuery
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:679, class: MysqliDb, function: _buildInsert
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Log\LogLogin.php:55, class: MysqliDb, function: insert
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Account.php:333, class: Jeff\Api\Log\LogLogin, function: writeLoginLog
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Account.php:343, class: Jeff\Api\Models\Account, function: login
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Authentication.php:78, class: Jeff\Api\Models\Account, function: authenticate
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\api\authenticate.php:5, class: Jeff\Api\Authentication, function: authenticate
+
+     ::1 , , , , 
+
+03.02.2018 01:35:11: Authentication failed - Could not authenticate user. 
+03.02.2018 01:35:11: Database Error - An undefined database error occured. 
+03.02.2018 01:35:11: DB-LogLogin - db Error: 
+Unknown column 'type' in 'field list'
+on query:
+INSERT  INTO loglogin (`user`, `type`, `loginattempt`, `success`, `timestamp`, `referer`, `userAgent`, `userAgentOs`, `userAgentBrowser`, `ip4`, `ip6`, `geoCity`, `geoRegion`, `geoCountry`, `geoOrg`, `geoPostal`)  VALUES ('5', 'login', '1', '', NOW(), '', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36', 'Windows 10', 'Google Chrome 63.0.3239.132', '', '::1', '', '', '', '', '')
+in File C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Log\LogLogin.php:59 - Jeff\Api\Log\LogLogin 
+  Unknown column 'type' in 'field list' query: INSERT  INTO loglogin (`user`, `type`, `loginattempt`, `success`, `timestamp`, `referer`, `userAgent`, `userAgentOs`, `userAgentBrowser`, `ip4`, `ip6`, `geoCity`, `geoRegion`, `geoCountry`, `geoOrg`, `geoPostal`)  VALUES (?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+   in File: C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php - Line 1819
+   StackTrace: 
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:1427, class: MysqliDb, function: _prepareQuery
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:1367, class: MysqliDb, function: _buildQuery
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:679, class: MysqliDb, function: _buildInsert
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Log\LogLogin.php:55, class: MysqliDb, function: insert
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Account.php:333, class: Jeff\Api\Log\LogLogin, function: writeLoginLog
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Account.php:343, class: Jeff\Api\Models\Account, function: login
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Authentication.php:78, class: Jeff\Api\Models\Account, function: authenticate
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\api\authenticate.php:5, class: Jeff\Api\Authentication, function: authenticate
+
+     ::1 , , , , 
+
+03.02.2018 01:35:38: Authentication failed - Could not authenticate user. 
+03.02.2018 01:35:38: Database Error - An undefined database error occured. 
+03.02.2018 01:35:38: DB-LogLogin - db Error: 
+Unknown column 'type' in 'field list'
+on query:
+INSERT  INTO loglogin (`user`, `type`, `loginattempt`, `success`, `timestamp`, `referer`, `userAgent`, `userAgentOs`, `userAgentBrowser`, `ip4`, `ip6`, `geoCity`, `geoRegion`, `geoCountry`, `geoOrg`, `geoPostal`)  VALUES ('5', 'login', '1', '', NOW(), '', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36', 'Windows 10', 'Google Chrome 63.0.3239.132', '', '::1', '', '', '', '', '')
+in File C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Log\LogLogin.php:59 - Jeff\Api\Log\LogLogin 
+  Unknown column 'type' in 'field list' query: INSERT  INTO loglogin (`user`, `type`, `loginattempt`, `success`, `timestamp`, `referer`, `userAgent`, `userAgentOs`, `userAgentBrowser`, `ip4`, `ip6`, `geoCity`, `geoRegion`, `geoCountry`, `geoOrg`, `geoPostal`)  VALUES (?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+   in File: C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php - Line 1819
+   StackTrace: 
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:1427, class: MysqliDb, function: _prepareQuery
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:1367, class: MysqliDb, function: _buildQuery
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:679, class: MysqliDb, function: _buildInsert
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Log\LogLogin.php:55, class: MysqliDb, function: insert
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Account.php:333, class: Jeff\Api\Log\LogLogin, function: writeLoginLog
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Account.php:343, class: Jeff\Api\Models\Account, function: login
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Authentication.php:78, class: Jeff\Api\Models\Account, function: authenticate
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\api\authenticate.php:5, class: Jeff\Api\Authentication, function: authenticate
+
+     ::1 , , , , 
+
+03.02.2018 01:35:38: Authentication failed - Could not authenticate user. 
+03.02.2018 01:35:38: Database Error - An undefined database error occured. 
+03.02.2018 01:35:38: DB-LogLogin - db Error: 
+Unknown column 'type' in 'field list'
+on query:
+INSERT  INTO loglogin (`user`, `type`, `loginattempt`, `success`, `timestamp`, `referer`, `userAgent`, `userAgentOs`, `userAgentBrowser`, `ip4`, `ip6`, `geoCity`, `geoRegion`, `geoCountry`, `geoOrg`, `geoPostal`)  VALUES ('5', 'login', '1', '', NOW(), '', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36', 'Windows 10', 'Google Chrome 63.0.3239.132', '', '::1', '', '', '', '', '')
+in File C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Log\LogLogin.php:59 - Jeff\Api\Log\LogLogin 
+  Unknown column 'type' in 'field list' query: INSERT  INTO loglogin (`user`, `type`, `loginattempt`, `success`, `timestamp`, `referer`, `userAgent`, `userAgentOs`, `userAgentBrowser`, `ip4`, `ip6`, `geoCity`, `geoRegion`, `geoCountry`, `geoOrg`, `geoPostal`)  VALUES (?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+   in File: C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php - Line 1819
+   StackTrace: 
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:1427, class: MysqliDb, function: _prepareQuery
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:1367, class: MysqliDb, function: _buildQuery
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:679, class: MysqliDb, function: _buildInsert
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Log\LogLogin.php:55, class: MysqliDb, function: insert
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Account.php:333, class: Jeff\Api\Log\LogLogin, function: writeLoginLog
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Account.php:343, class: Jeff\Api\Models\Account, function: login
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Authentication.php:78, class: Jeff\Api\Models\Account, function: authenticate
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\api\authenticate.php:5, class: Jeff\Api\Authentication, function: authenticate
+
+     ::1 , , , , 
+
+03.02.2018 01:35:58: Authentication failed - Could not authenticate user. 
+03.02.2018 01:35:58: Database Error - An undefined database error occured. 
+03.02.2018 01:35:58: DB-LogLogin - db Error: 
+Unknown column 'type' in 'field list'
+on query:
+INSERT  INTO loglogin (`user`, `type`, `loginattempt`, `success`, `timestamp`, `referer`, `userAgent`, `userAgentOs`, `userAgentBrowser`, `ip4`, `ip6`, `geoCity`, `geoRegion`, `geoCountry`, `geoOrg`, `geoPostal`)  VALUES ('5', 'login', '1', '', NOW(), '', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36', 'Windows 10', 'Google Chrome 63.0.3239.132', '', '::1', '', '', '', '', '')
+in File C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Log\LogLogin.php:59 - Jeff\Api\Log\LogLogin 
+  Unknown column 'type' in 'field list' query: INSERT  INTO loglogin (`user`, `type`, `loginattempt`, `success`, `timestamp`, `referer`, `userAgent`, `userAgentOs`, `userAgentBrowser`, `ip4`, `ip6`, `geoCity`, `geoRegion`, `geoCountry`, `geoOrg`, `geoPostal`)  VALUES (?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+   in File: C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php - Line 1819
+   StackTrace: 
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:1427, class: MysqliDb, function: _prepareQuery
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:1367, class: MysqliDb, function: _buildQuery
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:679, class: MysqliDb, function: _buildInsert
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Log\LogLogin.php:55, class: MysqliDb, function: insert
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Account.php:333, class: Jeff\Api\Log\LogLogin, function: writeLoginLog
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Account.php:343, class: Jeff\Api\Models\Account, function: login
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Authentication.php:78, class: Jeff\Api\Models\Account, function: authenticate
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\api\authenticate.php:5, class: Jeff\Api\Authentication, function: authenticate
+
+     ::1 , , , , 
+
+03.02.2018 01:39:19: Authentication failed - Could not authenticate user. 
+03.02.2018 01:39:19: Database Error - An undefined database error occured. 
+03.02.2018 01:39:19: DB-LogLogin - db Error: 
+Unknown column 'type' in 'field list'
+on query:
+INSERT  INTO loglogin (`user`, `type`, `loginattempt`, `success`, `timestamp`, `referer`, `userAgent`, `userAgentOs`, `userAgentBrowser`, `ip4`, `ip6`, `geoCity`, `geoRegion`, `geoCountry`, `geoOrg`, `geoPostal`)  VALUES ('5', 'login', '1', '', NOW(), '', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36', 'Windows 10', 'Google Chrome 63.0.3239.132', '', '::1', '', '', '', '', '')
+in File C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Log\LogLogin.php:59 - Jeff\Api\Log\LogLogin 
+  Unknown column 'type' in 'field list' query: INSERT  INTO loglogin (`user`, `type`, `loginattempt`, `success`, `timestamp`, `referer`, `userAgent`, `userAgentOs`, `userAgentBrowser`, `ip4`, `ip6`, `geoCity`, `geoRegion`, `geoCountry`, `geoOrg`, `geoPostal`)  VALUES (?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+   in File: C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php - Line 1819
+   StackTrace: 
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:1427, class: MysqliDb, function: _prepareQuery
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:1367, class: MysqliDb, function: _buildQuery
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:679, class: MysqliDb, function: _buildInsert
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Log\LogLogin.php:55, class: MysqliDb, function: insert
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Account.php:333, class: Jeff\Api\Log\LogLogin, function: writeLoginLog
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Account.php:343, class: Jeff\Api\Models\Account, function: login
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Authentication.php:78, class: Jeff\Api\Models\Account, function: authenticate
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\api\authenticate.php:5, class: Jeff\Api\Authentication, function: authenticate
+
+     ::1 , , , , 
+
+03.02.2018 01:39:20: Authentication failed - Could not authenticate user. 
+03.02.2018 01:39:20: Database Error - An undefined database error occured. 
+03.02.2018 01:39:20: DB-LogLogin - db Error: 
+Unknown column 'type' in 'field list'
+on query:
+INSERT  INTO loglogin (`user`, `type`, `loginattempt`, `success`, `timestamp`, `referer`, `userAgent`, `userAgentOs`, `userAgentBrowser`, `ip4`, `ip6`, `geoCity`, `geoRegion`, `geoCountry`, `geoOrg`, `geoPostal`)  VALUES ('5', 'login', '1', '', NOW(), '', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36', 'Windows 10', 'Google Chrome 63.0.3239.132', '', '::1', '', '', '', '', '')
+in File C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Log\LogLogin.php:59 - Jeff\Api\Log\LogLogin 
+  Unknown column 'type' in 'field list' query: INSERT  INTO loglogin (`user`, `type`, `loginattempt`, `success`, `timestamp`, `referer`, `userAgent`, `userAgentOs`, `userAgentBrowser`, `ip4`, `ip6`, `geoCity`, `geoRegion`, `geoCountry`, `geoOrg`, `geoPostal`)  VALUES (?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+   in File: C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php - Line 1819
+   StackTrace: 
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:1427, class: MysqliDb, function: _prepareQuery
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:1367, class: MysqliDb, function: _buildQuery
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:679, class: MysqliDb, function: _buildInsert
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Log\LogLogin.php:55, class: MysqliDb, function: insert
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Account.php:333, class: Jeff\Api\Log\LogLogin, function: writeLoginLog
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Account.php:343, class: Jeff\Api\Models\Account, function: login
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Authentication.php:78, class: Jeff\Api\Models\Account, function: authenticate
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\api\authenticate.php:5, class: Jeff\Api\Authentication, function: authenticate
+
+     ::1 , , , , 
+
+03.02.2018 01:41:06: Authentication failed - Could not authenticate user. 
+03.02.2018 01:41:06: Database Error - An undefined database error occured. 
+03.02.2018 01:41:06: DB-LogLogin - db Error: 
+Unknown column 'type' in 'field list'
+on query:
+INSERT  INTO loglogin (`user`, `type`, `loginattempt`, `success`, `timestamp`, `referer`, `userAgent`, `userAgentOs`, `userAgentBrowser`, `ip4`, `ip6`, `geoCity`, `geoRegion`, `geoCountry`, `geoOrg`, `geoPostal`)  VALUES ('5', 'login', '1', '', NOW(), '', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36', 'Windows 10', 'Google Chrome 63.0.3239.132', '', '::1', '', '', '', '', '')
+in File C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Log\LogLogin.php:59 - Jeff\Api\Log\LogLogin 
+  Unknown column 'type' in 'field list' query: INSERT  INTO loglogin (`user`, `type`, `loginattempt`, `success`, `timestamp`, `referer`, `userAgent`, `userAgentOs`, `userAgentBrowser`, `ip4`, `ip6`, `geoCity`, `geoRegion`, `geoCountry`, `geoOrg`, `geoPostal`)  VALUES (?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+   in File: C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php - Line 1819
+   StackTrace: 
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:1427, class: MysqliDb, function: _prepareQuery
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:1367, class: MysqliDb, function: _buildQuery
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:679, class: MysqliDb, function: _buildInsert
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Log\LogLogin.php:55, class: MysqliDb, function: insert
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Account.php:333, class: Jeff\Api\Log\LogLogin, function: writeLoginLog
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Account.php:343, class: Jeff\Api\Models\Account, function: login
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Authentication.php:79, class: Jeff\Api\Models\Account, function: authenticate
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\api\authenticate.php:5, class: Jeff\Api\Authentication, function: authenticate
+
+     ::1 , , , , 
+
+03.02.2018 01:41:06: Authentication failed - Could not authenticate user. 
+03.02.2018 01:41:06: Database Error - An undefined database error occured. 
+03.02.2018 01:41:06: DB-LogLogin - db Error: 
+Unknown column 'type' in 'field list'
+on query:
+INSERT  INTO loglogin (`user`, `type`, `loginattempt`, `success`, `timestamp`, `referer`, `userAgent`, `userAgentOs`, `userAgentBrowser`, `ip4`, `ip6`, `geoCity`, `geoRegion`, `geoCountry`, `geoOrg`, `geoPostal`)  VALUES ('5', 'login', '1', '', NOW(), '', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36', 'Windows 10', 'Google Chrome 63.0.3239.132', '', '::1', '', '', '', '', '')
+in File C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Log\LogLogin.php:59 - Jeff\Api\Log\LogLogin 
+  Unknown column 'type' in 'field list' query: INSERT  INTO loglogin (`user`, `type`, `loginattempt`, `success`, `timestamp`, `referer`, `userAgent`, `userAgentOs`, `userAgentBrowser`, `ip4`, `ip6`, `geoCity`, `geoRegion`, `geoCountry`, `geoOrg`, `geoPostal`)  VALUES (?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+   in File: C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php - Line 1819
+   StackTrace: 
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:1427, class: MysqliDb, function: _prepareQuery
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:1367, class: MysqliDb, function: _buildQuery
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\joshcam\mysqli-database-class\MysqliDb.php:679, class: MysqliDb, function: _buildInsert
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Log\LogLogin.php:55, class: MysqliDb, function: insert
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Account.php:333, class: Jeff\Api\Log\LogLogin, function: writeLoginLog
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Account.php:343, class: Jeff\Api\Models\Account, function: login
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\vendor\jeffstagedoor\Api\api\Authentication.php:79, class: Jeff\Api\Models\Account, function: authenticate
+     C:\Users\jefff\Google Drive\www\myStagedoor\php\api\authenticate.php:5, class: Jeff\Api\Authentication, function: authenticate
+
+     ::1 , , , , 
+

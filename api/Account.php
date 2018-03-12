@@ -5,7 +5,7 @@
 *	@author Jeff Frohner
 *	@copyright Copyright (c) 2015
 *	@license   private
-*	@version   1.3
+*	@version   1.4
 *
 **/
 
@@ -13,8 +13,8 @@ namespace Jeff\Api\Models;
 use Jeff\Api as Api;
 
 require_once('Model.php');
-
 require_once($ENV->dirs->appRoot.'Constants.php');
+
 
 Class Account extends Model
 {
@@ -31,7 +31,7 @@ Class Account extends Model
 
 	// defaults
 	const DEFAULT_RIGHTS = 1;
-	const DEFAULT_PREFS = "{}";
+	const DEFAULT_STTINGS = "{}";
 	const AUTHCODE_LENGTH = 60;
 	const SEARCH_MIN_LENGTH = 6;
 
@@ -53,6 +53,7 @@ Class Account extends Model
 			array ('middleName', 'varchar', '20', false, ''),
 			array ('prefixName', 'varchar', '20', false, ''),
 			array ('lastName', 'varchar', '30', false, ''),
+			array ('profilePic', 'varchar', '100', false, ''),
 			array ('lastOnline', 'timestamp', null, true),
 			array ('lastLogin', 'timestamp', null, true),
 			array ('invitationToken', 'varchar', '250', true),
@@ -65,6 +66,9 @@ Class Account extends Model
 
 	private $dbColsToFetch = array('id', 'email', 'fullName', 'firstName', 'middleName', 'prefixName', 'lastName', 'lastOnline', 'lastLogin');
 	
+
+	protected $doNotUpdateFields = ['email','password','authToken', 'invitationToken', 'lastOnline', 'lastLogin', 'signin'];
+
 	// Sideloads & References (hasMany-Fields)
 	// public $hasManyFields = Array (
 	// 		Array("name"=>'user2workgroups',"dbTable"=>'user2workgroup', "dbTargetFieldName"=>'workgroup', "dbSourceFieldName"=>'user', "saveToStoreField"=>'workgroup', "saveToStoreName"=>'workgroups'),
@@ -78,7 +82,7 @@ Class Account extends Model
 	// 		Array("name"=>'productions', "dbTable"=>'productions', "reference"=>'productions', "class"=>'Productions'),
 	// 	);
 
-
+	public $specialMethods = Array("changeName");
 
 
 
@@ -97,6 +101,12 @@ Class Account extends Model
 			$this->isAuthenticated = true;
 			$this->id = $user->id;
 			$this->data = $this->buildAccountObject($user);
+			// DISABLED:
+			// write LoginLog
+			// require_once("Log/LogLogin.php");
+			// $log = new Api\Log\LogLogin($this->db, $this->ENV, $this->errorHandler);
+			// $id = $log->writeLoginLog($user->id,'reAuth',false,true);
+			// BECAUSE: would write a log for each api-call.
 			return true;
 		} else {
 			return false;
@@ -114,6 +124,11 @@ Class Account extends Model
 		$this->db->where('invitationToken', $invitationToken);
 		$user = $this->db->ObjectBuilder()->getOne($this->dbTable, null, $this->dbColsToFetch);
 		if($user) {
+			// make new entry in logLogin
+			require_once("Log/LogLogin.php");
+			$log = new Api\Log\LogLogin($this->db, $this->ENV, $this->errorHandler);
+			$id = $log->writeLoginLog($user->id,'reAuthByInvitation',false,true);
+
 			$this->isAuthenticated = true;
 			$this->id = $user->id;
 			$this->data = $this->buildAccountObject($user);
@@ -149,7 +164,7 @@ Class Account extends Model
 			$this->db->update($this->dbTable, $data);
 			// make new entry in logLogin
 			require_once("Log.php");
-			$log = new Api\LogLogin($this->db, $this->ENV, $this->errorHandler);
+			$log = new Api\Log\LogLogin($this->db, $this->ENV, $this->errorHandler);
 			$id = $log->writeLoginLog($user->id,true,true);
 			
 			$this->isAuthenticated = true;
@@ -185,23 +200,24 @@ Class Account extends Model
 	* @return id of newly created user or false if an error occured
 	*/
 	public function signup($data) {
+		// echo "bin in signup mit data:\n";
+		// var_dump($data);
+
 		// first check if the given identification is ok
 		if(!isset($data->email) || !$this->checkIdentification($data->email)) {
-			$e = Array("msg"=>'Identification/Email is not valid or already used', "code"=>1);
-			array_push($this->errors,$e);
+			$this->errorHandler->add(array("Signup Error", "Identification/Email is not valid or already taken.", 409, Api\ErrorHandler::CRITICAL_EMAIL, false));
 			return false;
 		}
 
 		// check if the given password is ok
 		if(!isset($data->password) || !$this->isValidPassword($data->password)) {
-			$e = Array("msg"=>'Password is not valid', "code"=>2);
-			array_push($this->errors,$e);
+			$this->errorHandler->add(array("Signup Error", "The given password is not valid", 409, Api\ErrorHandler::CRITICAL_EMAIL, false));
 			return false;
 		}
 		// check if passwordReapeat is ident
 		if(!isset($data->passwordConfirm) || ($data->password != $data->passwordConfirm)) {
-			$e = Array("msg"=>'Password is not ident with confirmation', "code"=>3);
-			array_push($this->errors,$e);
+			$this->errorHandler->add(array("Signup Error", "The given passwords do not match.", 409, Api\ErrorHandler::CRITICAL_EMAIL, false));
+
 			return false;
 		}
 
@@ -219,39 +235,72 @@ Class Account extends Model
 			'lastName' => ucfirst(strtolower(trim($data->lastName))),
 			'fullName' => trim($data->fullName),
 			'rights' => self::DEFAULT_RIGHTS,
-			'prefs' => self::DEFAULT_PREFS,
+			'settings' => self::DEFAULT_STTINGS,
 			'signup' => $this->db->now()
 		);
 		$id = $this->db->insert($this->dbTable, $insertData);
 
-		// if all went well, return the id of the new user back to api
+		// if all went well, generate the account, send 'true' back to api
 		if($id) {
-			return $id;	
+			// make new entry in logLogin
+			require_once("Log/LogLogin.php");
+			$log = new Api\Log\LogLogin($this->db, $this->ENV, $this->errorHandler);
+			$id = $log->writeLoginLog($user['id'],'signup',true,true);
+			// get new account
+			$this->db->where('id', $id);
+			$this->data = $this->db->ObjectBuilder()->getOne($this->dbTable);
+			return true;
 		} else {
-			$e = Array("msg"=>'database error', "code"=>9);
-			array_push($this->errors,$e);
 			return false;
 		}
 	}
-	// END SIGNUP
 
+	/**
+	* method veryfyCredentials
+	* checks wheater given credentials are correct/correstpondend to those save in db
+	* @param $identification, $password
+	* @return obj with user or false if an error occured
+	*/
 	public function verifyCredentials($identification, $password) {
 		$this->db->where('email', $identification);
 		$cols = Array("id", "password", "authToken");
 		$user = $this->db->getOne($this->dbTable, $cols);
 		if($user) {
 			$return = new \stdClass();
-			$return->user = $user;
 			// identification found, check password:
 			if(password_verify($password, $user['password'])) {
+				unset($user['authToken']);
+				$return->user = $user;
 				$return->success = true;
 				return $return;
 			} else {
+				unset($user['password']);
+				unset($user['authToken']);
+				$return->user = $user;
 				$return->success = false;
 				return $return;
 			}
 		}
 		return false;
+	}
+
+
+	/**
+	* method comparePasswords
+	* compare a given password with the one saved for the current user
+	* @param $password (needs set id in this class)
+	* @return true if they match, false if not
+	*/
+	public function comparePasswords($password) {
+		$this->db->where('id', $this->id);
+		$cols = Array("id", "password");
+		$user = $this->db->getOne($this->dbTable, $cols);
+		if($user) {
+			return password_verify($password, $user['password']);
+		}
+		$this->errorHandler->throwOne("API Error", "Accounts::_comparePasswords didn't find the demanded user", 500, ErrorHandler::CRITICAL_EMAIL, true);
+		exit;
+		// return false;
 	}
 
 	/**
@@ -263,9 +312,9 @@ Class Account extends Model
 	public function login($identification, $password) {
 		
 		$return = new \stdClass();
-		$verifyCredentials = $this->verifyCredentials($identification, $password);
-		if($verifyCredentials->success) {
-				$user = $verifyCredentials->user;
+		$verify = $this->verifyCredentials($identification, $password);
+		if($verify && $verify->success) {
+				$user = $verify->user;
 				// update login-timestamp and maybe authToken in db
 				$data = Array (
 					'lastLogin' => $this->db->now(),
@@ -282,18 +331,18 @@ Class Account extends Model
 				$this->db->where('id', $user['id']);
 				$this->db->update($this->dbTable, $data);
 				// make new entry in logLogin
-				require_once("Log.php");
-				$log = new Api\LogLogin($this->db, $this->ENV, $this->errorHandler);
-				$id = $log->writeLoginLog($user['id'],true,true);
+				require_once("Log/LogLogin.php");
+				$log = new Api\Log\LogLogin($this->db, $this->ENV, $this->errorHandler);
+				$id = $log->writeLoginLog($user['id'],'login',true,true);
 
 		} else {
 			// password wrong
 			$this->errorHandler->add(91);
 			// make new entry in logLogin
-			require_once("Log.php");
-			$user = isset($verifyCredentials->user) ? isset($verifyCredentials->user) : array("id"=>-1);
-			$log = new Api\LogLogin($this->db, $this->ENV, $this->errorHandler);
-			$id = $log->writeLoginLog($user['id'],true,false);
+			require_once("Log/LogLogin.php");
+			$user = isset($verify->user) ? $verify->user : array("id"=>-1);
+			$log = new Api\Log\LogLogin($this->db, $this->ENV, $this->errorHandler);
+			$id = $log->writeLoginLog($user['id'],'login', true,false);
 			return false;
 
 		}
@@ -309,16 +358,20 @@ Class Account extends Model
 
 
 	/**
-	* method changePassword
-	* return the id of changedUser
-	* @param $id, $password
+	* Sets and saves new password to database
+	*
+	* The password is hashed via php's native password_hash() without special settings
+	* The saved authToken will be set to ''. Account needs to relogin to get a new one.
+	* This should be done in client-app automaticly
+	*
+	* @param int $id the account's id
+	* @param string $password the new password
 	* @return int $id or false if an error occured
+	*
 	*/
 	public function changePassword($id, $password) {
 		$return = new \stdClass();
-
 		if($id<1) return false;	// check if we have a valid id
-
 		$this->db->where('id',$id);
 		$data = Array (
 			'password' => password_hash($password, PASSWORD_DEFAULT),
@@ -332,6 +385,60 @@ Class Account extends Model
 			return false;
 		}
 	}
+
+	/**
+	* Sets and saves the new name to database
+	*
+	* @param int $id 
+	* @param string $password
+	* @return int $id or false if an error occured
+	*/
+	public function changeName($data, $account, $request) {
+		if(isset($data->account) && $data->account != $account->id) {
+			/* then a user wants to set someone elses Name.
+			 * so we check if the current user is allowed to do that.
+			 */
+			if($account->data->rights < \Constants::USER_ADMIN) {
+				$this->errorHandler->throwOne(array("Not allowed", "You are not allowed to change someone elses name.",400, ErrorHandler::CRITICAL_LOG, false));
+				exit;
+			} else {
+				$id = $data->account;
+			}
+		} else {
+			$id = $account->id;
+		}
+		$return = new \stdClass();
+		require_once($this->ENV->dirs->api."Names.php");
+		$data = Api\Names::createNameSet($data);
+		$dbData = (array) $data;
+
+
+		$this->db->where('id',$id);
+		$success = $this->db->update($this->dbTable, $dbData);
+		if($success) {
+			$logData = new \stdClass();
+			$logData->for = new Api\Log\LogDefaultFor($id,\Constants::USER_ADMIN,NULL,NULL,NULL,NULL,NULL,NULL);
+			$logData->meta = new Api\Log\LogDefaultMeta(NULL,NULL, NULL, $data->fullName, json_encode($data));
+			$log = new \stdClass();
+			$log->account = $this->account->id;
+			$log->type= "changeName";
+			$log->item = "account";
+			$log->data = $logData;
+
+			$return->log = $log;
+			$return->data = $data;
+			$return->id = $id;
+			$return->success = true;
+			return $return;
+		} else {
+			$return->success = false;
+			$return->error = 'Error while trying to changeName(). Please see logs.';
+			$dbError = $this->db->getLastError();
+			$this->errorHandler->throwOne(array("DB-Error", "Error while trying to changeName() in ".__FILE__." with DB-Error: ".$dbError,500, ErrorHandler::CRITICAL_LOG, true));
+			return $return;
+		}
+	}
+
 
 	/**
 	* method mockAccount
@@ -420,88 +527,6 @@ Class Account extends Model
 	}
 	
 
-	/**
-	* 	method getWorkgroups
-	*	@param [account-id]
-	*	@return (Array) of (Array) workgroups the user/account is connected to in format: workgroups[id] = rights;
-	*/
-	public function getWorkgroups() 
-	{
-		echo "DEPRECATED getWorkgroups - in Class Account - move to somewhere else. somehow.";
-		// if (isset($this->data->workgroups)) {
-		// 	return $this->data->workgroups;
-		// }
-		// if (func_num_args()>0) {
-		// 	$args = func_get_args();
-		// 	$id = $args[0];
-		// } else {
-		// 	$id = $this->id;
-		// }
-
-		// $cols = Array('workgroup','rights');
-		// $this->db->where('user', $id);
-		// $this->db->orderBy('workgroup', 'asc');
-		// $u2ws = $this->db->get('user2workgroup', null, $cols);
-
-		// $workgroups = Array();
-		// if ($this->db->count>0) {
-		// 	foreach ($u2ws as $u2w) {
-		// 		$workgroups[$u2w['workgroup']] = $u2w['rights'];
-		// 	}
-		// }
-		// return $workgroups;
-	}
-
-
-	/**
-	* 	method getProductions
-	*	@param none, gets it of the class itself, namly of this->id and this->data->workgroups
-	*	@return (Array) of (Array) productions the user/account is connected to in format: productions[id] = rights;
-	*/
-	public function getProductions() 
-	{
-		echo "DEPRECATED getProductions - in Class Account - move to somewhere else. somehow.";
-		// if (isset($this->data->productions)) {
-		// 	return $this->data->productions;
-		// }
-		// $id = $this->id;
-		// // fetch the productions the user is connected to (user2production), and add those of the workgroups he's connected to.
-		// $cols = Array('production','rights');
-		// $this->db->where('user', $id);
-		// $this->db->orderBy('production', 'asc');
-		// $u2ps = $this->db->get('user2production', null, $cols);
-		// $productions = Array();
-		// if($this->db->count>0) {
-		// 	foreach ($u2ps as $u2p) {
-		// 		$productions[$u2p['production']] = $u2p['rights'];
-		// 	}
-		// }
-		// // add all productions from workgroups the user is member in (rights>=1)
-		// $y = Array();
-		// $wgs = $this->getWorkgroups();
-		// foreach ($wgs as $id => $rights) {
-		// 	if($rights>0) {
-		// 		$y[] = $id;
-		// 	}
-		// }
-		// $cols = Array('id');
-		// $this->db->where('workgroup', $y, 'IN');
-
-		// if(count($productions)) {
-		// 	$this->db->where('id', array_keys($productions), 'NOT IN');	// exclude those just added above!
-		// }
-		// $this->db->orderBy('id', 'asc');
-		// $ps = $this->db->get('productions', null, $cols);
-		// if($this->db->count>0) {
-		// 	foreach ($ps as $pItem) {
-		// 		$productions[$pItem['id']] = null;
-		// 	}
-		// }
-		// $this->data->productions = $productions;
-		// return $productions;
-	}
-
-
 	/*
 	*	Checkers & Helpers
 	*
@@ -562,5 +587,3 @@ Class Account extends Model
 	}
 
 }
-
-?>

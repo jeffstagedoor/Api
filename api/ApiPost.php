@@ -57,13 +57,7 @@ Class ApiPost
 				return $this->response;
 				break;
 			case Api::REQUEST_TYPE_COALESCE:
-				#echo "data\n";
-				#var_dump($this->data->{$this->request->model->modelName});
-				#echo "multipleParams\n";
-				#var_dump($this->data->multipleParams);
 				$items = $this->request->model->addMultiple($this->data->{$this->request->model->modelName}, $this->data->multipleParams);
-				#echo "items added:\n";
-				#var_dump($items);
 				$this->response->{$this->request->model->modelNamePlural} = $items;
 				$logData = new \stdClass();
 				$logData->for = new LogDefaultFor(NULL,\Constants::USER_ADMIN,NULL,NULL,NULL,NULL,NULL,NULL);
@@ -118,6 +112,11 @@ Class ApiPost
 				exit;
 			case "task":
 				require_once("TasksPrototype.php");
+				// check if we have Task.php implemented
+				if(!file_exists($this->ENV->dirs->appRoot."Tasks.php")) {
+					$this->errorHandler->throwOne(ErrorHandler::TASK_NOT_DEFINED);
+					exit;
+				}
 				require_once($this->ENV->dirs->appRoot."Tasks.php");
 				$tasks = new \Jeff\Api\Tasks($this->db, $this->ENV, $this->errorHandler, $this->account, $this->log);
 				
@@ -137,6 +136,33 @@ Class ApiPost
 				}
 				return $response;
 				break;
+			case "signup":
+			case "signin":
+				// Name splitten
+				if(isset($this->data->fullName) && !isset($this->data->firstName) && !isset($this->data->lastName)) {
+					require_once("Names.php");
+					$names = Names::Arrange($this->data->fullName);
+					$this->data->firstName = $names[0];
+					$this->data->middleName = $names[1];
+					$this->data->prefixName = $names[2];
+					$this->data->lastName = $names[3];
+				}
+
+				include_once($this->ENV->dirs->models."Accounts.php");
+				$account = new Models\Account($this->db, $this->ENV, $this->errorHandler, null);
+				if($account->signup($this->data)) {
+					$response = $account->getAccount(); 
+					return $response;
+				} else {
+					$this->errorHandler->add(array("Signup Error", "Could not sign up new account", 500, ErrorHandler::CRITICAL_EMAIL, false));
+					$this->errorHandler->sendAllErrorsAndExit();
+					exit;
+				}
+				break;
+			default:
+				$this->errorHandler->throwOne(ErrorHandler::API_INVALID_POST_REQUEST);
+				exit;
+
 
 		}
 	}

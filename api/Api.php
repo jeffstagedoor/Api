@@ -22,7 +22,7 @@ namespace Jeff\Api;
 require_once($ENV->dirs->vendor.'joshcam/mysqli-database-class/MysqliDb.php');
 
 require_once("ErrorHandler.php");
-require_once("Log.php");
+require_once("Log/Log.php");
 require_once("DataMasker.php");
 require_once("DBHelper.php");
 require_once("ApiHelper.php");
@@ -30,6 +30,7 @@ require_once("Model.php");
 require_once("Account.php");
 require_once("MailerPrototype.php");
 require_once("Authorizor/Authorizor.php");
+include_once("debughelpers.php");
 
 Class ApiInfo {
 	public static $version = "1.3.1";
@@ -66,7 +67,7 @@ Class Api {
 	private $NOAUTH=false;
 	private $specialVerbs = Array('dbupdate','meta', 'login', 'signup', 'signin', 'task', 'sort', 'search', 'count', 'apiInfo', 
 									'getFile', 'getImage','getFolder',
-									'fileUpload', 'changePassword'
+									'fileUpload', 'changePassword', 'changeName'
 									);
 	private $models;
 	private $request;
@@ -85,13 +86,12 @@ Class Api {
 
 
 	public function __construct(Environment $ENV=null) {
-		
 		// self::$instance = $this;
 		$this->ENV = $ENV;
 		// instatiate all nesseccary classes
 		$this->errorHandler = new ErrorHandler();
 		$this->db = new \MysqliDb($this->ENV->database);
-		$this->log = new Log($this->db, $this->ENV, $this->errorHandler);
+		$this->log = new Log\Log($this->db, $this->ENV, $this->errorHandler);
 
 		self::_sendPrimaryHeaders($ENV);
 
@@ -116,7 +116,7 @@ Class Api {
 		$this->data = ApiHelper::getData();
 		$this->models = $this->_getAllModels();
 		$this->request = $this->_getFullRequest();
-		#var_dump($this->models);
+		// var_dump($this->request);
 		if(count($this->requestArray)===0 || $this->request===null || $this->request->type===self::REQUEST_TYPE_INFO) {
 			echo ApiInfo::getApiInfo();
 			exit;
@@ -189,6 +189,9 @@ Class Api {
 					$response = $ApiGet->getSpecial();
 					if($response) {
 						ApiHelper::sendResponse(200,json_encode($response));
+					} else {
+						$this->errorHandler->throwOne(42);
+						exit;
 					}
 				} else {
 					$items = $ApiGet->getItems();
@@ -202,6 +205,7 @@ Class Api {
 						ApiHelper::sendResponse(200,json_encode($items));
 						// ApiHelper::postItems($this->request->model, $items, $this->request->model->modelNamePlural);
 					} else {
+
 						$this->errorHandler->throwOne(ErrorHandler::DB_NOT_FOUND);
 						exit;
 					}
@@ -293,7 +297,7 @@ Class Api {
 			} else {
 				// 3. if we have NO id on position 2 and it's a PUT or DELETE we have an ERROR
 				if($this->method==='PUT' || $this->method==='DELETE') {
-					$this->errorHandler->throwOne(ErrorHandler::API_INVALID_POSTPUT_REQUEST);
+					$this->errorHandler->throwOne(ErrorHandler::API_ID_MISSING);
 				}
 			} 
 		}
@@ -358,7 +362,7 @@ Class Api {
 		$modelFile = $this->ENV->dirs->models . ucfirst($modelName) . ".php";
 		
 		if (!file_exists($modelFile)) {
-			$this->errorHandler->throwOne(Array("Api Error", "Requested recource '{$modelName}' not found/defined.", 400, false, ErrorHandler::CRITICAL_EMAIL));
+			$this->errorHandler->throwOne(Array("Api Error", "Requested recource '{$modelName}' not found/defined.", 400, ErrorHandler::CRITICAL_EMAIL, false));
 			exit;
 		} else {
 			include_once($modelFile);

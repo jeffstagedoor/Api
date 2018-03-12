@@ -74,8 +74,6 @@ Class ApiPut
 			// 	break;
 			case Api::REQUEST_TYPE_NORMAL:
 				if(isset($this->request->special)) {
-					#echo "special is set in TYPE_NORMAL: ".$this->request->special;
-					#echo $this->request->model->modelNamePlural;
 					switch ($this->request->special) {
 						case "sort":
 							if($this->request->model->isSortable) {
@@ -86,8 +84,8 @@ Class ApiPut
 									$response->{$this->request->model->modelNamePlural} = $items;
 									
 									$logData = new \stdClass();
-									$logData->for = new LogDefaultFor(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
-									$logData->meta = new LogDefaultMeta($this->data->id,$this->data->reference, $this->data->currentSort,$this->data->direction, $this->request->model->sortBy);
+									$logData->for = new Log\LogDefaultFor(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
+									$logData->meta = new Log\LogDefaultMeta($this->data->id,$this->data->reference, $this->data->currentSort,$this->data->direction, $this->request->model->sortBy);
 									$this->log->write($this->account->id, 'sort', $this->request->model->modelName, $logData);
 									return $response;
 								} else {
@@ -99,7 +97,24 @@ Class ApiPut
 								exit;
 							}
 							break;
-
+						default:
+							/*
+							*	here we check if there is a special method implemented in the current model.
+							*	but we need to make sure, that no unintended methods get called, so we introduce
+							*	a property 'specialMethods' to the model. Unless this method is listed there it wont be called. 
+							*/
+							if(!in_array($this->request->special, $this->request->model->specialMethods)) {
+								$this->errorHandler->throwOne(array("SEC ALERT", "a un-registered special method was tried to be called via ApiPut: ".$this->request->special,500, ErrorHandler::CRITICAL_EMAIL, true));
+								return false;
+								exit;
+							}
+							$methodExists = method_exists($this->request->model, $this->request->special);
+							$return = $this->request->model->{$this->request->special}($this->data, $this->account, $this->request);
+							if(isset($return->log)) {
+								$this->log->write($return->log->account, $return->log->type, $return->log->item, $return->log->data);
+								unset($return->log);
+							}
+							return $return;
 					}
 				} else {
 					if($this->request->model->modifiedByField) {
@@ -135,8 +150,14 @@ Class ApiPut
 				echo "put special 'sort' is DEPRECATED. use api/modelNamePlural/sort";
 				break;
 			case 'changePassword':
+				#debug("in change password",__FILE__,__LINE__,get_class($this));
 				$auth = $this->account->verifyCredentials($this->data->email, $this->data->password);
-				if(isset($auth->user)) {
+				if($auth->success) {
+					#debug("auth was successfull",__FILE__,__LINE__,get_class($this));
+					if($this->account->comparePasswords($this->data->passwordNew)) {
+						$this->errorHandler->throwOne(ErrorHandler::AUTH_PWD_NOT_VALID);
+						exit;
+					}
 					$pattern = '/([a-zA-Z0-9@!§$%=?+*#]{8,100})/';
 					if(preg_match($pattern, $this->data->passwordNew)) {
 						if($this->data->passwordNew===$this->data->passwordConfirm) {

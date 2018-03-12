@@ -16,11 +16,12 @@ header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 require($ENV->dirs->vendor.'joshcam/mysqli-database-class/MysqliDb.php');
 
 require("ErrorHandler.php");
-require("Log.php");
+require("Log/Log.php");
 require("DataMasker.php");
 require("ApiHelper.php");
 require("Model.php");
 require("Account.php");
+include_once("debughelpers.php");
 
 
 Class Authentication {
@@ -36,7 +37,7 @@ Class Authentication {
 		// instatiate all nesseccary classes
 		$this->errorHandler = new ErrorHandler();
 		$this->db = new \MysqliDb($this->ENV->database);
-		$this->log = new Log($this->db, $this->ENV, $this->errorHandler);
+		$this->log = new Log\Log($this->db, $this->ENV, $this->errorHandler);
 		$this->account = new Models\Account($this->db, $this->ENV, $this->errorHandler, null);
 		// check if we have a database ready:
 		try {
@@ -53,7 +54,7 @@ Class Authentication {
 	}
 
 	public function authenticate() {
-		#echo "taths a mess here in Authentication.php authenticate - wokring on revoke";
+		#echo "thats a mess here in Authentication.php authenticate - working on revoke";
 		$postObject = (Object) $_POST;
 		$request = ApiHelper::getRequest();
 		if($request[0]==='revoke') {
@@ -71,9 +72,9 @@ Class Authentication {
 			if(strlen($identification)<5 || strlen($password)<4 || is_null($identification) || is_null($password)) {
 				$this->errorHandler->add(ErrorHandler::AUTH_CREDENTIALS_TOO_SHORT);
 				$this->errorHandler->sendApiErrors();
+				$this->errorHandler->sendErrors();
 				exit;
 			} else {
-
 				$auth = $this->account->authenticate($identification, $password);
 			}
 		}
