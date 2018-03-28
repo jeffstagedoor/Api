@@ -1,13 +1,4 @@
 <?php
-/**
-*	Class Account
-*	
-*	@author Jeff Frohner
-*	@copyright Copyright (c) 2015
-*	@license   private
-*	@version   1.4
-*
-**/
 
 namespace Jeff\Api\Models;
 use Jeff\Api as Api;
@@ -16,16 +7,45 @@ require_once('Model.php');
 require_once($ENV->dirs->appRoot.'Constants.php');
 
 
+/**
+ *	Class Account
+ *
+ *  This is a special (extending) subclass of Model, which shall be again be extended by the consuming app as 'Accounts'.
+ *  This class provides extra methods that are only used for the account model, such as login, signup,...
+ *	
+ *	@author Jeff Frohner
+ *	@copyright Copyright (c) 2015
+ *	@license   private
+ *	@version   1.4
+ *  @since     1.0
+ *  @category  Model
+ *  @package   Jeff\Api
+ *  
+ *
+ */
 Class Account extends Model
 {
-	// this is a very specific class to retrieve and set informations about the authorized user.
+
+	/** @var string The name of the model */
 	public $modelName = 'account';
+	/** @var string Plural name of the model */
 	public $modelNamePlural = 'accounts';
+	/** @var int $id Id of the active account */
 	public $id = null;
 	public $data = null;
+	/** @var boolean $isAuthenticated If this account is yet authenticated with credentials */
 	public $isAuthenticated = false;
+	/**
+	* @var db $db Database Object
+	*/
 	protected $db = null;
+	/**
+	* @var string $dbIdField Database-Fieldname in which the id is stored. Usually (and by default) 'id'
+	*/
 	protected $dbIdField = 'id';
+	/**
+	* @var string $dbTable The name of the corresponding database table
+	*/	
 	protected $dbTable = 'accounts';
 
 
@@ -41,6 +61,22 @@ Class Account extends Model
 	protected $minPasswordLength = 8;
 	protected $minIdentificationLength = 6; // 6 is minimum for email: a@b.cd
 
+
+	/**
+	* @var array $dbDefinition Database-Table definition to be used by DBHelper-class to create the corresponding table
+	*
+	* usually to be overriden in class that extends model-class
+	*
+	* an array with this specification:
+	* public $dbDefinition = Array(
+	*		string $fieldName, 			// 'id', 'email',..
+	*		string $fieldType, 			//	'int', 'varchar', 'timestamp',..
+	*		string\NULL $fieldLength, 	// '11', '250', NULL
+	*		boolean $canBeNull, 		// true, false
+	*		mixed $defaultValue, 		// '', NULL, 
+	*		string $special  			// 'auto_increment', 'on update CURRENT_TIMESTAMP'
+	* );
+	*/
 	public $dbDefinition = Array(
 			array ('id', 'int', '11', false, NULL, 'auto_increment'),
 			array ('email', 'varchar', '80', false),
@@ -62,6 +98,10 @@ Class Account extends Model
 			array ('modBy', 'int', '11', true),
 
 		);
+	/**
+	*	@var string $dbPrimaryKey primary database id/key.
+	*	usually/per default 'id'
+	*/	
 	public $dbPrimaryKey = 'id';
 
 	private $dbColsToFetch = array('id', 'email', 'fullName', 'firstName', 'middleName', 'prefixName', 'lastName', 'lastOnline', 'lastLogin');

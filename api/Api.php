@@ -1,23 +1,18 @@
 <?php
-#########################
-#
-# Api.class.php
-#
-# REST API
-#
-# copy Jeff Frohner 2017
-#
-# Version 1.3.1
-#
-#########################
+/**
+*
+* A REST API
+*
+* This is the main entrance file/class for Jeff's Rest-API
+*
+* @author Jeff Frohner <office@jefffrohner.com>
+* @copyright Jeff Frohner 2017
+* @version 1.3.1
+* @package Jeff\Api
+*
+*/
 
 namespace Jeff\Api;
-// use Jeff\Api\Models;
-
-// Api::sendPrimaryHeaders($ENV);
-// header("Access-Control-Allow-Origin: ".$ENV->urls->allowOrigin);
-// header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-// header("Access-Control-Allow-Headers: AUTHORIZATION");
 
 require_once($ENV->dirs->vendor.'joshcam/mysqli-database-class/MysqliDb.php');
 
@@ -32,6 +27,14 @@ require_once("MailerPrototype.php");
 require_once("Authorizor/Authorizor.php");
 include_once("debughelpers.php");
 
+/**
+* a class that defines and shows version, author, etc. of this package
+*
+* @author Jeff Frohner <office@jefffrohner.com>
+* @copyright Jeff Frohner 2017
+* @version 1.3.1
+* @package Jeff\Api
+*/
 Class ApiInfo {
 	public static $version = "1.3.1";
 	public static $author = "Jeff Frohner";
@@ -41,10 +44,10 @@ Class ApiInfo {
 	public static $restriction = "authorized apps and logged in users only";
 
 	/**
-	*	getApiInfo
+	*	returns a collection of ApiInfos as json (default)
 	*	
-	*	@param [string] format ('array', 'json'=default)
-	*	@return [array]
+	*	@param string format ('array', 'json'=default) - NOT IMPLEMENTED
+	*	@return json-string
 	**/
 	public static function getApiInfo(string $format='json') {
 		$array = Array(
@@ -60,20 +63,43 @@ Class ApiInfo {
 
 }
 
-
+/**
+*
+* This is the __main entrance file/class__ for Jeff's Rest-API
+*
+* @author Jeff Frohner <office@jefffrohner.com>
+* @copyright Jeff Frohner 2017
+* @version 1.3.1
+* @package Jeff\Api
+*/
 Class Api {
 
+	/** @var object Environment Object to be passed in __construct() */
 	private $ENV;
+	/** @var boolean 
+	 * 	for development only - disables authorization. Set in Environment.
+	 */
 	private $NOAUTH=false;
+	/** 
+	*	@var array 	
+	*	a collection of special verbs that will be treated as a 'special request'.
+	* 	usually verbs like _'login', 'signup', 'task', 'search'_.      
+	*
+	*	These are the ___verbs pre-defined__, though the param can be overriden:      
+	*	
+	*	`Array('dbupdate','meta', 'login', 'signup', 'signin', 'task', 'sort', 'search', 'count', 'apiInfo', 'getFile', 'getImage','getFolder', 'fileUpload', 'changePassword', 'changeName');`
+	*/
 	private $specialVerbs = Array('dbupdate','meta', 'login', 'signup', 'signin', 'task', 'sort', 'search', 'count', 'apiInfo', 
 									'getFile', 'getImage','getFolder',
 									'fileUpload', 'changePassword', 'changeName'
 									);
+	/** @var array all the models found in this installation */
 	private $models;
+	/** @var object an Object that describes the current request */
 	private $request;
+	/** @var object all the data that has been sent with the request */
 	private $data;
 	private $log;
-	// public static $instance;
 
 	Const REQUEST_TYPE_NORMAL = 1;
 	Const REQUEST_TYPE_REFERENCE = 2;
@@ -84,7 +110,23 @@ Class Api {
 
 	
 
-
+	/**
+	 * The Constructor
+	 * Will _instanciate_ an
+	 *
+	 * - ErrorHandler (and assign to this->errorHandler)
+	 * - MysqliDb (and assign to this->db)
+	 * - Log (and assign to this->log)
+	 * - Account
+	 *	
+	 * will connect to database (throws Errors if not successfull).
+	 *
+	 * will analyse the made $request, get needed $models, authorize the current user     
+	 * and will delegate to ApiGet, ApiPost, ApiPut, ApiDelete depending on the request made.
+	 *	
+	 * @param Environment 	Environment-Definition Object. Defines all environment parameters, such as paths, links, debug, log, ...
+	 *	
+	 */
 	public function __construct(Environment $ENV=null) {
 		// self::$instance = $this;
 		$this->ENV = $ENV;
@@ -250,11 +292,9 @@ Class Api {
 
 
 	/**
-	*	_getFullrequest
 	*	getting a full Request Object with type, model, an id
 	*	
-	*	@param [object] environment configuration
-	*	@return [object] which has a type, a model, an id
+	*	@return object which has a type, a model, an id
 	**/
 	private function _getFullRequest() {
 		if(count($this->requestArray)===0) {
@@ -305,13 +345,11 @@ Class Api {
 	}
 
 	/**
-	*	_determineRequestType
 	*	tries to determine the request type based on:
 	* 	- whats in request
 	*	- what's in data
 	*	
-	*	@param 
-	*	@return [int] Constant REQUEST_TYPE_*
+	*	@return int Constant REQUEST_TYPE_*
 	**/
 	private function _determineRequestType() {
 		if($this->requestArray[0]==='' || strtolower($this->requestArray[0])==='apiInfo') {
@@ -338,11 +376,10 @@ Class Api {
 
 
 	/**
-	*	_getModel
 	*	tries to get one model based on it's (plural or singular) name 
 	*	
-	*	@param [string] name of the desired model
-	*	@return [array of models]
+	*	@param string name of the desired model
+	*	@return array of models
 	**/
 	public function _getModel(string $modelName) {
 		if($this->models) {
@@ -375,11 +412,9 @@ Class Api {
 
 
 	/**
-	*	_getAllModels
 	*	walkes the App's models folder and instanciates every found model 
 	*	and returns them as array of models with the modelName as key
 	*	
-	*	@param
 	*	@return array of models
 	**/
 	private function _getAllModels(): array {
@@ -400,11 +435,10 @@ Class Api {
 	/**
 	*	Checks if a route needs to be authenticated
 	* 
-	*	in Config we can defaine a set of routes (=the request string 'posts', 'login', 'task/redirect')
+	*	in Config we can define a set of routes (=the request string 'posts', 'login', 'task/redirect')
 	*	which will be accessable without authentication.
 	*	This is especially needed for singup, login, special tasks.
 	*	
-	*	@param [array] the uri request, [object] environment configuration
 	*	@return boolean
 	**/
 	private function _needsAuthentication() {
@@ -434,7 +468,7 @@ Class Api {
 	*	This is needed at least for an _OPTIONS_ request
 	* 	But this headers will be sent with _every_ response.
 	*	
-	*	@param stdClass environment configuration
+	*	@param Environment the configuration Object
 	*	@return void
 	**/
 	private function _sendPrimaryHeaders($ENV) {
