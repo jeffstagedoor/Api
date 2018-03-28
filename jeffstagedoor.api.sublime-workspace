@@ -69,7 +69,7 @@
 			],
 			[
 				"for",
-				"foreach	foreach …"
+				"foreach\tforeach …"
 			],
 			[
 				"is_a",
@@ -225,7 +225,7 @@
 			],
 			[
 				"li",
-				"li	Tag"
+				"li\tTag"
 			],
 			[
 				"to",
@@ -421,9 +421,14 @@
 	[
 	],
 	"build_system": "",
+	"build_system_choices":
+	[
+	],
+	"build_varint": "",
 	"command_palette":
 	{
 		"height": 392.0,
+		"last_filter": "",
 		"selected_items":
 		[
 			[
@@ -467,7 +472,11 @@
 	},
 	"console":
 	{
-		"height": 181.0
+		"height": 181.0,
+		"history":
+		[
+			"import urllib.request,os,hashlib; h = '6f4c264a24d933ce70df5dedcf1dcaee' + 'ebe013ee18cced0ef93d5f746d80ef60'; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); by = urllib.request.urlopen( 'http://packagecontrol.io/' + pf.replace(' ', '%20')).read(); dh = hashlib.sha256(by).hexdigest(); print('Error validating download (got %s instead of %s), please try manual install' % (dh, h)) if dh != h else open(os.path.join( ipp, pf), 'wb' ).write(by)"
+		]
 	},
 	"distraction_free":
 	{
@@ -478,8 +487,15 @@
 		"side_bar_visible": false,
 		"status_bar_visible": false
 	},
+	"expanded_folders":
+	[
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api"
+	],
 	"file_history":
 	[
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api/Account.php",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api/Api.php",
 		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api/Api.class.php",
 		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api/ApiGet.class.php",
 		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api/Model.php",
@@ -605,13 +621,11 @@
 		"/C/Users/jefff/Google Drive/www/jefffrohner.com/doc/db/news_backup.sql",
 		"/C/Users/jefff/Google Drive/www/jefffrohner.com/online/work.php",
 		"/C/Users/jefff/Google Drive/www/jefffrohner.com/online/gallery.php",
-		"/C/Users/jefff/Google Drive/www/jefffrohner.com/online/soundfiles.php",
-		"/C/Users/Jeff/GoogleDrive/www/jefffrohner.com/admin/app/initializers/component-router-injector.js",
-		"/C/Users/Jeff/GoogleDrive/www/jefffrohner.com/admin/app/pods/components/page-layout/side-bar/component.js"
+		"/C/Users/jefff/Google Drive/www/jefffrohner.com/online/soundfiles.php"
 	],
 	"find":
 	{
-		"height": 39.0
+		"height": 28.0
 	},
 	"find_in_files":
 	{
@@ -627,6 +641,9 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"_getModel",
+			"_getmodel",
+			"_getModel",
 			"$ENV",
 			"d",
 			"tableExists",
@@ -702,7 +719,7 @@
 			"dropdown-toggle",
 			"small",
 			"expense",
-			"			$",
+			"\t\t\t$",
 			"modBy",
 			"myStagedoor",
 			"Simple-line",
@@ -745,16 +762,13 @@
 			"App.",
 			"login.js",
 			"'simple-auth-authenticator:oauth2-password-grant'",
-			"export default Ember.Controller.extend(LoginControllerMixin, {\n	authenticator: 'simple-auth-authenticator:oauth2-password-grant'\n});",
+			"export default Ember.Controller.extend(LoginControllerMixin, {\n\tauthenticator: 'simple-auth-authenticator:oauth2-password-grant'\n});",
 			"this.get('model').get('ust')",
 			"this.get('model').get('amount')",
 			"newU",
 			"newA",
 			"target",
-			"target		",
-			"new",
-			"Production",
-			"production"
+			"target\t\t"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -788,7 +802,7 @@
 	],
 	"incremental_find":
 	{
-		"height": 39.0
+		"height": 28.0
 	},
 	"input":
 	{
@@ -817,14 +831,21 @@
 		]
 	},
 	"menu_visible": true,
+	"output.find_results":
+	{
+		"height": 156.0
+	},
+	"pinned_build_system": "",
+	"project": "jeffstagedoor.api.sublime-project",
 	"replace":
 	{
-		"height": 72.0
+		"height": 52.0
 	},
 	"save_all_on_build": true,
 	"select_file":
 	{
 		"height": 0.0,
+		"last_filter": "",
 		"selected_items":
 		[
 			[
@@ -837,15 +858,32 @@
 	"select_project":
 	{
 		"height": 500.0,
+		"last_filter": "",
 		"selected_items":
 		[
 		],
 		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
 	},
 	"show_minimap": false,
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
 	"side_bar_width": 251.0,
-	"status_bar_visible": true
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
 }
