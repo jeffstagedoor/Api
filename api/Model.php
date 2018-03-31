@@ -65,8 +65,9 @@ Class Model {
 		// 'tel' => Jeff\Api\DataMasker::MASK_TYPE_TEL,
 		);
 
-	// searchSendCols
-	// what data (=db-fields) to send when querying a search 
+	/** 
+	* what data (=db-fields) to send when querying a search 
+	*/
 	protected $searchSendCols = Array('id');	
 
 	// hiddenProperties
@@ -89,10 +90,10 @@ Class Model {
 
 	protected $hasMany = Array (
 		/*
-			"user2workgroup"=> Array(
+			"account2workgroup"=> Array(
 				"db"=>array(
 						array('id', 'varchar', '20', false),
-						array('user', 'int','11', false),
+						array('account', 'int','11', false),
 						array('workgroup', 'int', '11', false),
 						array('rights', 'tinyint', '4', false),
 						array('invitedBy', 'int', '11', false),
@@ -429,9 +430,22 @@ Class Model {
 		}
 		#echo "operator: ".$operator."\n";
 
+		if(isset($data->restrictions)) {
+			$restrictions = $data->restrictions;
+			unset($data->restrictions);
+			foreach ($restrictions as $key => $value) {
+				if(!in_array($key, $this->searchSendCols)) {
+					$this->errorHandler->throwOne(Array("API-Error", "Search: A Model-Key was added to search-restrictions, but is not included in searchSendCols of the Model.\nModel: ".$this->modelName."\nthe key in question: ".$key, 500, Api\ErrorHandler::CRITICAL_EMAIL, true));
+					$this->errorHandler->throwOne(Array("API-Error", "The search could not be fulfilled", 500, Api\ErrorHandler::CRITICAL_EMAIL, false));
+					exit;
+				}
+				$this->db->having($key, $value);
+			}
+		}
+
 		foreach ($data as $key => $value) {
 			if(!is_string($value)) {
-				$this->errorHandler->throwOne(Array("API-Error", "No valid search data found. Please consult readme to find needed format.", ErrorHandler::CRITICAL_EMAIL, false));
+				$this->errorHandler->throwOne(Array("API-Error", "No valid search data found. Please consult readme to find needed format.", 500, Api\ErrorHandler::CRITICAL_EMAIL, false));
 				exit;
 			}
 			// for security, I first replace any placeholder with a questionmark
@@ -439,19 +453,21 @@ Class Model {
 			$value=preg_replace('/[%*]/', "", $value);
 			// still, if we have less then const::SEARCH_MIN_LENGTH letters without the special characters,
 			// abort transforming to loose.... (otherwise a user could search for '------') and still get all datasets
-			$test = preg_replace('/[ -_\´\`\']/', "%", $value);
+			$test = preg_replace('/[ \-_\´\`\']/', "%", $value);
 			if(strlen($test) < $this::SEARCH_MIN_LENGTH) {
 				$searchType=self::SEARCH_TYPE_STRICT;
 			}
 			if($searchType === self::SEARCH_TYPE_LOOSE) {
-				$value=preg_replace('/[ -_\´\`\']/', "%", $value);
+				$value=preg_replace('/[ \-_\´\`\']/', "%", $value);
 			}
 			if($searchType === self::SEARCH_TYPE_VERYLOOSE) {
-				$value=preg_replace('/[ -_\´\`\']/', "%", $value);
+				echo $value."\n";
+				$value=preg_replace('/[ \-_\´\`\']/', "%", $value);
+				echo $value."\n";
 				$value='%'.$value.'%';
 			}
 			if(!in_array($this->dbTable.".".$key." ".$key, $this->cols)) {
-				$this->errorHandler->throwOne(Array("API-Error", "Searching for field '$key', which doesn't exist in model '$this->modelName'. Please consult readme to find needed format."));
+				$this->errorHandler->throwOne(Array("API-Error", "Searching for field '$key', which doesn't exist in model '$this->modelName'. Please consult readme to find needed format.", 500));
 				exit;
 			}
 			if($cnt && $or) {
@@ -464,6 +480,7 @@ Class Model {
 		if($cnt) { // if I have minimum one search item, give a result
 			$cols = (count($this->searchSendCols)>1) ? $this->searchSendCols : $this->cols;
 			$result = $this->db->get($this->dbTable, NULL, $cols);
+			// echo $this->db->getLastQuery()."\n";
 			// Mask properties/fields that where defined to be masked in the Model ('maskFields') and remove the properties, that shall be removed
 			for ($i=0; $i <count($result) ; $i++) {
 				foreach ($this->maskFields as $field => $type) {
@@ -478,10 +495,8 @@ Class Model {
 			}
 		} else { // else generate an error
 			$result = null;
-			$this->errorHandler->add(Array("API Error", "search: no search value found: Model ".$this->modelName, 500, Api\ErrorHandler::CRITICAL_EMAIL, false));
-			$this->errorHandler->add(Array("API Error", "no value to search for was found", 500, Api\ErrorHandler::CRITICAL_LOG, false));
-			$this->errorHandler->sendErrors();
-			$this->errorHandler->sendApiErrors();
+			$this->errorHandler->throwOne(Array("API Error", "search: no search value found: Model ".$this->modelName, 500, Api\ErrorHandler::CRITICAL_EMAIL, true));
+			$this->errorHandler->throwOne(Array("API Error", "no value to search for was found", 500, Api\ErrorHandler::CRITICAL_LOG, false));
 			exit;
 		}
 		return $result;
