@@ -60,10 +60,15 @@ Class FileManager {
 	}
 
 
-	# 
-	# checks all the available tests if File passes them
-	# @return true if passed, false if any error
-	#
+	/**
+	* runs all the available tests on uploaded File:
+	* - is_null: 		if we have a file at all
+	* - isExtOk: 		if the file has one of the allowed extensions
+	* - isMimeTypeOk: 	if the file's mime-type is allowed
+	* - isSizeOk: 		if the size doesn't exeed the set limits
+	* @param array the file array as it comes from a multipart POST form
+	* @return boolean
+	*/
 	public function isFileOk($myFile=null) {
 		if(is_null($myFile)) {
 			$myFile = $this->file;
@@ -92,10 +97,11 @@ Class FileManager {
 		}
 	}
 
-	# 
-	# checks if the file is an image
-	# @return true or false
-	#
+	/** 
+	* checks if the file is an image
+	* @param file-array (optional)
+	* @return boolean 
+	*/
 	public function isImage($myFile=null) {
 		if(is_null($myFile)) {
 			$myFile = $this->file;
@@ -105,10 +111,12 @@ Class FileManager {
 	}
 
 
-	# 
-	# saves/moves the uploaded file
-	# @return file-data on success, false on error
-	#
+	/**
+	* saves/moves the uploaded file
+	* @param file-array
+	* @param object the preferences how and where to save that file
+	* @return obejct|boolean file-data on success, false on error
+	*/
 	public function saveFile($sourceFile, $prefs=null) {
 
 		// if a preference-object was given set those:
@@ -169,7 +177,7 @@ Class FileManager {
 
 
 	private function isExtOk($myFile) {
-		$ext = $this->getExtension($myFile['name']);
+		$ext = strtolower($this->getExtension($myFile['name']));
 		if(in_array($ext, $this->allowedExtensions)) {
 			return true;
 		} else {

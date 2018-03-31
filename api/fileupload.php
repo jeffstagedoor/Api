@@ -110,7 +110,6 @@ Class FileUpload {
 			}
 		}
 		// SAVING AND MOVING THE FILE
-		// var_dump($fsaveProperties);
 		$newFile = $fileManager->saveFile($myFile, $fsaveProperties);
 		if(!$newFile) {
 			$this->errorHandler->throwOne(62);
@@ -242,59 +241,22 @@ Class FileUpload {
 		$data->refId = isset($data->refId) ? $data->refId : null;
 		$data->setas = (isset($data->setas) && $data->setas!='undefined') ? $data->setas : null;
 		// getting crop-values:
-		$data->crop = new \stdClass();
-		$data->crop->doCrop = (isset($data->crop) && $data->crop==='true') ? true : false;
-		$data->crop->x = (isset($data->cropX)) ? $data->cropX : null;
-		$data->crop->y = (isset($data->cropY)) ? $data->cropY : null;
-		$data->crop->width = (isset($data->cropWidth)) ? $data->cropWidth : null;
-		$data->crop->height = (isset($data->cropHeight)) ? $data->cropHeight : null;
+		$crop = new \stdClass();
+		$crop->doCrop = (isset($data->crop) && $data->crop==='true') ? true : false;
+		$crop->x = (isset($data->cropX)) ? $data->cropX : null;
+		$crop->y = (isset($data->cropY)) ? $data->cropY : null;
+		$crop->width = (isset($data->cropWidth)) ? $data->cropWidth : null;
+		$crop->height = (isset($data->cropHeight)) ? $data->cropHeight : null;
 		// not used til now:
-		$data->crop->rotate = (isset($data->cropRotate)) ? $data->cropRotate : null;
-		$data->crop->scaleX = (isset($data->cropScaleX)) ? $data->cropScaleX : null;
-		$data->crop->scaleY = (isset($data->cropScaleY)) ? $data->cropScaleY : null;
+		$crop->rotate = (isset($data->cropRotate)) ? $data->cropRotate : null;
+		$crop->scaleX = (isset($data->cropScaleX)) ? $data->cropScaleX : null;
+		$crop->scaleY = (isset($data->cropScaleY)) ? $data->cropScaleY : null;
+		$data->crop = $crop;
 
 		$data->maxWidth = (isset($data->maxWidth) && $data->maxWidth!='undefined') ? $data->maxWidth : null;
 		$data->maxHeight = (isset($data->maxHeight) && $data->maxHeight!='undefined') ? $data->maxHeight : null;
 		return $data;
 	}
-
-
-
-	/** Basic API Write to DBLog - Method, will be overridden by special logs
-	*
-	*
-	*/
-	// public function write($user, $type, $itemName, $data) {
-	// 	if(!$this->readyToWrite) { 
-	// 		return null;
-	// 	}
-	// 	// first Prepare from custom LogConfig
-	// 	// so let's see if we have a configuration for the given item:
-	// 	if (isset( $this->logConfig->{$itemName} )) {
-	// 		$for = $this->extractDataFromConfig($this->logConfig->{$itemName}->for, $data);
-	// 		$meta = $this->extractDataFromConfig($this->logConfig->{$itemName}->meta, $data);
-	// 	} else {
-	// 		// fallback to default
-	// 		$logForConfig = new LogDefaultFor(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
-	// 		$logMetaConfig = new LogDefaultMeta(Array($itemName,"id"),NULL,NULL,NULL,NULL);
-	// 		$for = $this->extractDataFromConfig($logForConfig, $data);
-	// 		$meta = $this->extractDataFromConfig($logMetaConfig, $data);
-	// 	}
-
-	// 	$data = new \stdClass();
-	// 	$data->user = $user;
-	// 	$data->type = $type;
-	// 	$data->item = $itemName;
-
-
-	// 	$dbData = array_merge((Array) $data, (Array) $for, (Array) $meta);
-	// 	// var_dump($this->logConfig);
-	// 	// var_dump($dbData);
-	// 	// var_dump($this->db)
-	// 	$id = $this->db->insert($this->dbTable, $dbData);
-	// 	return $id;		
-	// }
-
 
 	private function extractDataFromConfig($fileConfig, $data) {
 		echo "is this needed here? (Class FileUpload->extractDataFromConfig() Line 85)";
@@ -312,7 +274,11 @@ Class FileUpload {
 		return $fileConfig;		
 	}
 
-
+	/**
+	* Returns the set db-table name for files.
+	*
+	* @return string
+	*/
 	public function getDbTable() {
 		return $this->dbTable;
 	}
@@ -322,7 +288,10 @@ Class FileUpload {
 
 
 
-// These are the default classes that shall be used by LogConfig.php
+/**
+* These are the default classes that shall be used by LogConfig.php
+*
+*/
 Class FileDefaultConfig {
 	// These Parameters can be overridden in php_root/FileConfig.php
 	protected $maxNrOfFiles = 1; 				// for now I go with only 1 file
