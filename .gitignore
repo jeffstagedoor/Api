@@ -63,3 +63,5 @@ vendor/
 #php-doc
 docs/
 documentation/
+
+sync.ffs_db
