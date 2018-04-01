@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"throw",
+				"throwOne"
+			],
+			[
 				"model",
 				"modelName"
 			],
@@ -432,9 +436,27 @@
 			"file": "api/Model.php",
 			"settings":
 			{
-				"buffer_size": 36332,
+				"buffer_size": 38168,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "documentation/.gitignore",
+			"settings":
+			{
+				"buffer_size": 0,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "api/Authentication.php",
+			"settings":
+			{
+				"buffer_size": 4231,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
 			}
 		},
 		{
@@ -450,7 +472,25 @@
 			"file": "api/Api.php",
 			"settings":
 			{
-				"buffer_size": 15991,
+				"buffer_size": 15994,
+				"encoding": "UTF-8",
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "api/debughelpers.php",
+			"settings":
+			{
+				"buffer_size": 979,
+				"encoding": "UTF-8",
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "api/ApiHelper.php",
+			"settings":
+			{
+				"buffer_size": 5920,
 				"encoding": "UTF-8",
 				"line_ending": "Unix"
 			}
@@ -526,10 +566,12 @@
 	"expanded_folders":
 	[
 		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api",
-		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api"
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/documentation",
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/vendor"
 	],
 	"file_history":
 	[
+		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/.gitignore",
 		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api/Account.php",
 		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api/Api.php",
 		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/api/Api.class.php",
@@ -555,7 +597,6 @@
 		"/C/Users/jefff/AppData/Local/GitHub/cache.db",
 		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/dummy/Constants.php",
 		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/composer.json",
-		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/.gitignore",
 		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/README.md",
 		"/C/Users/jefff/Google Drive/www/bandsched/online/date_adder.php",
 		"/C/Users/jefff/Google Drive/www/jeffstagedoor/php/Api/LICENSE.txt",
@@ -661,7 +702,7 @@
 	],
 	"find":
 	{
-		"height": 42.0
+		"height": 28.0
 	},
 	"find_in_files":
 	{
@@ -831,7 +872,7 @@
 	"groups":
 	[
 		{
-			"selected": 3,
+			"selected": 1,
 			"sheets":
 			[
 				{
@@ -847,8 +888,94 @@
 						"selection":
 						[
 							[
-								74,
-								74
+								2775,
+								1790
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/PHP/PHP.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1080.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "api/Model.php",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 38168,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								9590,
+								9590
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/PHP/PHP.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 3980.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "documentation/.gitignore",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 0,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "api/Authentication.php",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4231,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								90,
+								35
 							]
 						],
 						"settings":
@@ -864,36 +991,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 1,
-					"file": "api/Model.php",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 36332,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/PHP/PHP.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 60.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
+					"buffer": 4,
 					"file": "api/Names.php",
 					"semi_transient": false,
 					"settings":
@@ -918,24 +1016,24 @@
 						"translation.y": 2040.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 7,
 					"type": "text"
 				},
 				{
-					"buffer": 3,
+					"buffer": 5,
 					"file": "api/Api.php",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 15991,
+						"buffer_size": 15994,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3037,
-								3037
+								14921,
+								14921
 							]
 						],
 						"settings":
@@ -944,10 +1042,67 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 1920.0,
+						"translation.y": 9021.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 0,
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "api/debughelpers.php",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 979,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								36,
+								36
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/PHP/PHP.sublime-syntax"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "api/ApiHelper.php",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5920,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								801,
+								801
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/PHP/PHP.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 3813.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
 					"type": "text"
 				}
 			]

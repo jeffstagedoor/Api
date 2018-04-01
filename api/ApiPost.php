@@ -10,6 +10,15 @@
 **/
 namespace Jeff\Api;
 
+/**
+*	Class that handles POST requests.
+*	
+*	@author Jeff Frohner
+*	@copyright Copyright (c) 2017
+*	@license   private
+*	@version   1.0
+*
+**/
 Class ApiPost
 {
 	private $db;
@@ -71,12 +80,18 @@ Class ApiPost
 				$this->errorHandler->sendAllErrorsAndExit();
 			case Api::REQUEST_TYPE_NORMAL:
 				if(isset($this->request->special)) {
-					// switch ($this->request->special) {
 
+					switch ($this->request->special) {
+						case 'import':
+							$this->response->{$this->request->model->modelName} = $this->request->model->import($this->data);
+							$this->log->write($this->account->id, 'create', $this->request->model->modelName, $this->response->{$this->request->model->modelName});
+							break;
+						default:
+							$this->errorHandler->throwOne(array("Api Error", "POST normal-special '{$this->request->special}'' not implemented.\nIn ApiPost ".__FUNCTION__." Line ".__LINE__."\n", 500, ErrorHandler::CRITICAL_EMAIL, true));
+							$this->errorHandler->throwOne(array("Api Error", "POST normal-special '{$this->request->special}'' not implemented.", 500, ErrorHandler::CRITICAL_EMAIL, false));
+							exit;
+					}
 
-					// }
-					
-					echo "POST normal-special (??) not implemented.\nIn ApiPost ".__FUNCTION__." Line ".__LINE__."\n";
 				} else {
 					if($this->request->model->modifiedByField) {
 						// default: 'modBy'
@@ -158,6 +173,13 @@ Class ApiPost
 					$this->errorHandler->sendAllErrorsAndExit();
 					exit;
 				}
+				break;
+			case "import":
+				// if(isset($this->request->requestArray[1])) {
+				// 	$modelName = $this->request->requestArray[1];
+				// 	var_dump($this->models['venues']);
+				// }
+				echo "importing! NOT IMPLEMENTED HERE, BUT IN POST ..api/modelName/import";
 				break;
 			default:
 				$this->errorHandler->throwOne(ErrorHandler::API_INVALID_POST_REQUEST);

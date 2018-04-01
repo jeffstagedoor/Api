@@ -98,7 +98,7 @@ Class Api {
 	 * 
 	 * @var array 	
 	 */
-	private $specialVerbs = Array('dbupdate','meta', 'login', 'signup', 'signin', 'task', 'sort', 'search', 'count', 'apiInfo', 
+	private $specialVerbs = Array('dbupdate','meta', 'login', 'signup', 'signin', 'task', 'sort', 'import', 'search', 'count', 'apiInfo', 
 									'getFile', 'getImage','getFolder',
 									'fileUpload', 'changePassword', 'changeName'
 									);

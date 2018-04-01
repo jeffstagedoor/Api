@@ -914,6 +914,87 @@ Class Model
 	
 	}
 
+
+	/**
+	* Method to import an item from one parent to another.
+	* This method is not implemented in base model, therefor needs to be overridden in expanding model of consuming app.
+	*
+	* @param object $data A dataset of all necessary info to fulfil that import.
+	*                     could be something like:
+	* ```
+	* { 
+	*    id: 1,                   // id of the item to import
+	*    toId: 1,                 // id of the parent model to import to
+	*    toReference: 'workgroup' // name of the parent model to import to
+	* }
+	* ```
+	* 
+	*/
+	public function import($data) {
+		#echo "You've made a special POST call to {$this->modelName}, but import is not implemented.\n";
+		#echo "Method import() needs to be overridden in consuming app, in the expanding model.\n";
+
+		// EXAMPLE implementation, that might work for most Model-Types.
+		// will be buggy, if the hasMany-Items have hasMany-Items themselves...
+		$this->db->startTransaction();
+		// 1. get the source
+		if(!isset($data->id)) {
+			$this->errorHandler->throwOne(41);
+			exit;
+		}
+		$source = $this->getOneById($data->id);
+		
+		// 2. change the item to prepare to be saved (workgroup it is here)
+		// dublizieren, zum bearbeiten und speichern:
+		$newItem = $source;
+		$newItem[$data->targetReference] = $data->targetId; // referenz neu setzen auf target
+		unset($newItem['id']); // we don't need the id to insert as new item
+		unset($newItem['modDate']); // has auto-update in db-def
+		$newItem['modBy'] = $this->account->id;
+		// hasMany fields unsetten
+		foreach ($this->hasMany as $hmName => $hmInfo) {
+			unset($newItem[$hmInfo['storeField']]);
+		}
+
+		// 3. save the item
+		$newId = $this->db->insert($this->dbTable, $newItem);
+		if(!$newId) {
+			$this->errorHandler->throwOne(22);
+			$this->errorHandler->throwOne(array("DB-Error", "The query: ".$this->db->getLastQuery() ."\nfailed with error: ".$this->db->getLastError()."\nin ".__FILE__.":".get_class()." - ".__LINE__,500, Api\ErrorHandler::CRITICAL_EMAIL,true));
+			$this->db->rollback();
+			exit;
+		}
+
+
+		// 3. get the hasMany fields. In this case it's only the locations, but still....lotta work
+		$hm = [];
+		foreach ($this->hasMany as $hmName => $hmInfo) {
+			$this->db->where('id', $source[$hmInfo['storeField']], 'IN');
+			$items = $this->db->get($hmName);
+			foreach ($items as $index => &$item) {
+				unset($item['id']);
+				$item[$hmInfo['sourceField']] = $newId;
+				unset($item['modDate']);
+				$item['modBy'] = $this->account->id;
+
+				// insert to database
+				$item['id'] = $this->db->insert($hmName, $item);
+				if(!$item['id']) {
+					$this->errorHandler->throwOne(22);
+					$this->errorHandler->throwOne(array("DB-Error", "The query: ".$this->db->getLastQuery() ."\nfailed with error: ".$this->db->getLastError()."\nin ".__FILE__.":".get_class()." - ".__LINE__,500, Api\ErrorHandler::CRITICAL_EMAIL,true));
+					$this->db->rollback();
+					exit;
+				}
+			}
+			
+		}	
+		// $this->db->rollback();
+		$this->db->commit();
+		return $this->getOneById($newId);
+	}
+
+
+
 	public function getDbTable() {
 		return $this->dbTable;
 	}
