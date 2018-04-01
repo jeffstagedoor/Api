@@ -29,41 +29,29 @@ require_once($ENV->dirs->appRoot.'Constants.php');
 Class Account extends Model
 {
 
-	/** @var string The name of the model */
+	// overriding properties from base model
 	public $modelName = 'account';
-	/** @var string Plural name of the model */
 	public $modelNamePlural = 'accounts';
-	/** @var int $id Id of the active account */
-	public $id = null;
-	/** @var object $data account data to be set when authorizes */
-	public $data = null;
-	/** @var boolean $isAuthenticated If this account is yet authenticated with credentials */
-	public $isAuthenticated = false;
-	/**
-	* @var db $db Database Object
-	*/
-	protected $db = null;
-	/**
-	* @var string $dbIdField Database-Fieldname in which the id is stored. Usually (and by default) 'id'
-	*/
-	protected $dbIdField = 'id';
-	/**
-	* @var string $dbTable The name of the corresponding database table
-	*/	
 	protected $dbTable = 'accounts';
 
 
 	// defaults
 	const DEFAULT_RIGHTS = 1;
-	const DEFAULT_STTINGS = "{}";
+	const DEFAULT_SETTINGS = "{}";
 	const AUTHCODE_LENGTH = 60;
 	const SEARCH_MIN_LENGTH = 6;
 
 	// additional model-specific requirements
+	/** @var object $data account data to be set when authorizes */
+	public $data = null;
+	/** @var boolean $isAuthenticated If this account is yet authenticated with credentials */
+	public $isAuthenticated = false;
+	/** @var int $id Id of the active account */
+	public $id = null;
 	protected $identification = "email";
 	protected $identificationIsEmail = true;
-	protected $minPasswordLength = 8;
 	protected $minIdentificationLength = 6; // 6 is minimum for email: a@b.cd
+	protected $minPasswordLength = 8;
 
 
 
@@ -94,6 +82,7 @@ Class Account extends Model
 	*/	
 	public $dbPrimaryKey = 'id';
 
+	/** @var string[] list of columns that will get fetchen when authenticatin. Account-specific */
 	private $dbColsToFetch = array('id', 'email', 'fullName', 'firstName', 'middleName', 'prefixName', 'lastName', 'lastOnline', 'lastLogin');
 	
 

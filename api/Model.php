@@ -105,20 +105,43 @@ Class Model
 	public $sortBy = 'referenceField';
 
 
-	// many2many-references often have a value that describe that relationship
-	// this could be role or rights
+	/** 
+	* @var string typically 'role' or 'rights'
+	* many2many-references often have a value that describe that relationship
+	*/
 	public $many2manyParam = 'role';
 
 
 	// DB-vars & Object
+	/** @var \MySqliDb Instance of Database class */
 	protected $db = null;
+	/**
+	* @var string $dbIdField Database-Fieldname in which the id is stored. Usually (and by default) 'id'
+	*/
 	protected $dbIdField = 'id';
+	/**
+	* @var string $dbTable The name of the corresponding database table
+	*/
 	protected $dbTable = 'undefined';
-	public $cols = null;
-	public $lastInsertedID = -1;
 
+	/**
+	*	@var string $dbPrimaryKey primary database id/key.
+	*	usually/per default 'id'
+	*/	
+	public $dbPrimaryKey = 'id';
+
+	/** @var array An array of all database-columns. Set in `__constructor` via `_makeAssociativeFieldsArray()` */
+	public $cols = null;
+	/** @var int When a new item of model is added, this param will have it's newly created id */
+	public $lastInsertedID = -1;
+	/** @var object When adding sideload to the request load, they will live here 
+	* 
+	* ```
+	* $sideload->otherModelName->data[]
+	* ```
+	* 
+	*/
 	public $sideload = null;
-	public $sideLoadTargetsSave = Array();
 
 	/** 
 	* Array of field-names that shall be masked with *** when sent to client according to it's properties 
@@ -140,17 +163,29 @@ Class Model
 	*/
 	protected $searchSendCols = Array('id');	
 
-	// hiddenProperties
-	// what properties will be unset before sending the payload
-	// allways remove password, authToken, auth, ...
+	/** 
+	* @var string[] hiddenProperties
+	* array of properties (=db-fieldNames) that will be unset before sending the payload.
+	* allways remove password, authToken, auth, refreshToken.
+	* either push items or override
+	*/
 	protected $hiddenProperties = Array('password', 'authToken', 'auth', 'refreshToken');
 
-	// validateFields
-	// what fields shall be validated before inserting/updating
+	/**
+	* @var array[]
+	* @see Jeff\Api\Validate
+	* what fields shall be validated before inserting/updating.
+	* 
+	* ```
+	* protected $validateFields = Array(
+	* 	Array('field' => 'email', 'valtype' => Jeff\Api\Validate::VAL_TYPE_EMAIL, 'arg' => null),
+	* 	Array('field' => 'description', 'valtype' => Jeff\Api\Validate::VAL_TYPE_LENGTH_MAX, 'arg' => 300),
+	* 	Array('field' => 'description', 'valtype' => Jeff\Api\Validate::VAL_TYPE_LENGTH_MIN, 'arg' => 300),
+	* );
+	* ```
+	* 
+	*/
 	protected $validateFields = Array(
-		// Array('field' => 'email', 'valtype' => Jeff\Api\Validate::VAL_TYPE_EMAIL, 'arg' => null),
-		// Array('field' => 'description', 'valtype' => Jeff\Api\Validate::VAL_TYPE_LENGTH_MAX, 'arg' => 300),
-		// Array('field' => 'description', 'valtype' => Jeff\Api\Validate::VAL_TYPE_LENGTH_MIN, 'arg' => 300),
 		);
 
 	// list of db fields that shall not be updated in a normal api-update. Those have to be set via task (or special account-api calls such as 'signin')
@@ -158,26 +193,56 @@ Class Model
 
 	// hasMany-Fields
 
-	protected $hasMany = Array (
-		/*
-			"account2workgroup"=> Array(
-				"db"=>array(
-						array('id', 'varchar', '20', false),
-						array('account', 'int','11', false),
-						array('workgroup', 'int', '11', false),
-						array('rights', 'tinyint', '4', false),
-						array('invitedBy', 'int', '11', false),
-						array('invitedDate', 'timestamp', null, false, 'CURRENT_TIMESTAMP', 'ON UPDATE CURRENT_TIMESTAMP'),
-						array('memberSince', 'timestamp', null, true, 'NULL'),
-						array('isRequest', 'tinyint', '1', true),
-						array('requestDate', 'timestamp', null, true, 'NULL'),
-						array('requestAcceptedBy', 'int', '11', true),
-						array('requestAcceptedDate', 'timestamp', null, true, 'NULL')
-				),
-				"primaryKey"=>"workgroup"
-			)
-		*/
-		);
+	/**
+	* Sets n to many relations.
+	* There are two types of relations possible. A one to many and a many2many (via a sub-Table).
+	* This property is an array of those relationships.      
+	* Shall be overriden by consuming app and it's models.
+	*
+	* Relations defined that way will be included to the payload as array of ids:
+	* `comments: [4,7,98],`
+	*
+	* The **one to many** relationship can be defined like so:
+	*
+	* ```
+	* "comments"=> Array(
+	*                "sourceField"=>"post",
+	*                "storeField"=>"comments"
+	*		       )
+	* ```
+	*
+	* This assumes: 
+	* - the model 'comments' has a db-field 'post' as reference to the post.id
+	* - the model 'posts' does _not_ have a db-field 'comments'
+	*
+	* **many to many relationships**:
+	* have a name by convention 'accounts2posts', 'account2comments',.. all in plural
+	* and are defined on the _left side_ (accounts) as _one to many_ relationship:
+	*
+	* ```
+	* "accounts2posts" => Array(
+	*	                       "sourceField"=>"account",
+	*	                       "storeField"=>"accounts2posts"
+	*	                    ),
+	* ```
+	*
+	* whereas on the right side we need to have the complete db-definition:
+	*
+	* ```
+	* "accounts2posts" => Array(     	// the key is also the database table name
+    *       "db"=>array(			// just like a 'normal' dbDefinition
+	*				array('id', 'varchar', '20', false),
+	*				array('account', 'int','11', false), 	// = sourceField on left side
+	*				array('post', 'int', '11', false),		// = sourceField on right side
+	*				array('modBy', 'int','11', true),
+	*		),
+	*		"primaryKey"=>"id",
+	*		"sourceField"=>"post",
+	*		"storeField"=>"accounts"
+	* ),
+	* ```
+	*/
+	protected $hasMany = Array ();
 
 	// what Items to send as sideload when doing a simple getOneById()
 	protected $sideloadItems = Array( 
@@ -188,9 +253,9 @@ Class Model
 		);
 
 	/**
-	*	A list of methods that can be called via special api call www.example.com/api/modelname/specialMethod
-	*	Unless the method is listed here it won't be called (for security)
-	*
+	* A list of methods that can be called via special api call `www.example.com/api/modelname/specialMethod`.
+	* Unless the method is listed here it won't be called (for security)
+	* @var array
 	*/
 	public $specialMethods = Array();
 
@@ -202,9 +267,29 @@ Class Model
 	const SEARCH_MIN_LENGTH = 4;
 
 
-	// CONSTRUCTOR
-	// always pass the fitting db-object to contructor
-	// possible Hook: initializeHook()
+	/**
+	* Constructor
+	*
+	* - sets the passed objects/instances 
+	* - generates the `$cols` from `$dbDefinition`
+	*
+	* Possible Hook: initializeHook()
+	*
+	* This can be usefull to alter the dbDefinition of Account class, but also for many other things.
+	* Example of an implementation (in Accounts.php):
+	*
+	* ```
+	* protected function initializeHook() {
+ 	*    $this->dbDefinition[] = array ('artist', 'int', '11', true);
+  	* }
+  	* ```
+  	*
+  	* @param \MySqlDb $db Instance of Database class
+  	* @param \Jeff\Api\Environment $ENV Instance of Environment class
+  	* @param \Jeff\Api\ErrorHandler $errorHandler Instance of ErrorHandler class
+  	* @param Account $account Instance of Account class (with the logged in account)
+  	* @param object $request Object containing all relevant infos about the current request
+	*/
 	public function __construct($db, $ENV, $errorHandler, $account, $request=NULL) 
 	{
 		$this->db = $db;
@@ -223,9 +308,11 @@ Class Model
 	// STANDARD GETTERS
 	//
 
-	/*
-	*	method get()
+	/**
 	*	alias for getOneById(id) and getAll()
+	* 
+	* @param int $id If set, the id of the item to get. If not set, all items will be returned (`getAll()` will be called)
+	* @return array The found item or items
 	*/
 	public function get($id=0) 
 	{
@@ -286,19 +373,35 @@ Class Model
 
 	
 	/**
+	* Gets all items of the model
+	*
+	* - adds hasMany fields for each item
+	* - adds the sideload for each item
 	* 
-	*	The extending Model may implement a beforeGetAll-Hook
-	*	Standard Example for such a hook: 
+	* The extending Model shall implement a beforeGetAll-Hook to limit the result to only the items the account is allowed to see.
+	*
+	* Standard Example for such a hook: 
 	*	
 	*	```
 	*	function beforeGetAll() {
-	*			$restrictions = Array();
+	*			$restrictions = new stdClass();
+	*			$restriction->type = 'ID_IN';    // possible types are: 'ID_IN', 'REF_IS', 'REF_IN', 'LIMIT'
+	*			// if type='ID_IN':
+	*			$restriction->data = array(1,2,3);
+	*
+	*			// if type='REF_IS':
+	*			$restriction->referenceField = 'post';
+	*			$restriction->id = 1;
+	*
+	*			// if type='REF_IN':
+	*			$restriction->referenceField = 'post';
+	*			$restriction->data = array(1,2,3);
+	*
 	*			$restrictions[] = $restriction;
+	*			// repeat steps above for more restrictions
 	*			return $restrictions;
 	*	}
 	*	```
-	*	
-	* 
 	*
 	* @param array|null $filters filter will come as an array: `[{key: 'nameofthefield', value: 'testvalue', comp: '='}]`
 	*                            defaults to null, so no filter is applied if omitted
@@ -360,11 +463,14 @@ Class Model
 	}
 
 	/**
-	*   if we get an array of ids, as they arrive when doing an coalesceFindRecord call (in ember RestAdapter 'coalesceFindRequests: true')
-	*   we return only the corresponding items 
+	* Getter for coalesce GET calls
+	*
+	* If we get an array of ids, as they arrive when doing an coalesceFindRecord call (in ember RestAdapter 'coalesceFindRequests: true')
+	* we return only the corresponding items 
 	*	
-	*	@param array $coalesceIds
-	**/
+	* @param array $coalesceIds
+	* @return array The found items, or false if an error occurred
+	*/
 	public function getCoalesce(array $coalesceIds=null) {
 		if($coalesceIds) {
 			$this->db->where($this->dbTable.'.id', $coalesceIds,'IN');
@@ -388,7 +494,7 @@ Class Model
 	*
 	* this depends on following conventions:
 	* db-tables/models that represent a manyToMany Relationship have this name/structure:
-	* - dbTable= 'needles2haystacks'; e.g. 'users2workgroups' (both plural)
+	* - dbTable= 'needles2haystacks'; e.g. 'accounts2posts' (both plural)
 	* - id-field = needle_id + '_' + haystack_id (eg 2_15)
 	*
 	* @param string $id
@@ -439,8 +545,6 @@ Class Model
 
 		$this->db->where('id', $id);
 		$success = $this->db->update($modelLeft->modelNamePlural.'2'.$this->modelNamePlural, $data);
-		#echo $this->db->getLastQuery();
-		#echo $this->db->getLastError();
 		return ($success) ?  $id : false;
 	}
 
@@ -610,10 +714,11 @@ Class Model
 	//
 
 	/**
-	*	method add()
+	*	Adds a new item of Model
+	* 
 	*	possible Hooks: beforeAdd($data), afterAdd($data, $id)
-	* 	@param [array] $data	
-	*	@return [int] the new id of the item, false if an error occurred
+	* 	@param array $data	
+	*	@return int the new id of the item, false if an error occurred
 	*/
 	public function add($data) {
 
@@ -918,24 +1023,26 @@ Class Model
 	/**
 	* Method to import an item from one parent to another.
 	* This method is not implemented in base model, therefor needs to be overridden in expanding model of consuming app.
+	* See source (Model.php) for an (quite standard) example implementation
 	*
 	* @param object $data A dataset of all necessary info to fulfil that import.
 	*                     could be something like:
 	* ```
 	* { 
 	*    id: 1,                   // id of the item to import
-	*    toId: 1,                 // id of the parent model to import to
-	*    toReference: 'workgroup' // name of the parent model to import to
+	*    targetId: 1,                 // id of the parent model to import to
+	*    targetReference: 'workgroup' // name of the parent model to import to
 	* }
 	* ```
 	* 
 	*/
 	public function import($data) {
-		#echo "You've made a special POST call to {$this->modelName}, but import is not implemented.\n";
-		#echo "Method import() needs to be overridden in consuming app, in the expanding model.\n";
+		echo "You've made a special POST call to {$this->modelName}, but import is not implemented.\n";
+		echo "Method import() needs to be overridden in consuming app, in the expanding model.\n";
 
 		// EXAMPLE implementation, that might work for most Model-Types.
 		// will be buggy, if the hasMany-Items have hasMany-Items themselves...
+		/**
 		$this->db->startTransaction();
 		// 1. get the source
 		if(!isset($data->id)) {
@@ -945,9 +1052,9 @@ Class Model
 		$source = $this->getOneById($data->id);
 		
 		// 2. change the item to prepare to be saved (workgroup it is here)
-		// dublizieren, zum bearbeiten und speichern:
+		// dublicate, manipulate and save:
 		$newItem = $source;
-		$newItem[$data->targetReference] = $data->targetId; // referenz neu setzen auf target
+		$newItem[$data->targetReference] = $data->targetId; // re-set reference to new target
 		unset($newItem['id']); // we don't need the id to insert as new item
 		unset($newItem['modDate']); // has auto-update in db-def
 		$newItem['modBy'] = $this->account->id;
@@ -991,6 +1098,7 @@ Class Model
 		// $this->db->rollback();
 		$this->db->commit();
 		return $this->getOneById($newId);
+		*/
 	}
 
 
