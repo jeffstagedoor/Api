@@ -15,7 +15,8 @@
     ],
     "require": {
         	"php": ">=5.5.0",
-		"joshcam/MySQLi-Database-Class": ">=2.7.0"
+		"joshcam/MySQLi-Database-Class": ">=2.7.0",
+        "phpdocumentor/phpdocumentor": "2.*"
 	},
 
 	"repositories": [

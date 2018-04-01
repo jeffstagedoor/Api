@@ -61,7 +61,8 @@ vendor/
 *.sublime-workspace
 
 #php-doc
-docs/
 documentation/
 
 sync.ffs_db
+*.ffs_db
+*.sublime-workspace
