@@ -28,13 +28,13 @@ require_once("Authorizor/Authorizor.php");
 include_once("debughelpers.php");
 
 /**
-* a class that defines and shows version, author, etc. of this package
-*
-* @author Jeff Frohner <office@jefffrohner.com>
-* @copyright Jeff Frohner 2017
-* @version 1.3.1
-* @package Jeff\Api
-*/
+ * a class that defines and shows version, author, etc. of this package
+ *
+ * @author Jeff Frohner <office@jefffrohner.com>
+ * @copyright Jeff Frohner 2017
+ * @version 1.3.1
+ * @package Jeff\Api
+ */
 Class ApiInfo {
 	public static $version = "1.3.1";
 	public static $author = "Jeff Frohner";
@@ -64,41 +64,55 @@ Class ApiInfo {
 }
 
 /**
-*
-* This is the __main entrance file/class__ for Jeff's Rest-API
-*
-* @author Jeff Frohner <office@jefffrohner.com>
-* @copyright Jeff Frohner 2017
-* @version 1.3.1
-* @package Jeff\Api
-*/
+ * This is the main entrance class for Jeff's Rest-API
+ *
+ * and here is _some_ __markdown__.
+ *
+ * @author Jeff Frohner <office@jefffrohner.com>
+ * @copyright Jeff Frohner 2017
+ * @version 1.3.1
+ * @package Jeff\Api
+ */
 Class Api {
 
 	/** @var object Environment Object to be passed in __construct() */
 	private $ENV;
-	/** @var boolean 
-	 * 	for development only - disables authorization. Set in Environment.
+	
+	/** 
+	 * for development only - disables authorization. Set in Environment.
+	 * @var boolean 
 	 */
 	private $NOAUTH=false;
+
 	/** 
-	*	@var array 	
-	*	a collection of special verbs that will be treated as a 'special request'.
-	* 	usually verbs like _'login', 'signup', 'task', 'search'_.      
-	*
-	*	These are the ___verbs pre-defined__, though the param can be overriden:      
-	*	
-	*	`Array('dbupdate','meta', 'login', 'signup', 'signin', 'task', 'sort', 'search', 'count', 'apiInfo', 'getFile', 'getImage','getFolder', 'fileUpload', 'changePassword', 'changeName');`
-	*/
+	 * a collection of special verbs that will be treated as a 'special request'.
+	 * usually verbs like _'login', 'signup', 'task', 'search'_.      
+	 *
+	 * These are the ___verbs pre-defined__, though the param can be overriden:      
+	 *	
+	 * ```
+	 * Array('dbupdate','meta', 'login', 'signup', 'signin', 'task', 
+	 *       'sort', 'search', 'count', 'apiInfo', 'getFile', 'getImage', 
+	 *       'getFolder', 'fileUpload', 'changePassword', 'changeName');
+	 * ```
+	 * 
+	 * @var array 	
+	 */
 	private $specialVerbs = Array('dbupdate','meta', 'login', 'signup', 'signin', 'task', 'sort', 'search', 'count', 'apiInfo', 
 									'getFile', 'getImage','getFolder',
 									'fileUpload', 'changePassword', 'changeName'
 									);
+
 	/** @var array all the models found in this installation */
 	private $models;
+	
 	/** @var object an Object that describes the current request */
 	private $request;
+	
 	/** @var object all the data that has been sent with the request */
 	private $data;
+
+	/** @var Jeff\Api\Log\log The Logging class */
 	private $log;
 
 	Const REQUEST_TYPE_NORMAL = 1;
@@ -112,6 +126,7 @@ Class Api {
 
 	/**
 	 * The Constructor
+	 *
 	 * Will _instanciate_ an
 	 *
 	 * - ErrorHandler (and assign to this->errorHandler)
@@ -124,7 +139,7 @@ Class Api {
 	 * will analyse the made $request, get needed $models, authorize the current user     
 	 * and will delegate to ApiGet, ApiPost, ApiPut, ApiDelete depending on the request made.
 	 *	
-	 * @param Environment 	Environment-Definition Object. Defines all environment parameters, such as paths, links, debug, log, ...
+	 * @param Environment $ENV Environment-Definition Object. Defines all environment parameters, such as paths, links, debug, log, ...
 	 *	
 	 */
 	public function __construct(Environment $ENV=null) {
@@ -381,7 +396,7 @@ Class Api {
 	*	@param string name of the desired model
 	*	@return array of models
 	**/
-	public function _getModel(string $modelName) {
+	private function _getModel(string $modelName) {
 		if($this->models) {
 			// if we already scanned the directory (which we should have done already), we can simply check if it's in there and return true
 			if(isset($this->models[$modelName])) {
@@ -468,9 +483,9 @@ Class Api {
 	*	This is needed at least for an _OPTIONS_ request
 	* 	But this headers will be sent with _every_ response.
 	*	
-	*	@param Environment the configuration Object
+	*	@param Environment $ENV the configuration Object
 	*	@return void
-	**/
+	*/
 	private function _sendPrimaryHeaders($ENV) {
 		header("Access-Control-Allow-Origin: ".$this->ENV->urls->allowOrigin);
 		header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");

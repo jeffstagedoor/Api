@@ -1,26 +1,29 @@
 <?php
-/**
-*	Class ApiHelper
-*	
-*	Helper functions for API
-*
-*
-*	all functions MUST be called statically
-*	@author Jeff Frohner
-*	@copyright Copyright (c) 2016
-*	@license   private
-*	@version   1.0
-*
-**/
 namespace Jeff\Api;
 
+/**
+ *	Class ApiHelper
+ *	
+ *	Helper functions for API
+ *
+ *
+ *	all functions MUST be called statically
+ *	@author Jeff Frohner
+ *	@copyright Copyright (c) 2016
+ *	@license   private
+ *	@version   1.0
+ *
+ */
 Class ApiHelper {
 		
 
 	/**
-	*	getRequest
 	*
-	**/
+	* @return array containing the request-parameters 
+	*               When calling the api with http://example.com/api/modelName/5
+	*               this will contain everything after 'api' split by '/'
+	*               -> ['modelName', '5']
+	*/
 	public static function getRequest() {
 		if(isset($_GET['request'])) {
 			$request = explode("/",$_GET['request']);
@@ -32,11 +35,9 @@ Class ApiHelper {
 
 
 	/**
-	*	getData
 	*	tries to fetch data where ever it might be posted/put/...
-	*	@param
-	*	@return [stdClass] the posted data as stdClass
-	**/
+	*	@return object the posted data as stdClass
+	*/
 	public static function getData() {
 		// check where the data came to (and if at all):
 		$fgc = file_get_contents("php://input");

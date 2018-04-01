@@ -1,45 +1,107 @@
 <?php
 /**
-*	Class Model
-*	this is the basic Class for all models
-*	includes getters and setters as far as they can be generalized
-*	
-*	@author Jeff Frohner
-*	@copyright Copyright (c) 2015-2016
-*	@license   private
-*	@version   1.8.1
-*
-**/
+ * This file contains class Model, the base class for all Models including Account
+ */
+
+
 namespace Jeff\Api\Models;
 use Jeff\Api as Api;
 
 
+/**
+ *	This is the base class for all models.
+ *	Includes getters and setters as far as they can be generalized
+ *	This class shall be extended by consuming app to define the app-specific models.
+ *	Many of the parameters and methods shall be overridden.
+ *	
+ *	@author Jeff Frohner
+ *	@copyright Copyright (c) 2015-2016
+ *	@license   private
+ *	@version   1.8.1
+ */
+Class Model 
+{
 
-Class Model {
-
-	// a modelName MUST NOT include a '2', because otherwise it'll be treated as a relational-model
+	/**
+	* The name of the model. e.g. "Post", "Comment"
+	*
+	*  a modelName __MUST NOT__ include a '2', because otherwise it'll be treated as a relational-model.
+	*  Shall be overridden
+	* @var string The name of the model. e.g. "Post", "Comment"
+	*/
 	protected $modelName = null;
-	protected $modelNamePlural = null;
-	protected $motherModel = null; // this will be needed to make a bubbleUp method, 
-								// to determine all the mother-models of a grand-child model such as a track, 
-								// that belongsTo an artistgroup, an production, a workgroup
-								// will be needed to figure out if a user may edit/delete an item or not
 	
-	protected $dbDefinition = array( 	
-			/*
-			array(
-				'id',				// name of column
-				'int',				// data type of column (int, varchar, date, timestamp, text, ..)
-				'11',				// length of column (empty for date, text)
-				false,				// if column can be NULL
-				null, 				// default value. if NULL is wanted, write 'NULL' (as a string)
-				'AUTO_INCREMENT'	// extras like auto_increment
-		    	),
-		    */
-			);
+	/** @var string the plural version of $modelName */
+	protected $modelNamePlural = null;
+	
+	/**
+	*
+	* Name of parent Model.
+	* __Not used til now (2018)__
+	* this will be needed to make a bubbleUp method, 
+	* to determine all the mother-models of a grand-child model such as a track, 
+	* that belongsTo an artistgroup, an production, a workgroup
+	* will be needed to figure out if a user may edit/delete an item or not
+	*
+	* @var string Name of parent model
+	*/
+	protected $motherModel = null; 
+
+
+	/**
+	*
+	* Database-Table definition to be used by {@see DBHelper} class to create the corresponding table
+	* usually to be overriden in class that extends model-class.
+	* an array with this specification:
+	* 
+	* ```
+	* public $dbDefinition = Array(
+	*		string $fieldName, 			// 'id', 'email', 'label',..
+	*		string $fieldType, 			//	'int', 'varchar', 'timestamp',..
+	*		string|NULL $fieldLength, 	// '11', '250', NULL
+	*		boolean $canBeNull, 		// true, false
+	*		mixed $defaultValue, 		// '', NULL, 
+	*		string $special  			// 'auto_increment', 'on update CURRENT_TIMESTAMP'
+	* );
+	* ```
+	* 
+	* so a typical dbDefinition could look like this:
+	* 
+	* ```
+	* public $dbDefinition = Array(
+	* 		array ('id', 'int', '11', false, NULL, 'auto_increment'),
+	* 		array ('email', 'varchar', '80', false),
+	* 		array ('password', 'varchar', '250', true),
+	* 		array ('rights', 'tinyint', '4', false, '0'),
+	* 		array ('authToken', 'varchar', '250', true),
+	* 		array ('refreshToken', 'varchar', '250', true),
+	* 		array ('fullName', 'varchar', '80', false, ''),
+	* 		array ('firstName', 'varchar', '20', false, ''),
+	* 		array ('middleName', 'varchar', '20', false, ''),
+	* 		array ('prefixName', 'varchar', '20', false, ''),
+	* 		array ('lastName', 'varchar', '30', false, ''),
+	* 		array ('profilePic', 'varchar', '100', false, ''),
+	* 		array ('lastOnline', 'timestamp', null, true),
+	* 		array ('lastLogin', 'timestamp', null, true),
+	* 		array ('invitationToken', 'varchar', '250', true),
+	* 		array ('invitedBy', 'int', '11', true),
+	* 		array ('modDate', 'timestamp', NULL, false, 'CURRENT_TIMESTAMP', 'on update CURRENT_TIMESTAMP'),
+	* 		array ('modBy', 'int', '11', true),
+	* 	);
+	* ```
+	*
+	* @var array $dbDefinition Database-Table definition
+	* @see DBHelper
+	* 
+	*/
+	protected $dbDefinition = array();
+
+
+	/** @var string field-name in which api will store the last account-id that changed/created an item. Can be NULL */
 	public $modifiedByField = 'modBy';
-	// Models with isSortable=true MUST have a field 'sort' in dbTable
+	/** @var boolean Models with isSortable=true MUST have a field 'sort' in dbTable */
 	public $isSortable = false;
+	/** @var string */
 	public $sortBy = 'referenceField';
 
 
@@ -58,15 +120,23 @@ Class Model {
 	public $sideload = null;
 	public $sideLoadTargetsSave = Array();
 
-	// maskFields
-	// these fields will be masked with *** according to it's properties
-	protected $maskFields = Array(
-		// 'email' => Jeff\Api\DataMasker::MASK_TYPE_EMAIL,
-		// 'tel' => Jeff\Api\DataMasker::MASK_TYPE_TEL,
-		);
+	/** 
+	* Array of field-names that shall be masked with *** when sent to client according to it's properties 
+	* 
+	* ```
+	* Array(
+	*    'email' => Jeff\Api\DataMasker::MASK_TYPE_EMAIL,
+	*    'tel' => Jeff\Api\DataMasker::MASK_TYPE_TEL,
+	* );
+	* ```
+	* @var array 
+	* 
+	* @see \Jeff\Api\DataMasker
+	*/
+	protected $maskFields = Array();
 
 	/** 
-	* what data (=db-fields) to send when querying a search 
+	* @var string[] what data (=db-fields) to send when querying a search 
 	*/
 	protected $searchSendCols = Array('id');	
 
@@ -622,7 +692,7 @@ Class Model {
 			$result = $this->db->getOne($relationTableName);
 		} catch (Exception $e) {
 			$this->errorHandler->add(20);
-			$this->errorHandler->add(Array("DB-Error", "could not get relationTable '".$relationTableName."'", true, Api\ErrorHandler::CRITICAL_EMAIL, $e));
+			$this->errorHandler->add(Array("DB-Error", "could not get relationTable '".$relationTableName."'", 500, Api\ErrorHandler::CRITICAL_EMAIL, true, $e));
 			$this->errorHandler->sendAllErrorsAndExit();
 		}
 			
@@ -645,8 +715,8 @@ Class Model {
 				else { return false; }
 			} else {
 				// artist was connected with same role already
-				$this->errorHandler->add(array('API-Error','Relation already existst',400,$this->errorHandler::CRITICAL_LOG,false));
-				$this->errorHandler->sendAllErrorsAndExit();
+				$this->errorHandler->throwOne(array('API-Error','Relation already existst',400, Api\ErrorHandler::CRITICAL_LOG, false));
+				exit;
 			}
 		}
 		// call the hook beforeAddMany2Many if existing:
@@ -1091,23 +1161,5 @@ Class Model {
 			$x[] = $table.'.'.$field[0]. ' '. $field[0];
 		}
 		return $x;
-	}
-
-
-
-}
-
-// SUB Classes
-
-// NOT USED YET. MIGHT BE TOO COMPLICATED. Now done as simple stdClass
-class ModelRestriction {
-	public $type;
-	public $referenceField;
-	public $id;
-
-	public function __construct($type, $referenceField, $id) {
-		$this->type = $type;
-		$this->referenceField = $referenceField;
-		$this->id = $id;
 	}
 }

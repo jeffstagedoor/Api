@@ -1,4 +1,7 @@
 <?php
+/**
+ * This file contains class Account, which extends class Model
+ */
 
 namespace Jeff\Api\Models;
 use Jeff\Api as Api;
@@ -32,6 +35,7 @@ Class Account extends Model
 	public $modelNamePlural = 'accounts';
 	/** @var int $id Id of the active account */
 	public $id = null;
+	/** @var object $data account data to be set when authorizes */
 	public $data = null;
 	/** @var boolean $isAuthenticated If this account is yet authenticated with credentials */
 	public $isAuthenticated = false;
@@ -62,21 +66,7 @@ Class Account extends Model
 	protected $minIdentificationLength = 6; // 6 is minimum for email: a@b.cd
 
 
-	/**
-	* @var array $dbDefinition Database-Table definition to be used by DBHelper-class to create the corresponding table
-	*
-	* usually to be overriden in class that extends model-class
-	*
-	* an array with this specification:
-	* public $dbDefinition = Array(
-	*		string $fieldName, 			// 'id', 'email',..
-	*		string $fieldType, 			//	'int', 'varchar', 'timestamp',..
-	*		string\NULL $fieldLength, 	// '11', '250', NULL
-	*		boolean $canBeNull, 		// true, false
-	*		mixed $defaultValue, 		// '', NULL, 
-	*		string $special  			// 'auto_increment', 'on update CURRENT_TIMESTAMP'
-	* );
-	*/
+
 	public $dbDefinition = Array(
 			array ('id', 'int', '11', false, NULL, 'auto_increment'),
 			array ('email', 'varchar', '80', false),
@@ -298,7 +288,8 @@ Class Account extends Model
 	/**
 	* method veryfyCredentials
 	* checks wheater given credentials are correct/correstpondend to those save in db
-	* @param $identification, $password
+	* @param string $identification the email of the account
+	* @param string $password well, the password. still plain.
 	* @return obj with user or false if an error occured
 	*/
 	public function verifyCredentials($identification, $password) {
@@ -344,9 +335,9 @@ Class Account extends Model
 	}
 
 	/**
-	* method LOGIN
 	* used to login as a user
-	* @param $identification, $password
+	* @param string $identification email or username, defined in Account::identification
+	* @param string $password the password of the account. plain.
 	* @return obj with authToken and id of logedin user or false if an error occured
 	*/
 	public function login($identification, $password) {
@@ -390,7 +381,12 @@ Class Account extends Model
 	}
 
 
-	// authenticate = pseudo for LOGIN
+	/**
+	* alias for method login
+	* @param string $identification email or username, defined in Account::identification
+	* @param string $password the password of the account. plain.
+	* @return obj with authToken and id of logedin user or false if an error occured
+	*/
 	public function authenticate($identification, $password) {
 		return $this->login($identification, $password);
 	}
@@ -429,9 +425,10 @@ Class Account extends Model
 	/**
 	* Sets and saves the new name to database
 	*
-	* @param int $id 
-	* @param string $password
-	* @return int $id or false if an error occured
+	* @param object $data the request's data object 
+	* @param Jeff\Api\Models\Account $account the account class which's name should be changed
+	* @param object $request the request object
+	* @return object An Object containing success or error data, including an id
 	*/
 	public function changeName($data, $account, $request) {
 		if(isset($data->account) && $data->account != $account->id) {
@@ -481,25 +478,23 @@ Class Account extends Model
 
 
 	/**
-	* method mockAccount
-	* mocks an account for developing
-	* @param 
-	* @return 
+	* mocks an account for developing, sets that to this->data
+	* @param int $id The id the mocked account should have. defaults to 1.
+	* @param int $rights The rights the mocked account should have. defaults to 9.
 	*/
-	public function mockAccount($id=1, $workgroups=Array()) 
+	public function mockAccount($id=1, $rights=9) 
 	{
 		$this->id = $id;
 		$x = new \stdClass();
 		$x->id = 0;
 		$x->rights = 9;
-		$x->workgroups = $workgroups;
 		$this->data = $x;
 	}
 
 	/**
-	* method updateLastOnline
-	* @param
-	* @return true/false on success/fail
+	* updates lastOnline in db to now.
+	* @param int $id If provided
+	* @return boolean true/false on success/fail
 	*/
 	public function updateLastOnline($id=null) 
 	{
@@ -522,59 +517,55 @@ Class Account extends Model
 
 
 	/**
-	*	buildAccountObject
-	*	returns an Object with Account-Information with following structure:
 	*
-	*	{
+	* returns an Object with Account-Information with following structure:
+	*
+	* ```
+	* {
 	*		id: 1,
 	*		identification: maxmustermann@gmail.com,
 	*		personalDetails: {
 	*			fullName: "Jeff Frohner",
-	*			....
 	*		},
 	*		rights: 1-5, 
-	*		// workgroups: [1=>3, 2=>0, 3=>4, ...], // id=>rights
-	*		
-	*		// productions: [3=>0, ...], // not anymore added automaticly, shall be retreived only when needed in Model-Hook 'beforeGetAll()'
-	*		...
-	*		
+	* }
+	* ```
 	*
-	*	}
+	* @param object $account
+	* @return object an Object with Account-Information
+	*
 	*/
-	private function buildAccountObject($user) 
+	private function buildAccountObject($account) 
 	{
 		$a = new \stdClass();
-		$a->id = $user->id;
-		$a->identification = $user->email;
+		$a->id = $account->id;
+		$a->identification = $account->email;
 		$personalDetails = new \stdClass();
-		$personalDetails->fullName = isset($user->fullName) ? $user->fullName : null;
+		$personalDetails->fullName = isset($account->fullName) ? $account->fullName : null;
 		$a->personalDetails = $personalDetails;
 
-		$a->rights = isset($user->rights) ? $user->rights : null;
+		$a->rights = isset($account->rights) ? $account->rights : null;
 		return $a;
 	}
 
 
 	/**
-	* 	method getAccount
-	*	@param none
-	*	@return previously set Account-Data
+	* simple getter to get 
+	* @return object previously set Account-Data
 	*/
-
 	public function getAccount() 
 	{
 		return $this->data;
 	}
 	
 
-	/*
-	*	Checkers & Helpers
-	*
-	*
+	// Checkers & Helpers
+
+	/**
+	* check if given identification is in correct format
+	* @param string $identification email or username of the account. Defined in Account::identification
+	* @return boolean
 	*/
-
-
-	// check if given identification is in correct format
 	public function checkIdentification($identification) {
 		if(strlen($identification)<$this->minIdentificationLength) {
 			return false;
@@ -591,7 +582,11 @@ Class Account extends Model
 		return true;
 	}
 
-	// check if given identification is already taken in db
+	/**
+	* checks if given identification is already taken in db
+	* @param string $identification email or username of the account. Defined in Account::identification
+	* @return boolean
+	*/
 	private function identificationIsTaken($identification) {
 		$this->db->where($this->identification, $identification);
 		$dbresult = $this->db->getOne($this->dbTable);
@@ -600,22 +595,41 @@ Class Account extends Model
 
 	}
 
-	// check if given string is a valid email
+	/**
+	* checks if given string is a valid email
+	* @param string $email
+	* @return boolean
+	*/
 	private function isValidEmail($email) {
 		return filter_var($email, FILTER_VALIDATE_EMAIL);
 	}
 
-	public function isValidPassword($password) {
+	/**
+	* checks if given string is a valid password
+	* @param string $password
+	* @return boolean
+	*/
+	private function isValidPassword($password) {
 		if(strlen($password)<$this->minPasswordLength) return false;
 		// check for forbidden characters (space, tab fe)
 		if(preg_match('/[\s\'";,.]/', $password)) return false;
 		return true;
 	}
 
+	/**
+	* alias for GetRandomString()
+	* calls GetRandomString with constant AUTHCODE_LENGTH as default length.
+	* @return string
+	*/
 	private static function makeAuthCode() {
 		return self::GetRandomString(self::AUTHCODE_LENGTH);
 	}
 
+	/**
+	* generates an random authrorization code
+	* @param int $length The length the code should have. Defaults to 250
+	* @return string
+	*/
 	private static function GetRandomString($length=250) {
 		$template = '1234567890abcdefghijklmnopqrstuvwxyz';
 		$rndstring='';

@@ -1,50 +1,55 @@
 <?php
 /**
-*	Class Names
-*	
-*	@author Jeff Frohner
-*	@copyright Copyright (c) 2015
-*	@license   private
-*	@version   1.0.0
-*
-**/
+ * This file contains class Names
+ */
 
 namespace Jeff\Api;
 
+/**
+ *	A Helper Class that generates fullNames (method 'createFullname()') out of parts and/or splits a fullName into it's parts (method 'Arrange()')
+ *	
+ *	@author Jeff Frohner
+ *	@copyright Copyright (c) 2015
+ *	@license   private
+ *	@version   1.0.0
+ *
+ */
 Class Names {
 
+	/** @var array $prename A set of usual prefixNames, such as 'van', 'von', 'dal', 'di', 'los',.. */
 	private static $prename = array("von"=>1, "van"=>1, "del"=>1, "dal"=>1, "dallo"=>1, "dello"=>1, "de"=>1, "di"=>1,"der"=>1, "du"=>1, "lo"=>1, "los"=>1, "il"=>1, "la"=>1);
 
 	/**
 	* versucht einen FullName in VorName, MiddleName, Prefix, Nachname zu splitten
-	* @return [array of strings] (vname, mname, prenname, nname)
+	* @param string $fullName
+	* @param string $returnType what type shall be returned. Default is 'array', anything else will result in an object to be returned
+	* @return string[]|object (firstName, middleName, prefixName, lastName)
 	**/
-	public static function Arrange($y, $returnType='array') {
-		$x=explode(" ",$y);
+	public static function Arrange($fullName, $returnType='array') {
+		$x=explode(" ",$fullName);
 		switch (count($x)) {
 			case 1:
 				return false;
 				break;
 			case 2:
-				# dann geh ich mal von vorname nachname aus
+				// expexting firstName and lastName
 				$namearr = array($x[0],"","",$x[1]);
 				break;
 			case 3:
-				# herausfinden ob die Mitte was von "van, del , di, ..." hat
-				# wenn nicht, ist es Mittelname
+				// herausfinden ob die Mitte was von "van, del , di, ..." hat
+				// wenn nicht, ist es Mittelname
 				if(isset(self::$prename[$x[1]])) { #mitte ist ein "von"
 					$namearr = array($x[0],"",$x[1],$x[2]);
-					#$recheck=1;
 				} else {
 					$namearr = array($x[0],$x[1],"",$x[2]);
 				}
 				break;
 			case 4:
-				# herausfinden ob die Mitte 1 oder 2 was von "van, del , di, ..." hat
-				if(isset(self::$prename[$x[1]])) { #mitte ist ein "von"
-					if(isset(self::$prename[$x[2]])) { #das dannach auch
+				// herausfinden ob die Mitte 1 oder 2 was von "van, del , di, ..." hat
+				if(isset(self::$prename[$x[1]])) { // mitte ist ein "von"
+					if(isset(self::$prename[$x[2]])) {  // das dannach auch
 						$namearr = array($x[0],"",$x[1]." ".$x[2],$x[3]);					
-					} else {	# das kann eigentlich nicht sein. das wäre etwas wie "Klaus van Michael Mustermann"
+					} else {	// das kann eigentlich nicht sein. das wäre etwas wie "Klaus van Michael Mustermann"
 						$namearr = array($x[0],$x[1],$x[2],$x[3]);
 						return false;
 						break;
@@ -76,9 +81,7 @@ Class Names {
 	*/
 	public static function createNameSet($data) {
 		if(!isset($data->fullName)) {
-			/*
-			*	fullName zusammenbauen, falls alle anderen vorhanden sind
-			*/
+			// fullName zusammenbauen, falls alle anderen vorhanden sind
 			if(isset($data->firstName) && isset($data->lastName)) { // Minimal-Anforderung
 				$data->fullName = self::createFullName($data);
 			} else {
@@ -92,11 +95,20 @@ Class Names {
 	}
 
 	/**
-	*	creates a fullName out of the split parts
+	* creates a fullName out of the split parts
 	*	
-	*	@param object $data ein Object welches folgende Keys hat:
-	*						fullName, firstName, middleName, prefixName, lastName
-	*	@return string 		gibt den generierten fullName zurück
+	* @param object $data ein Object welches folgende Keys hat:
+	*			 		  fullName, firstName, middleName, prefixName, lastName
+	*  ```
+	*  {
+	*    firstName: 'Jost',
+	*    middleName: 'Claudius',
+	*    prefixName: 'van',
+	*    lastName: 'Anderen'
+	*  }
+	*  ```
+	*	
+	* @return string gibt den generierten fullName zurück: 'Jost Claudius van Anderen'
 	*/
 	public static function createFullName($data) {
 		$fullName = '';
@@ -107,6 +119,25 @@ Class Names {
 		return $fullName;
 	}
 
+	/**
+	* creates an object of the input array:
+	* @param array $array an array with the name parts
+	* 
+	* ```
+	* [firstName, middleName, prefixName, lastName]
+	* ```
+	*
+	* @return object
+	* 
+	* ```
+	* {
+	*    firstName: 'Jost',
+	*    middleName: 'Claudius',
+	*    prefixName: 'van',
+	*    lastName: 'Anderen'
+	* }
+	* ```
+	*/
 	private static function _createObjectFromArray($array) {
 		$o = new \stdClass();
 		$o->firstName = $array[0];
