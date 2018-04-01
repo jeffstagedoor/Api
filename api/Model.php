@@ -284,23 +284,28 @@ Class Model
 		}
 	}
 
-	/*
-	*	method getAll()
+	
+	/**
+	* 
+	*	The extending Model may implement a beforeGetAll-Hook
+	*	Standard Example for such a hook: 
 	*	
+	*	```
+	*	function beforeGetAll() {
+	*			$restrictions = Array();
+	*			$restrictions[] = $restriction;
+	*			return $restrictions;
+	*	}
+	*	```
+	*	
+	* 
+	*
+	* @param array|null $filters filter will come as an array: `[{key: 'nameofthefield', value: 'testvalue', comp: '='}]`
+	*                            defaults to null, so no filter is applied if omitted
 	*/
+	
 	public function getAll($filters=null) 
 	{
-		// check if the child-model has the beforeGetAll-Hook implemented
-		// Standard Example for such a hook: 
-		// 
-		// 	 function beforeGetAll() {
-		// 		global $Account;
-		// 		$restriction = new ModelRestriction('REF_IS', 'account', $Account->id);
-		// 		$restrictions = Array();
-		// 		$restrictions[] = $restriction;
-		// 		return $restrictions;
-		//   }
-		//
 
 		if(method_exists($this, 'beforeGetAll')) {
 
@@ -348,7 +353,6 @@ Class Model
 
 
 		$items = $this->_getResultFromDb();
-		// echo $this->db->getLastQuery()."\n";
 		$items = $this->_unsetHiddenPropertiesMultiple($items);
 		$items = $this->_addHasManyMultiple($items);
 		$this->_addSideloadsMultiple($items); 			// add sideloads, defined in Child-Model Class as $sideloadItems
@@ -356,11 +360,10 @@ Class Model
 	}
 
 	/**
-	*	method getCoalesce($coalesceIds)
 	*   if we get an array of ids, as they arrive when doing an coalesceFindRecord call (in ember RestAdapter 'coalesceFindRequests: true')
 	*   we return only the corresponding items 
 	*	
-	*	@param coalesceIds (Array)
+	*	@param array $coalesceIds
 	**/
 	public function getCoalesce(array $coalesceIds=null) {
 		if($coalesceIds) {
@@ -381,16 +384,17 @@ Class Model
 
 
 	/**
-	*	MANY TO MANY Relationships
+	* MANY TO MANY Relationships
 	*
 	* this depends on following conventions:
 	* db-tables/models that represent a manyToMany Relationship have this name/structure:
 	* - dbTable= 'needles2haystacks'; e.g. 'users2workgroups' (both plural)
 	* - id-field = needle_id + '_' + haystack_id (eg 2_15)
 	*
-	*
-	*
-	*
+	* @param string $id
+	* @param string $modelLeftNamePlural
+	* @param string $by
+	* @param array|null $filters
 	**/
 	public function getMany2Many(string $id=null, string $modelLeftNamePlural, $by='id', $filters=null) {
 		$tableName = $modelLeftNamePlural.'2'.$this->modelNamePlural;
