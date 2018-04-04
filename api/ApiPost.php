@@ -21,13 +21,32 @@ namespace Jeff\Api;
 **/
 Class ApiPost
 {
+	/** @var \MySqliDb Instance of database class */
 	private $db;
+	/** @var Models\Account Instance of Account class */
 	private $account;
+	/** @var object the request Object */
 	private $request;
+	/** @var Environment Instance of database class */
 	private $ENV;
+	/** @var array array of items to add */
 	private $items;
+	/** @var Log\Log instance of Log */
+	private $log;
+	/** @var object the response to be returned to client */
 	private $response;
 
+	/**
+	 * The Constructor.
+	 * Only sets the passed in instances/classes to private vars
+	 * @param object         $request      The requst object
+	 * @param object         $data         The data with the item to add
+	 * @param Environment    $ENV          The Environment as defined in consuming app
+	 * @param \MySqliDb      $db           Instance of Database class
+	 * @param ErrorHandler   $errorHandler Instance of ErrorHandler
+	 * @param Models\Account $account      Instance of Account
+	 * @param Log\Log        $log          Instance of Log class
+	 */
 	function __construct($request, $data, $ENV, $db, $errorHandler, $account, $log) {
 		$this->request = $request;
 		$this->data = $data;
@@ -38,6 +57,17 @@ Class ApiPost
 		$this->log = $log;
 	}
 
+	/**
+	 * Calls the matching methods in (extending) Model-class.
+	 *
+	 * Depending on request type this prepares for and calls either
+	 * - addMany2Many (a REQUEST_TYPE_REFERENCE)
+	 * - addMultiple (a REQUEST_TYPE_COALESQUE)
+	 * - add (a REQUEST_TYPE_NORMAL)
+	 * - special methods (a REQUEST_TYPE_NORMAL with a request->special set, which is an api call to api/modelName/import f.e.)
+	 * 
+	 * @return response-object
+	 */
 	public function postItem() {
 		$this->response = new \stdClass();
 		switch ($this->request->type) {
@@ -116,6 +146,11 @@ Class ApiPost
 		return $this->response;
 	}
 
+	/**
+	 * An api-call with a special verb as first verb instead of a model name.
+	 * The special verbs are defined in Api-class
+	 * @return response-object
+	 */
 	public function postSpecial() {
 		// echo "GET REQUEST_TYPE_SPECIAL: ".$this->request->special;
 		switch ($this->request->special) {
@@ -175,10 +210,6 @@ Class ApiPost
 				}
 				break;
 			case "import":
-				// if(isset($this->request->requestArray[1])) {
-				// 	$modelName = $this->request->requestArray[1];
-				// 	var_dump($this->models['venues']);
-				// }
 				echo "importing! NOT IMPLEMENTED HERE, BUT IN POST ..api/modelName/import";
 				break;
 			default:

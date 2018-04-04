@@ -5,25 +5,48 @@
 *	@author Jeff Frohner
 *	@copyright Copyright (c) 2017
 *	@license   private
-*	@version   1.0
+*	@version   1.8.0
 *
-**/
+*/
+
 namespace Jeff\Api;
 
-#require_once("../config.php");
-
-// 
-// GET
-// 
-
+/**
+*	Class ApiPut
+*	
+*	@author Jeff Frohner
+*	@copyright Copyright (c) 2017
+*	@license   private
+*	@version   1.8.0
+*
+*/
 Class ApiPut
 {
+	/** @var \MySqliDb Instance of database class */
 	private $db;
+	/** @var Models\Account Instance of Account class */
 	private $account;
+	/** @var object the request Object */
 	private $request;
+	/** @var Environment Instance of database class */
 	private $ENV;
+	/** @var object the item to update */
 	private $item;
+	/** @var Log\Log instance of Log */
+	private $log;
 
+
+	/**
+	 * The Constructor.
+	 * Only sets the passed in instances/classes to private vars
+	 * @param object         $request      The requst object
+	 * @param object         $data         The data with the item to add
+	 * @param Environment    $ENV          The Environment as defined in consuming app
+	 * @param \MySqliDb      $db           Instance of Database class
+	 * @param ErrorHandler   $errorHandler Instance of ErrorHandler
+	 * @param Models\Account $account      Instance of Account
+	 * @param Log\Log        $log          Instance of Log class
+	 */
 	function __construct($request, $data, $ENV, $db, $errorHandler, $account, $log) {
 		$this->request = $request;
 		$this->data = $data;
@@ -35,6 +58,18 @@ Class ApiPut
 		$this->item = new \stdClass();
 	}
 
+	/**
+	 * Calls the matching methods in (extending) Model-class.
+	 *
+	 * Depending on request type this prepares for and calls either
+	 * - updateMany2Many (a REQUEST_TYPE_REFERENCE)
+	 * - update (a REQUEST_TYPE_NORMAL) (this also sets the new sort if sorting is enabled on this model)
+	 *   There can be special PUT requests implemented:
+	 *   - sort (is implemented)
+	 *   - custom (to be defined in model of consuming app. See docs for details.)
+	 * 
+	 * @return response-object the updated item|items
+	 */
 	public function putItem() {
 		switch ($this->request->type) {
 			case Api::REQUEST_TYPE_REFERENCE: 
@@ -58,20 +93,19 @@ Class ApiPut
 					return $this->items;
 				} else {
 					$this->errorHandler->add(ErrorHandler::DB_UPDATE);
-					$this->errorHandler->throwOne(array('DB-Error', 'Could not updateMany2Many in '.__FILE__.': '.__LINE__.' with dbError: '.$this->db->getLastError(), $this->errorHandler::CRITICAL_EMAIL, true));
+					$this->errorHandler->throwOne(array('DB-Error', 'Could not updateMany2Many in '.__FILE__.': '.__LINE__.' with dbError: '.$this->db->getLastError(), 500, ErrorHandler::CRITICAL_EMAIL, true));
 					exit;
 				}
 				
 				
 				break;
 
-			// case Api::REQUEST_TYPE_COALESCE:
-			// 	$this->items = $this->request->model->getCoalesce($this->data->ids);
-			// 	break;
-			// case Api::REQUEST_TYPE_QUERY:
-			// 	$filter = $this->_getFilter();
-			// 	$this->items = $this->request->model->getAll($filter);
-			// 	break;
+			case Api::REQUEST_TYPE_COALESCE:
+				echo "REQUEST TYPE COALESCE not implemented for PUT requests";
+				exit;
+			case Api::REQUEST_TYPE_QUERY:
+				echo "REQUEST TYPE QUERY not implemented for PUT requests";
+				exit;
 			case Api::REQUEST_TYPE_NORMAL:
 				if(isset($this->request->special)) {
 					switch ($this->request->special) {
@@ -144,7 +178,14 @@ Class ApiPut
 		return $this->item;
 	}
 
-	public function putSpecial($modelsAll) {
+	/**
+	 * An api-call with a special verb as first verb instead of a model name.
+	 * The special verbs are defined in Api-class.
+	 *
+	 * A typical one is 'sort'
+	 * @return response-object
+	 */
+	public function putSpecial() {
 		switch ($this->request->special) {
 			case 'sort':
 				echo "put special 'sort' is DEPRECATED. use api/modelNamePlural/sort";
@@ -181,7 +222,7 @@ Class ApiPut
 				}
 				exit;
 			default:
-				# code...
+				echo "This special PUT request '{$this->request->special}' is not implemented";
 				break;
 		}
 	}

@@ -101,7 +101,9 @@ Class Model
 	public $modifiedByField = 'modBy';
 	/** @var boolean Models with isSortable=true MUST have a field 'sort' in dbTable */
 	public $isSortable = false;
-	/** @var string */
+	/** @var string If a model is sortable it usually has a parent-model as group 
+	*               For example if you want comments to be sortable, then this would be 'post' - the reference to the parent
+	*/
 	public $sortBy = 'referenceField';
 
 
@@ -172,9 +174,7 @@ Class Model
 	protected $hiddenProperties = Array('password', 'authToken', 'auth', 'refreshToken');
 
 	/**
-	* @var array[]
-	* @see Jeff\Api\Validate
-	* what fields shall be validated before inserting/updating.
+	* What fields shall be validated before inserting/updating.
 	* 
 	* ```
 	* protected $validateFields = Array(
@@ -184,14 +184,18 @@ Class Model
 	* );
 	* ```
 	* 
+	* @var array[]
+	* @see Jeff\Api\Validate
 	*/
-	protected $validateFields = Array(
-		);
+	protected $validateFields = Array();
 
-	// list of db fields that shall not be updated in a normal api-update. Those have to be set via task (or special account-api calls such as 'signin')
+	/**
+	* list of db fields that shall not be updated in a normal api-update. 
+	* Those have to be set via task (or special account-api calls such as 'signin')
+	* An example is those values for the account-model: `['email','password','authToken', 'invitationToken', 'lastOnline', 'lastLogin', 'signin']` 
+	*/
 	protected $doNotUpdateFields = [];
 
-	// hasMany-Fields
 
 	/**
 	* Sets n to many relations.
@@ -244,13 +248,21 @@ Class Model
 	*/
 	protected $hasMany = Array ();
 
-	// what Items to send as sideload when doing a simple getOneById()
-	protected $sideloadItems = Array( 
-			// Array("name"=>'user2workgroups',"dbTable"=>'user2workgroup', "reference"=>'user2workgroups'),
-			// Array("name"=>'workgroups', "dbTable"=>'workgroups', "reference"=>'workgroups'),
-			// Array("name"=>'user2productions', "dbTable"=>'user2production', "reference"=>'user2productions'),
-			// Array("name"=>'productions', "dbTable"=>'productions', "reference"=>'productions'),
-		);
+	/**
+	* what Items to send as sideload when doing a simple `getOneById()`.
+	* sideloadItems can be added for all hasMany-fields that are defined
+	*
+	* Example:
+	*
+	* ```
+	* protected $sideloadItems = Array(
+	*    Array("name"=>'accounts2productions',"orderBy"=>'rights', "orderDirection"=>'desc'),
+	*    Array("name"=>'artistgroups',"orderBy"=>null, "orderDirection"=>null),
+	*    Array("name"=>'events', "orderBy"=>'start', "orderDirection"=>"asc"),
+	* );
+	* 
+	*/
+	protected $sideloadItems = Array();
 
 	/**
 	* A list of methods that can be called via special api call `www.example.com/api/modelname/specialMethod`.
@@ -324,25 +336,29 @@ Class Model
 		return $items;
 	}
 
-	/*
-	*	method getOneById()
+	/**
+	* Gets one item of the model by a given id
+	*
+	* Checks for Authorization first.
+	*
+	* There might be a hook provided in future versions, but it's _not yet implemented_:
+	* ```
+	* function beforeGetOne($id) {
+	* 		//global $Account;
+	* 		//$restriction = new ModelRestriction('REF_ID', 'account', $Account->id);
+	*			$restrictions = Array();
+	*			$restrictions[] = $restriction;
+	*			return $restrictions;
+	* }
+	* ```	
+	*
+	* @param int $id The id of the requested item
+	* @return object|boolean The dataset if successfull, false if the item wasn't found
+	* @see \Jeff\Api\Authorizor\Authorizor
 	*/
 	public function getOneById($id) 
 	{
-		// check if the child-model has the beforeGetAll-Hook implemented
-		// Standard Example for such a hook: 
-		// 
-		// 	 function beforeGetOne($id) {
-		// 		global $Account;
-		// 		$restriction = new ModelRestriction('REF_ID', 'account', $Account->id);
-		// 		$restrictions = Array();
-		// 		$restrictions[] = $restriction;
-		// 		return $restrictions;
-		//   }
-		//
 		// checking for quthorization first:
-
-
 		if( isset($this->request->type) && $this->request->type!=Api\Api::REQUEST_TYPE_SPECIAL) {
 			if(file_exists($this->ENV->dirs->appRoot."AuthorizationConfig.php")) {
 				include_once($this->ENV->dirs->appRoot."AuthorizationConfig.php");
@@ -350,11 +366,9 @@ Class Model
 				// check if we have settings for that model
 				$isAuthorized = $Authorizor->authorize($this->modelName, $this->modelNamePlural, $id, 'mayView');
 				if(!$isAuthorized) {
-					$this->errorHandler->throwOne(Array('Not allowed', 'You are not allowed to access this recource', 200, \Jeff\Api\ErrorHandler::CRITICAL_LOG,false));
+					$this->errorHandler->throwOne(Array('Not allowed', 'You are not allowed to access this recource', 400, \Jeff\Api\ErrorHandler::CRITICAL_LOG,false));
 					exit;
 				}
-			// } else {
-			// 	$isAuthorized = true;
 			}
 		}
 
@@ -533,12 +547,32 @@ Class Model
 	}
 
 
-	// possible HOOK:
-	// public function beforeUpdateMany2Many($id, $what, $data) {
-	// 	return $data;
-	// }
+
+	/**
+	* Updates a many to many relationsship
+	*
+	* expected call to api would be a PUT to 
+	* ../api/artists2posts/1_2 
+	* ../api/leftModel2rightModel/id with a fitting dataset in body
+	*
+	* This api-call will result in in a call of this method on the _right_ model (posts in this case).
+	* This is why the dbDefinition of the relationship is defined also on the right model side of the relationship.
+	*
+	*
+	* possible HOOK:
+	*
+	* ```
+	* public function beforeUpdateMany2Many($id, $what, $data) {
+	*    return $data; // has to return the (changed) dataset
+	* }
+	* ```
+	*
+	* @param Model $modelLeft the left model of that replationship
+	* @param int $id of the relationship
+	* @param array $data the dataset (coming from request body) to be stored
+	*/
 	public function updateMany2Many($modelLeft, $id, $data) {
-		// call the hook beforeUpdateMany2Many if existing:
+		// call the hook beforeUpdateMany2Many if it exists:
 		if(method_exists($this, 'beforeUpdateMany2Many')) {
 			$data = $this->beforeUpdateMany2Many($modelLeft, $id, $data);
 		}
@@ -549,10 +583,29 @@ Class Model
 	}
 
 
-	// possible HOOK:
-	// public function beforedeleteMany2Many($modelLeft, $id) {
-	// 	return $true;
-	// }
+	/**
+	*
+	* Deletes a many 2 many relationship
+	* 
+	* expected call to api would be a DELETE to 
+	* ../api/artists2workgroups/1_2 
+	*
+	* This api-call will result in in a call of this method on the _right_ model (workgroups in this case).
+	* This is why the dbDefinition of the relationship is defined also on the right model side of the relationship.
+	*
+	* possible HOOK, that must return a boolean - if the deletion shall be executed or not:
+	+ 
+	* ```
+	*  public function beforedeleteMany2Many($modelLeft, $id) {
+	* 	   return $true;
+	*  }
+	* ```
+	*
+	* @param Model $modelLeft Model class of the left model (of relationship account2post -> account)
+	* @param string $id 
+	* @return int|boolean returns the id of deleted relationship or false if an error occurred
+	* 
+	*/
 	public function deleteMany2Many($modelLeft, $id) {
 		// call the hook beforeDeleteMany2Many if existing:
 		if(method_exists($this, 'beforeUpdateMany2Many')) {
@@ -570,16 +623,38 @@ Class Model
 
 
 
-
+	/**
+	* returns the last inserted id after a new item was added
+	* @return int 
+	*/
 	public function getLastInsertedId() {
 		return $this->lastInsertedID;
 	}
 
 
 
-	/*
-	*	method search()
+	/**
+	* Searches for an item of current model.
+	* The api call would be `../api/modelName/search` with a dataset like
 	*	
+	* ```
+	* {
+	*	key1: term1,
+	*   key2: term2,
+	*   ....
+	*   condition: 'or', // possible: 'and', 'or'
+	*   searchType: 'loose', // possible: 'strict', 'semistrict', 'loose', 'veryloose'
+	*   restrictions: { key5: value5, key6: value7 }
+	* }
+	* ```
+	* 
+	* searchTypes:
+	* - strict: will result in a `where foo='bar'`
+	* - semistrict: will result in a `where foo LIKE 'bar'` (right now it's the same as loose)
+	* - loose: will result in a `where foo LIKE 'bar'` (right now it's the same as semistrict)
+	* - veryloose: will result in a `where foo LIKE '%bar%'`
+	* 
+	* @param object $data The dataset with all the info required for a search
 	*/
 	public function search($data) {
 		if(isset($data->condition) && $data->condition==='or') {
@@ -639,9 +714,7 @@ Class Model
 				$value=preg_replace('/[ \-_\´\`\']/', "%", $value);
 			}
 			if($searchType === self::SEARCH_TYPE_VERYLOOSE) {
-				echo $value."\n";
 				$value=preg_replace('/[ \-_\´\`\']/', "%", $value);
-				echo $value."\n";
 				$value='%'.$value.'%';
 			}
 			if(!in_array($this->dbTable.".".$key." ".$key, $this->cols)) {
@@ -680,9 +753,14 @@ Class Model
 		return $result;
 	}
 
-	/*
-	*	method count()
-	*	
+	/**
+	* Returns number of items by given delimiters
+	*
+	* @param object|null $delimiters And object of key-value pairs for realtions
+	*                          f.e. to get a count for the comments of a post
+	*                          the object would be 
+	*                          `{post: 2}`
+	* @return int Number of items	
 	*/
 	public function count($delimiters=null) {
 		if(is_object($delimiters)) {
@@ -781,15 +859,28 @@ Class Model
 	}
 
 
-	/*
-	*	method addMany2Many()
-	*	
+	/**
+	* Adds a many to many relationsship
+	*
+	* expected call to api would be a POST to 
+	* ../api/artists2posts
+	* ../api/leftModel2rightModel with a fitting dataset in body
+	*
+	* This api-call will result in in a call of this method on the _right_ model (posts in this case).
+	* This is why the dbDefinition of the relationship is defined also on the right model side of the relationship.
+	*
+	* possible HOOK:
+	*
+	* ```
+	* public function beforeAddMany2Many($what, $data) {
+	*    return $data; // has to return the (changed) dataset
+	* }
+	* ```
+	*
+	* @param Model $modelLeft the left model of that replationship
+	* @param array $data the dataset (coming from request body) to be stored
+	* @return int|boolean The id of the newly created relationship or false on failur
 	*/
-
-	// possible HOOK:
-	// public function beforeAddMany2Many($what, $data) {
-	// 	return $data;
-	// }
 	public function addMany2Many($modelLeft, $data) {
 		$id = $data[$modelLeft->modelName] . '_' . $data[$this->modelName];
 		$data['id'] = $id;
@@ -848,10 +939,13 @@ Class Model
 		}
 	}
 
-	/*
-	* 	method addMultiple()
-	*	needs function addMultipleHook implemented in childModel
+	/**
+	* Adds multiple items of the model.
+	* Model __MUST__ implement method `addMultipleHook($data, $multipleParams)`
 	*
+	* @param array $data
+	* @param object $multipleParams
+	* @return array of the added items
 	*/
 	public function addMultiple($data, $multipleParams) {
 		// call the hook beforeAdd if existing:
@@ -883,9 +977,14 @@ Class Model
 	}
 
 
+	/**
+	* Standard update of a model item
+	*	
+	* @param int $id The id of the item
+	* @param object|array $data Dataset to be updated to
+	* @return object|boolean Object containing a count of the updated items and the ids - or fals on failur
+	*/
 	public function update($id, $data) {
-		
-
 		// call the hook beforeUpdate if existing:
 		if(method_exists($this, 'beforeUpdate')) {
 			$data = $this->beforeUpdate($id, $data);
@@ -930,7 +1029,12 @@ Class Model
 	}
 
 
-
+	/**
+	* Standard delete of a model item
+	*	
+	* @param int $id The id of the item
+	* @return int Object containing a count of the deleted items
+	*/
 	public function delete($id) {
 		// I should check here if the user MAY delete that model at all!?
 
@@ -1102,7 +1206,10 @@ Class Model
 	}
 
 
-
+	/** 
+	* returns the database table name of this model
+	* @return string dbTable
+	*/
 	public function getDbTable() {
 		return $this->dbTable;
 	}
@@ -1299,8 +1406,12 @@ Class Model
 	}
 
 	// HELPERS
-	/*
-	* private function _getResultFromDb()
+	/** 
+	* private helper that executes the prepared db-get.
+	* - checking first if table exists
+	* - throwing error if query was not successfull
+	* 
+	* @return array The resultset
 	*/
 	private function _getResultFromDb() {
 		global $err;
@@ -1324,6 +1435,13 @@ Class Model
 		return $result;
 	}
 
+	/**
+	* private helper that unsets the hidden properties defined in $hiddenProperties for one item and returnes the changes item
+	*
+	* @param array $item one item of the model
+	* @return array the changed item
+	* 
+	*/
 	private function _unsetHiddenProperties($item) {
 		for ($i=0; $i < count($this->hiddenProperties); $i++) { 
 			unset($item[$this->hiddenProperties[$i]]);
@@ -1331,6 +1449,12 @@ Class Model
 		return $item;
 	}
 
+	/**
+	* private helper that unsets the hidden properties defined in $hiddenProperties for all given item and returnes the changes items
+	*
+	* @param array[] $items array of items of the model
+	* @return array the changed items
+	*/
 	private function _unsetHiddenPropertiesMultiple($items) {
 		foreach ($items as &$item) {
 			$item = $this->_unsetHiddenProperties($item);

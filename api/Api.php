@@ -6,8 +6,8 @@
 * This is the main entrance file/class for Jeff's Rest-API
 *
 * @author Jeff Frohner <office@jefffrohner.com>
-* @copyright Jeff Frohner 2017
-* @version 1.3.1
+* @copyright Jeff Frohner 2018
+* @version 1.8.0
 * @package Jeff\Api
 *
 */
@@ -36,18 +36,24 @@ include_once("debughelpers.php");
  * @package Jeff\Api
  */
 Class ApiInfo {
+	/** @var string vesion of this Api class */
 	public static $version = "1.3.1";
+	/** @var string Author */
 	public static $author = "Jeff Frohner";
+	/** @var string when I coded that */
 	public static $year = "2017";
+	/** @var string the licence */
 	public static $licence = "MIT";
+	/** @var string what kid of API this is. Now REST */
 	public static $type = "REST";
+	/** @var string just a string to say where this API can be used*/
 	public static $restriction = "authorized apps and logged in users only";
 
 	/**
 	*	returns a collection of ApiInfos as json (default)
 	*	
-	*	@param string format ('array', 'json'=default) - NOT IMPLEMENTED
-	*	@return json-string
+	*	@param string $format ('array', 'json'=default) - NOT IMPLEMENTED
+	*	@return json
 	**/
 	public static function getApiInfo(string $format='json') {
 		$array = Array(
@@ -64,9 +70,9 @@ Class ApiInfo {
 }
 
 /**
- * This is the main entrance class for Jeff's Rest-API
+ * This is the main entrance class for Jeff's Rest-API.
  *
- * and here is _some_ __markdown__.
+ * I'd suggest some major documenting here.
  *
  * @author Jeff Frohner <office@jefffrohner.com>
  * @copyright Jeff Frohner 2017
@@ -287,7 +293,7 @@ Class Api {
 				require_once('ApiPut.php');
 				$ApiPut = new ApiPut($this->request, $this->data, $this->ENV, $this->db, $this->errorHandler, $this->account, $this->log);
 				if($this->request->type===self::REQUEST_TYPE_SPECIAL) {
-					$response = $ApiPut->putSpecial($this->models);
+					$response = $ApiPut->putSpecial(/*$this->models*/);
 					if($response) {
 						ApiHelper::sendResponse(200,json_encode($response));
 					}
@@ -391,11 +397,11 @@ Class Api {
 
 
 	/**
-	*	tries to get one model based on it's (plural or singular) name 
+	* tries to get one model based on it's (plural or singular) name 
 	*	
-	*	@param string name of the desired model
-	*	@return array of models
-	**/
+	* @param string $modelName  name of the desired model
+	* @return array array of models
+	*/
 	private function _getModel(string $modelName) {
 		if($this->models) {
 			// if we already scanned the directory (which we should have done already), we can simply check if it's in there and return true
@@ -431,7 +437,7 @@ Class Api {
 	*	and returns them as array of models with the modelName as key
 	*	
 	*	@return array of models
-	**/
+	*/
 	private function _getAllModels(): array {
 		$models = Array();
 		$folder = $this->ENV->dirs->models;
@@ -455,7 +461,7 @@ Class Api {
 	*	This is especially needed for singup, login, special tasks.
 	*	
 	*	@return boolean
-	**/
+	*/
 	private function _needsAuthentication() {
 		#echo __FILE__." ". __FUNCTION__ ."() - Line: ". __LINE__."\n";
 		if(isset($this->ENV->api->noAuthRoutes) && is_array($this->ENV->api->noAuthRoutes) && is_array($this->requestArray)) {

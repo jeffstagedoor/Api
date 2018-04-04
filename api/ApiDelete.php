@@ -8,21 +8,44 @@
 *	@version   1.0
 *
 **/
+
 namespace Jeff\Api;
 
-// 
-// DELETE
-// 
-
+/**
+*	Class ApiDelete
+*	
+*	@author Jeff Frohner
+*	@copyright Copyright (c) 2017
+*	@license   private
+*	@version   1.8.0
+*
+**/
 Class ApiDelete
 {
+	/** @var \MySqliDb Instance of database class */
 	private $db;
+	/** @var Models\Account Instance of Account class */
 	private $account;
+	/** @var object the request Object */
 	private $request;
+	/** @var Environment Instance of database class */
 	private $ENV;
+	/** @var array array of items to delete */
 	private $items;
+	/** @var Log\Log instance of Log */
 	private $log;
 
+	/**
+	 * The Constructor.
+	 * Only sets the passed in instances/classes to private vars
+	 * @param object         $request      The requst object
+	 * @param object         $data         The data with the item to add
+	 * @param Environment    $ENV          The Environment as defined in consuming app
+	 * @param \MySqliDb      $db           Instance of Database class
+	 * @param ErrorHandler   $errorHandler Instance of ErrorHandler
+	 * @param Models\Account $account      Instance of Account
+	 * @param Log\Log        $log          Instance of Log class
+	 */
 	function __construct($request, $data, $ENV, $db, $errorHandler, $account, $log) {
 		$this->request = $request;
 		$this->data = $data;
@@ -33,6 +56,16 @@ Class ApiDelete
 		$this->log = $log;
 	}
 
+
+	/**
+	 * Calls the matching methods in (extending) Model-class.
+	 *
+	 * Depending on request type this prepares for and calls either
+	 * - deleteMany2Many (a REQUEST_TYPE_REFERENCE)
+	 * - delete (a REQUEST_TYPE_NORMAL) (this also sets the new sort if sorting is enabled on this model)
+	 * 
+	 * @return response-object leftOver items restricted by filter if model is sortable OR an empty object
+	 */
 	public function deleteItem() {
 		switch ($this->request->type) {
 			case Api::REQUEST_TYPE_REFERENCE: 

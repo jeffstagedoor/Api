@@ -76,6 +76,7 @@ Class Account extends Model
 			array ('modBy', 'int', '11', true),
 
 		);
+
 	/**
 	*	@var string $dbPrimaryKey primary database id/key.
 	*	usually/per default 'id'
@@ -85,21 +86,7 @@ Class Account extends Model
 	/** @var string[] list of columns that will get fetchen when authenticatin. Account-specific */
 	private $dbColsToFetch = array('id', 'email', 'fullName', 'firstName', 'middleName', 'prefixName', 'lastName', 'lastOnline', 'lastLogin');
 	
-
 	protected $doNotUpdateFields = ['email','password','authToken', 'invitationToken', 'lastOnline', 'lastLogin', 'signin'];
-
-	// Sideloads & References (hasMany-Fields)
-	// public $hasManyFields = Array (
-	// 		Array("name"=>'user2workgroups',"dbTable"=>'user2workgroup', "dbTargetFieldName"=>'workgroup', "dbSourceFieldName"=>'user', "saveToStoreField"=>'workgroup', "saveToStoreName"=>'workgroups'),
-	// 		Array("name"=>'user2productions',"dbTable"=>'user2production', "dbTargetFieldName"=>'production', "dbSourceFieldName"=>'user', "saveToStoreField"=>'production', "saveToStoreName"=>'productions'),
-	// 	);
-
-	// public $sideloadItems = Array(
-	// 		Array("name"=>'user2workgroups',"dbTable"=>'user2workgroup', "reference"=>'user2workgroups'),
-	// 		Array("name"=>'workgroups', "dbTable"=>'workgroups', "reference"=>'workgroups', "class"=>'Workgroups'),
-	// 		Array("name"=>'user2productions', "dbTable"=>'user2production', "reference"=>'user2productions'),
-	// 		Array("name"=>'productions', "dbTable"=>'productions', "reference"=>'productions', "class"=>'Productions'),
-	// 	);
 
 	public $specialMethods = Array("changeName");
 
@@ -158,9 +145,9 @@ Class Account extends Model
 	}
 
 	/**
-	* method refreshToken
-	* refresh the authToken for a user, identified by sent refreshToken
-	* @param $refreshToken
+	* Refreshes the authToken for a user, identified by sent refreshToken
+	*
+	* @param string refreshToken
 	* @return obj $user or false if reAuth failed
 	*/
 	public function refreshToken($refreshToken) 

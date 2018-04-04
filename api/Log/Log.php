@@ -1,13 +1,7 @@
 <?php
 /**
-*	Class Log
-*	
-*	@author Jeff Frohner
-*	@copyright Copyright (c) 2015
-*	@license   private
-*	@version   1.0.0
-*
-**/
+ * File contains the class Log
+ */
 
 namespace Jeff\Api\Log;
 use Jeff\Api;
@@ -15,15 +9,38 @@ use Jeff\Api;
 require_once('LogDefault.php');
 
 
+/**
+* Class Log
+*
+* 
+* @author Jeff Frohner
+* @copyright Copyright (c) 2018
+* @license   private
+* @version   1.2.0
+*
+**/
 Class Log {
+	/** @var \MySqliDb Instance of database class */
 	protected $db = NULL;
+	/** @var \Log\LogConfig Instance of LogConfig class */
 	protected $logConfig;
+	/** @var bool if the Log is ready to write (after checking LogConfig and DB) */
 	protected $readyToWrite = false;
+	/** @var Environment Instance of Environment class */
 	protected $ENV = NULL;
+	/** @var ErrorHAndler Instance of ErrorHandler class */
 	protected $errorHandler = NULL;
+	/** @var string NOT USED? */
 	public $modelName = "Log";
-
+	/** @var string db-table name */
 	protected $dbTable = "log";
+	/**
+	*
+	* Database-Table definition to be used by {@see DBHelper} class to create the corresponding table
+	* @var array $dbDefinition Database-Table definition
+	* @see DBHelper
+	* 
+	*/
 	public $dbDefinition = Array(
 			array ('id', 'int', '11', false, NULL, 'auto_increment'),
 			array ('A', 'int', '11', true, NULL),
@@ -48,8 +65,23 @@ Class Log {
 			array ('user', 'int', '11', true, NULL),
 
 		);
+	/** @var string db primary key = 'id' */
 	public $dbPrimaryKey = 'id';
 
+
+	/**
+	 * Constructor
+	 *
+	 * Sets passed in instances to local vars.
+	 * 
+	 * Checks if a 'LogConfig' is implemented in consuming app and throws error if not.
+	 * If implemented it gets the config, sets $readyToWrite to true.
+	 * 
+	 * Checks for ready database and trwos Error if not existing or tableName not found
+	 * @param \MySqliDb                $db    Instance of database class
+	 * @param \Jeff\Api\Environment    $ENV   Instance of Environment class
+	 * @param \Jeff\Api\ErrorHandler   §errorHandler  Instance of ErrorHandler
+	 */
 	public function __construct($db, $ENV, $errorHandler) {
 		$this->db = $db;
 		$this->ENV = $ENV;
@@ -79,9 +111,6 @@ Class Log {
 
 
 		$logTable = $this->db->rawQuery("SHOW tables like '".\LogConfig::DB_TABLE."'");
-		// echo "SHOW tables like '".\Jeff\LogConfig::DB_TABLE."'";
-		// echo "logTable:";
-		// var_dump($logTable);
 		if(count($logTable)>0) { 
 			$this->readyToWrite=true;
 		} else {
@@ -92,12 +121,13 @@ Class Log {
 	}
 
 	/** 
-	*	Basic API Write to DBLog - Method, will be overridden by special logs
-	*	@param accountId [int]: the account id of the current operating user
-	*	@param type [string]: the type of current action like 'update', 'delete', 'create'
-	*	@param $itemname [string]: name of the manipulated item like 'post', 'comment', 'event' (has to match LogConfig items)
-	*	@param data [mixed]: either an array with the manipulating data (as arriving from client), 
-	*						OR an object containing a LogDefaultFor and a LogDefaultMeta as data->for, data->meta[, data->dataset]
+	*	Basic API Write to DBLog - Method.
+	*	Can be overridden by special logs
+	*	@param int $accountId      the account id of the current operating user
+	*	@param string $type        the type of current action like 'update', 'delete', 'create'
+	*	@param string $itemName    name of the manipulated item like 'post', 'comment', 'event' (has to match LogConfig items)
+	*	@param mixed  $data        either an array with the manipulating data (as arriving from client), 
+	*						       OR an object containing a LogDefaultFor and a LogDefaultMeta as data->for, data->meta[, data->dataset]
 	*	
 	**/
 	public function write($accountId, $type, $itemName, $data) {
@@ -149,15 +179,17 @@ Class Log {
 		return $id;		
 	}
 
-
+	/**
+	 * Extracts infos from LogConfig based on given data and updates values
+	 * 
+	 * @param  object $logConfig The Log Configuration as defined in LogConfig.php of consuming app
+	 * @param  obejct $data      The data passed in to the api request
+	 * @return object The updated, adapted logConfig
+	 */
 	private function extractDataFromConfig($logConfig, $data) {
 		foreach ($logConfig as $key => $value) {
 			#echo "extracting Values. value=".$value."\n";
 			if(is_array($value)) {
-				#echo "is_array:\n";
-				#print_r($value);
-				#echo "data:\n";
-				#var_dump($data->{$value[0]});
 				// extract specified values from $data
 				if(isset($data->{$value[0]}[$value[1]])) {
 					$v = $data->{$value[0]}[$value[1]];
@@ -167,12 +199,13 @@ Class Log {
 				$logConfig->{$key} = $v;
 			}
 		}
-		#echo "logConfig:\n";
-		#var_dump($logConfig);
 		return $logConfig;		
 	}
 
-
+	/**
+	 * Collects all data we get get with `getUserAgent()` and `getGEoInfoArray()` and the current request and puts it into one array to be saved to Log-Table
+	 * @return array 
+	 */
 	protected function collectData() {
 		// get some infos bout browser, os, ....
 		$ua = $this->getUserAgent();
@@ -202,7 +235,19 @@ Class Log {
 
 
 	/**
+	* Tries to get the userAgent of current user.
 	*
+	* @return  array    all the info we could get
+	* 
+	* ```
+	* array(
+	*		'userAgent' => $u_agent,
+	*		'browser'   => $bname,
+	*		'version'   => $version,
+	*		'platform'  => $platform,
+	*		'pattern'   => $pattern
+	* );
+	* ```
 	*/
 	public static function getUserAgent() {
 		$u_agent = $_SERVER['HTTP_USER_AGENT']; 
@@ -297,13 +342,11 @@ Class Log {
 		);
 
 	}
-	// End getUserAgent
 
 
 	/**
-	*	getGeoInfo()
-	*	@param $ip
-	*	@return object of infos
+	* Tries to get some geological information based on the user's IP-Adress.
+	* @return object of infos as returned by used ipinfo-api {@see ipinfo.io}}
 	*/
 	public static function getGeoInfo() {
 		$ip  = $_SERVER['REMOTE_ADDR'];
@@ -319,6 +362,24 @@ Class Log {
 		else return false;
 	}
 
+	/**
+	* Uses `getGeoInfo` to get the geoInfo, then transfers that into an assoc array
+	* 
+	* @return array  of infos:
+	* 
+	* ```
+	* [
+	*      'long': '-14.12345',
+	*      'lat': '+42.12345',
+	*      'geoCity': 'Vienna',
+	*      'geoRegion': 'Vienna',
+	*      'geoCountry': 'Austria',
+	*      'geoOrg': 'Organisation',
+	*      'geoPostal': 1234
+	* ]
+	* ```
+	* 
+	*/
 	public static function getGeoInfoArray() {
 		$geoInfo = self::getGeoInfo();
 		$g = Array();
@@ -337,6 +398,10 @@ Class Log {
 		return $g;
 	}
 
+	/**
+	 * Returns the name of the db-table
+	 * @return string db-tableName of Log
+	 */
 	public function getDbTable() {
 		return $this->dbTable;
 	}

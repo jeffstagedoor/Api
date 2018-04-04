@@ -1,5 +1,11 @@
 <?php
 /**
+ * file contains class Image
+ */
+namespace Jeff\Api;
+
+
+/**
 *	Class Image
 *	
 *	Class for Image-resizing, cropping, outputting, ...
@@ -9,14 +15,19 @@
 *	@version   1.0
 *
 **/
-namespace Jeff\Api;
-
-
 Class Image {
+	/** @var string filename of current image */
 	private $filename = null;
+	/** @var ImageRecource the image itself */
 	private $image = null;
 
-
+	/**
+	 * The Constructor
+	 *
+	 * generates an ImageRecource of given filename. Uses `Image::getType()`.
+	 * Will create a gif, jpg or png. Other filetypes throw an error
+	 * @param string $filename filename of an image to work with
+	 */
 	public function __construct($filename) {
 		$this->filename = $filename;
 		switch ($this->getType()) {
@@ -37,17 +48,37 @@ Class Image {
 		
 	}
 
+	/**
+	 * returns the size of the image as array [width, height]
+	 * @return array [width, height]
+	 */
 	public function getSize() {
 		$width = imageSx($this->image);
 		$height = imageSy($this->image);
 		return Array($width, $height);
 	}
 
+	/**
+	 * Uses {@see http://php.net/manual/en/function.getimagesize.php} to get the mime type of the image
+	 * @return string type of the image: IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_GIF,..
+	 */
 	public function getType() {
 		$x = getimagesize($this->filename);
 		return $x[2];
 	}
 
+	/**
+	 * Returns current image
+	 * @return ImageRecource
+	 */
+	public function getImage() {
+		return $this->image;
+	}
+
+	/**
+	 * Output image to the browser
+	 * @return bool if successful
+	 */
 	public function show() {
 		switch ($this->getType()) {
 			case IMAGETYPE_GIF:
@@ -65,6 +96,12 @@ Class Image {
 		}
 	}
 
+	/**
+	 * Resizes the image
+	 * @param  int $new_width   the width to resize to
+	 * @param  int $new_height  the height to resize to
+	 * @return void
+	 */
 	public function resize($new_width, $new_height) {
 		list($orig_width, $orig_height) = $this->getSize();
 		$image_resized = imagecreatetruecolor($new_width, $new_height);
@@ -72,6 +109,12 @@ Class Image {
 		$this->image = $image_resized;
 	}
 
+	/**
+	 * Resizes the image to a given  max value with the ratio maintained
+	 * @param  int $max_width   the max width to resize to
+	 * @param  int $max_height  the max height to resize to
+	 * @return this
+	 */
 	public function resizeMax($max_width, $max_height) {
 		list($orig_width, $orig_height) = $this->getSize();
 		$ratio = round($orig_width/$orig_height,4);
@@ -101,9 +144,17 @@ Class Image {
 			imagecopyresampled($image_resized, $this->image, 0, 0, 0, 0, $new_width, $max_height, $orig_width, $orig_height);
 			$this->image = $image_resized;
 		}
+		return $this;
 	}
 
-
+	/**
+	 * Crops an image from given start coordinates (x, y) to given dimensions (width, height)
+	 * @param  int $x
+	 * @param  int $y
+	 * @param  int $width
+	 * @param  int $height
+	 * @return this
+	 */
 	public function crop($x, $y, $width, $height) {
 		list($orig_width, $orig_height) = $this->getSize();
 		// error-testing:
@@ -121,8 +172,15 @@ Class Image {
 		$image_cropped = imagecreatetruecolor($width, $height);
 		imagecopyresampled($image_cropped, $this->image, 0, 0, $x, $y, $width, $height, $width, $height);
 		$this->image = $image_cropped;
+		return $this;
 	}
 
+	/**
+	 * Crops an image to the center part by given dimensions (width, height)
+	 * @param  int $width
+	 * @param  int $height
+	 * @return this
+	 */
 	public function cropCenter($width, $height) {
 		list($orig_width, $orig_height) = $this->getSize();
 		
@@ -143,10 +201,18 @@ Class Image {
 		$image_cropped = imagecreatetruecolor($width, $height);
 		imagecopyresampled($image_cropped, $this->image, 0, 0, $x, $y, $width, $height, $width, $height);
 		$this->image = $image_cropped;
-
-
+		return $this;
 	}
 
+	/**
+	 * Saves the image to a given $path.$filename and converts to given type
+	 * Maybe I should change that...!?
+	 * @param  string  $path
+	 * @param  string  $filename
+	 * @param  integer $type     IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG,... 
+	 *                           defaults to IMAGETYPE_JPEG
+	 * @return the image as image, not as recource...?!
+	 */
 	public function save($path, $filename, $type=0) {
 		#echo "in image.php saving to: ".$path.$filename;
 		switch ($type) {
@@ -166,6 +232,10 @@ Class Image {
 		
 	}
 
+	/**
+	 * Returns the appropriate header string for current image like 'image/gif', 'image/jpeg'. Defaults to jpeg if no matching type was found.
+	 * @return string
+	 */
 	public function getHeader() {
 		switch ($this->getType()) {
 			case IMAGETYPE_GIF:
@@ -181,9 +251,5 @@ Class Image {
 				return 'image/jpeg';
 				break;
 		}
-	}
-
-	public function getImage() {
-		return $this->image;
 	}
 }

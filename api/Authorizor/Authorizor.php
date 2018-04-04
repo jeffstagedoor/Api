@@ -1,19 +1,62 @@
 <?php
+/**
+ * This file contains the class Authorizor
+ */
 
 namespace Jeff\Api\Authorizor;
 use Jeff\Api;
 
 
+
+/**
+* A class to aothorize a request of a logged in user/account to a specific model item.
+* 
+* To make this work there has to be a AthorizationConfig.php implemented in consuming app.
+* This AuthorizationConfig lookls like this:
+* 
+* ```
+* <?php 
+* namespace Jeff\Api\Authorizor;
+* 
+* $Settings = new \stdClass();
+* $Settings->production = [
+*	"default"=>\Constants::PRODUCTIONS_ARTIST,
+*	"relation"=>"accounts2productions",
+*	"mayView"=> [ 
+*				"minRights"=>\Constants::PRODUCTIONS_ARTIST,
+*				    // if this model (productions) has a parent model, this setting may include an 'inherited' key
+*				    // if the current account does NOT have a direct connection to the requested production
+*				    // this authorizor will have look to the inherited model (workgroup) to check there
+*				"inherited"=> ["modelName"=>"workgroup", "modelNamePlural"=>"workgroups", "level"=>"mayWork"]
+*		
+*				],
+*	"mayWork"=> [ 
+*				"minRights"=>\Constants::PRODUCTIONS_HODT,
+*				"inherited"=> ["modelName"=>"workgroup", "modelNamePlural"=>"workgroups", "level"=>"mayEdit"]
+*				],
+*	"mayEdit"=> [ 
+*				"minRights"=>\Constants::PRODUCTIONS_CM,
+*				"inherited"=> ["modelName"=>"workgroup", "modelNamePlural"=>"workgroups", "level"=>"mayEdit"]
+*				],
+*
+*	];
+* ```
+*/
 Class Authorizor {
 
+	/** @var \MySqliDb Instance of database class */
 	private $db = NULL;
+	/** @var Models\Account Instance of current Account */
 	private $account = NULL;
 
-	/*
-	*	Constructor
-	*	@params: $account is an object of account-class
-	*	gets a database object passed into
+	/**
+	* The Constructor
 	*
+	* only sets the passed in params
+	* 
+	* @param object $settings        Object with the authorization settings.
+	* @param Models\Account $account The current logged in account
+	* @param \MysqliDb $db           Instance of Database Object
 	*/
 	public function __construct($settings, $account, $db) {
 		$this->settings = $settings;
@@ -21,6 +64,16 @@ Class Authorizor {
 		$this->db = $db;
 	}
 
+	/**
+	 * Authorizes an specific action on a given model item
+	 *
+	 * 
+	 * @param  string  $modelName       The model to check for
+	 * @param  string  $modelNamePlural the same model's plural name
+	 * @param  int     $id              the items id
+	 * @param  string  $level           'mayEdit'|'mayWork'|'maySee' - anything defined in AuthorizationConfig.php of consuming app
+	 * @return bool                     If the current user is allowed to whatever comes as $level for given item ($id)
+	 */
 	public function authorize($modelName, $modelNamePlural, $id, $level) {
 		if(isset($this->settings->{$modelName})) {
 
@@ -57,7 +110,7 @@ Class Authorizor {
 						$inheritedId = $inheritedItem[$inheritedModelName];
 					}
 					// echo "calling myself authorize now with:\n";
-					// 			echo "
+					// echo "
 					// inheritedModelName: $inheritedModelName\n
 					// inheritedModelNamePlural: $inheritedModelNamePlural\n
 					// inheritedId: $inheritedId\n
@@ -75,10 +128,9 @@ Class Authorizor {
 	} 
 
 	/**
-	*	authorizeTask
-	*   @description method to determine weather the current user is allowed to minipulate/accept/reject a given task
-	*   @param $task (Object) db return object of the task
-	*	@return true/false if successfull
+	* method to determine weather the current user is allowed to minipulate/accept/reject a given task
+	* @param object $task db return object of the task
+	* @return boolean if successfull
 	*
 	**/
 	public function authorizeTask($task) {
@@ -115,6 +167,9 @@ Class Authorizor {
 
 }
 
+/*
+ NOT USED (4/2018)
+
 Class RightsGroup {
 	private $items = Array();
 
@@ -146,3 +201,4 @@ Class RightsItem {
 
 	}
 }
+*/
