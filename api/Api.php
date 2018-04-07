@@ -367,7 +367,7 @@ Class Api {
 
 	/**
 	*	tries to determine the request type based on:
-	* 	- whats in request
+	* 	- what's in request
 	*	- what's in data
 	*	
 	*	@return int Constant REQUEST_TYPE_*

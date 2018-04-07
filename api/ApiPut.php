@@ -12,12 +12,13 @@
 namespace Jeff\Api;
 
 /**
-*	Class ApiPut
-*	
-*	@author Jeff Frohner
-*	@copyright Copyright (c) 2017
-*	@license   private
-*	@version   1.8.0
+* Class ApiPut
+*
+* Handles all requests that come via PUT
+* @author Jeff Frohner
+* @copyright Copyright (c) 2017
+* @license   private
+* @version   1.8.0
 *
 */
 Class ApiPut
@@ -28,7 +29,7 @@ Class ApiPut
 	private $account;
 	/** @var object the request Object */
 	private $request;
-	/** @var Environment Instance of database class */
+	/** @var Environment Instance of Environment class */
 	private $ENV;
 	/** @var object the item to update */
 	private $item;

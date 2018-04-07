@@ -1,6 +1,6 @@
 <?php
 /**
-*	Class ApiGet
+*	contains Class ApiGet
 *	
 *	@author Jeff Frohner
 *	@copyright Copyright (c) 2015
@@ -8,24 +8,45 @@
 *	@version   1.0
 *
 **/
+
 namespace Jeff\Api;
 
-// require_once("../config.php");
 
-// 
-// GET
-// 
-
+/**
+* Class ApiGet
+*
+* Handles all requests that come via GET
+* 
+* @author Jeff Frohner
+* @copyright Copyright (c) 2015
+* @license   private
+* @version   1.8.0
+*
+**/
 Class ApiGet 
 {
+	/** @var \MySqliDb Instance of database class */
 	private $db;
-	private $request;
-	private $ENV;
-	private $items;
+	/** @var Models\Account Instance of Account class */
 	private $account;
+	/** @var object the request Object */
+	private $request;
+	/** @var Environment Instance of Environment class */
+	private $ENV;
+	/** @var array the requested items */
+	private $items;
 
+	/**
+	 * The Constructor.
+	 * Only sets the passed in instances/classes to private vars
+	 * @param object         $request      The requst object
+	 * @param object         $data         The data with the item to add
+	 * @param Environment    $ENV          The Environment as defined in consuming app
+	 * @param \MySqliDb      $db           Instance of Database class
+	 * @param ErrorHandler   $errorHandler Instance of ErrorHandler
+	 * @param Models\Account $account      Instance of Account
+	 */
 	function __construct($request, $data, $ENV, $db, $errorHandler, $account) {
-		// global $ENV;
 		$this->request = $request;
 		$this->data = $data;
 		$this->ENV = $ENV;
@@ -35,6 +56,24 @@ Class ApiGet
 		$this->items = new \stdClass();
 	}
 
+
+
+	/**
+	 * Calls the matching methods in (extending) Model-class.
+	 *
+	 * Depending on request type this prepares for and calls either
+	 * - getOneById (a REQUEST_TYPE_NORMAL with a given id as second param)
+	 * - getAll (a REQUEST_TYPE_NORMAL _without_ a given id as second param)
+	 * - getMany2Many (a REQUEST_TYPE_REFERENCE)
+	 * - getCoalesque (a REQUEST_TYPE_COALESQUE)
+	 * - _getFilter + getAll (a REQUEST_TYPE_QUERY)
+	 * 
+	 *   There can be special GET requests implemented:
+	 *   - search
+	 *   - count
+	 * 
+	 * @return response-object the updated item|items
+	 */
 	public function getItems() {
 		switch ($this->request->type) {
 			case Api::REQUEST_TYPE_REFERENCE: 
@@ -85,7 +124,6 @@ Class ApiGet
 	}
 
 	public function getSpecial() {
-		// echo "GET REQUEST_TYPE_SPECIAL: ".$this->request->special;
 		switch ($this->request->special) {
 			case "search":
 				if(isset($this->request->requestArray[1])) {
@@ -159,6 +197,20 @@ Class ApiGet
 		}
 	}
 
+
+	/**
+	 * works through an query call and generated a useable filter
+	 *
+	 * (in Ember: `this.store.query('item', {filter: [{"key":value}], gte: [{date: '2016-04-28'}])` ) 
+	 * @return array the filter, which looks like this:
+	 *
+	 * ```
+	 * [
+	 *    Array("key"=>'postDate', "value"=>'2016-04-28', "comp"=>"<"),
+	 *    Array("key"=>'title', "value"=>'This is a post title', "comp"=>"="),
+	 * ]
+	 * ```
+	 */
 	private function _getFilter() {
 		// it's a query-call (in Ember: `this.store.query('item', {filter: [{"key":value}], gte: [{date: '2016-04-28'}])` ) 
 		// since this format is not very handy, let's restructure that.
@@ -194,6 +246,18 @@ Class ApiGet
 	}
 
 
+	/**
+	 * gets the content of a (predefined) public folder.
+	 * 
+	 * These foldes can be defined in {@see \Jeff\Api\Environment} as a simple string[]
+	 * A fitting request can be:
+	 * - ..api/getFolder/folderName
+	 * - ..api/getFolder with a fitting data `{folder: 'folderName'}`
+	 * 
+	 * @return json assoc array of found files:
+	 *              `['folder'=> 'myfiles', 'filename'=> 'document.pdf', 'extension': 'pdf', 'size' => 512]`
+	 *              
+	 */
 	private function _getFolder() {
 		if(isset($this->request->requestArray[1])) {
 			$requestedFolder = $this->request->requestArray[1];
@@ -236,7 +300,26 @@ Class ApiGet
 		
 	}
 
-
+	/**
+	 * gets and shows an image depending on the requests parameters
+	 *
+	 * Version 1:
+	 * a request with a dataset like this:
+	 * {
+	 *    file: 'filename.jpg',
+	 *    itemType: 'resourceName', // e.g. 'artist', 'account', 'post'
+	 *    type: 'logo'              // e.g. 'logo', 'profilePic', 'background'
+	 * }
+	 *
+	 * Version 2:
+	 * If the imageName is stored in a db table the request-data should look like this
+	 * {
+	 *     imageId: 99,
+	 *     itemType: 'recourceName',  // maybe not needed
+	 * }
+	 * 
+	 * @return [type] [description]
+	 */
 	private function _getImage() {
 		if(isset($this->data->file)) {
 			// VERSION 1 (filename directly given):
@@ -254,7 +337,8 @@ Class ApiGet
 			$this->errorHandler->throwOne(Array("API-Error", "wrong call to getImage. Missing data 'file' or 'imageId'"));
 			exit;
 		}
-		
+		// var_dump($this->data);
+		// echo $path.$filename;
 		require_once('Image.php');
 		$image = new Image($path.$filename);
 		header('Content-Type: '.$image->getHeader());
@@ -264,6 +348,12 @@ Class ApiGet
 		$image->show();
 	}
 
+	/**
+	 * gets a requested file.
+	 * __not yet implemented__
+	 * 
+	 * @return recource the file to download?
+	 */
 	private function _getFile() {
 		$this->errorHandler->throwOne(Array("API-Error", "getFile not yet implemented."));
 	}

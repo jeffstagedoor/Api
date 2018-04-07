@@ -10,14 +10,34 @@
 *	@license   private
 *	@version   1.0
 *
-**/
+*/
 namespace Jeff\Api;
 
+
+/**
+*	Classes DBHelper
+*	
+*	Helper functions for API and it's Database
+*
+*	@author Jeff Frohner
+*	@copyright Copyright (c) 2017
+*	@license   private
+*	@version   1.0
+*
+*/
 Class dbHelper {
 	private $db;
 	private $errorHandler;
 	private $processIndexes = false;
 
+	/**
+	 * Constructor
+	 *
+	 * Just assigns passed in instances to private vars
+	 * 
+	 * @param \MySliDb     $db           Instance of database class
+	 * @param ErrorHandler $errorHandler Instance of ErrorHandler
+	 */
 	public function __construct($db, $errorHandler) {
 		$this->db = $db;
 		$this->errorHandler = $errorHandler;
@@ -45,13 +65,13 @@ Class dbHelper {
 
 
 
-		require_once($ENV->dirs->vendor."jeffstagedoor/Api/api/Log.php");
-		$Log = new \Jeff\Api\Log($this->db, $ENV, $this->errorHandler);
+		require_once($ENV->dirs->vendor."jeffstagedoor/Api/api/Log/Log.php");
+		$Log = new \Jeff\Api\Log\Log($this->db, $ENV, $this->errorHandler);
 		$models[] = $Log;
 
 
-		require_once($ENV->dirs->vendor."jeffstagedoor/Api/api/Log.php");
-		$LogLogin = new \Jeff\Api\LogLogin($this->db, $ENV, $this->errorHandler);
+		require_once($ENV->dirs->vendor."jeffstagedoor/Api/api/Log/LogLogin.php");
+		$LogLogin = new \Jeff\Api\Log\LogLogin($this->db, $ENV, $this->errorHandler);
 		
 		require_once($ENV->dirs->vendor."jeffstagedoor/Api/api/TasksPrototype.php");
 		require_once($ENV->dirs->appRoot."Tasks.php");
@@ -319,18 +339,30 @@ Class dbHelper {
 		}
 	}
 
+	/**
+	 * gets column length from given column info
+	 * @param  string $info column-info
+	 */
 	private function _getLength($info) {
 		$pattern = '/\({1}([\d\W]*)\){1}/';
 		preg_match($pattern, $info, $matches);
 		return isset($matches[1]) ? $matches[1] : NULL;
 	}
 
+	/**
+	 * gets column type from given column info
+	 * @param  string $info column-info
+	 */
 	private function _getColumnType($info) {
 		$pattern = '/([\w]*)(\([\d\W]*\))*/';
 		preg_match($pattern, $info, $matches);
 		return isset($matches[1]) ? $matches[1] : NULL;
 	}
 
+	/**
+	 * gets if column isNull from given column info
+	 * @param  string $info column-info
+	 */
 	private function _getNull($info) {
 		if($info==='NO') {
 			return false;
@@ -339,6 +371,10 @@ Class dbHelper {
 		}
 	}
 
+	/**
+	 * gets column default from given column info
+	 * @param  string $info column-info
+	 */
 	private function _getDefault($info) {
 		if($info>='') {
 			return $info;
@@ -347,6 +383,11 @@ Class dbHelper {
 		}
 	}
 
+
+	/**
+	 * gets column extra info from given column info
+	 * @param  string $info column-info
+	 */
 	private function _getExtra($info) {
 		if($info>='') {
 			return $info;	

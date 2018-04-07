@@ -11,7 +11,15 @@
 namespace Jeff\Api;
 
 
-
+/**
+*	Class Environment
+*	
+*	@author Jeff Frohner
+*	@copyright Copyright (c) 2017
+*	@license   private
+*	@version   1.0
+*
+*/
 Class Environment
 {
 	public $production = true;
@@ -63,6 +71,11 @@ Class Environment
 		$this->noAuthRoutes[] = $route;
 	}
 
+	/**
+	 * simple helper, that generates '../' strings
+	 * @param  int|integer $times how many folders we wanna go up
+	 * @return string             f.e. '../../../' (if $times==3)
+	 */
 	public function folderUp(int $times=1): string {
 		$x="";
 		for ($i=0; $i < $times; $i++) { 
