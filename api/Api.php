@@ -19,7 +19,7 @@ require_once($ENV->dirs->vendor.'joshcam/mysqli-database-class/MysqliDb.php');
 require_once("ErrorHandler.php");
 require_once("Log/Log.php");
 require_once("DataMasker.php");
-require_once("DBHelper.php");
+require_once("Database/Helper.php");
 require_once("ApiHelper.php");
 require_once("Model.php");
 require_once("Account.php");
@@ -238,8 +238,10 @@ Class Api {
 			} else {
 				$execute = false;
 			}
-			$dbHelper = new DBHelper($this->db, $this->errorHandler);
+			$dbHelper = new Database\Helper($this->db, $this->errorHandler);
 			$dbHelper->update($this->ENV, $execute, $this->request->requestArray);
+			exit;
+			echo "end of request dbupdate";
 		}
 
 		switch ($this->method) {

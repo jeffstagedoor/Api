@@ -67,7 +67,7 @@ Class Account extends Model
 			array ('middleName', 'varchar', '20', false, ''),
 			array ('prefixName', 'varchar', '20', false, ''),
 			array ('lastName', 'varchar', '30', false, ''),
-			array ('profilePic', 'varchar', '100', false, ''),
+			array ('profilePic', 'varchar', '100', true, ''),
 			array ('lastOnline', 'timestamp', null, true),
 			array ('lastLogin', 'timestamp', null, true),
 			array ('invitationToken', 'varchar', '250', true),

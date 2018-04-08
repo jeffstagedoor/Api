@@ -61,7 +61,7 @@ Class TasksPrototype
 			array ('meta2', 'int', '11', true, NULL),
 			array ('meta3', 'int', '11', true, NULL),
 			array ('message', 'varchar', '200', true, NULL),
-			array ('requiredDate', 'timestamp', null, false, 'CURRENT_TIMESTAMP'),
+			array ('requiredDate', 'timestamp', null, true, 'CURRENT_TIMESTAMP'),
 			array ('resolvedDate', 'timestamp', null, true, NULL),
 			array ('fulfilled', 'tinyint', '1', false, '0'),
 			array ('rejected', 'tinyint', '1', false, '0'),
