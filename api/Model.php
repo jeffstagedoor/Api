@@ -117,20 +117,38 @@ Class Model
 	// DB-vars & Object
 	/** @var \MySqliDb Instance of Database class */
 	protected $db = null;
-	/**
-	* @var string $dbIdField Database-Fieldname in which the id is stored. Usually (and by default) 'id'
-	*/
-	protected $dbIdField = 'id';
+
 	/**
 	* @var string $dbTable The name of the corresponding database table
 	*/
 	protected $dbTable = 'undefined';
 
 	/**
-	*	@var string $dbPrimaryKey primary database id/key.
+	* @var string $dbIdField Database-Fieldname in which the id is stored. Usually (and by default) 'id'
+	*/
+	protected $dbIdField = 'id';
+
+	/**
+	*	@var string primary database id/key.
 	*	usually/per default 'id'
 	*/	
 	public $dbPrimaryKey = 'id';
+
+	/**
+	*	@var array the database keys/indexes definition
+	*	           shall look like that:
+	*	           
+	*	           array(
+	*	               "name" => "firstIndex",
+	*	               "collation" => "A",
+	*	               "cardinality" => 5,
+	*	               "type" => "BTREE",
+	*	               "comment" => "This is a database index foo bar, whatsoever",
+	*	               "columns" => ["fieldName1", "anotherField"]
+	*	           )
+	*	
+	*/	
+	public $dbKeys = [];
 
 	/** @var array An array of all database-columns. Set in `__constructor` via `_makeAssociativeFieldsArray()` */
 	public $cols = null;
