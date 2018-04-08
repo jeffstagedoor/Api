@@ -1,9 +1,9 @@
-<?
+<?php
 /**
  * Table class
  */
 
-namespace Jeff\Api\Database
+namespace Jeff\Api\Database;
 
 /**
  * Class Table
