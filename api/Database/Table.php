@@ -46,6 +46,20 @@ Class Table {
 	}
 
 	/**
+	 * searches for a column in this Table and returns it
+	 * @param  string $columnName name of the column to search for
+	 * @return Column|NULL             the Column, if found. Or NULL if no matching column was found
+	 */
+	public function findColumn($columnName) {
+		foreach ($this->columns as $column) {
+			if($column->getName === $columnName) {
+				return $column;
+			}
+		}
+		return NULL;
+	}
+
+	/**
 	 * Adds a key to the keys array
 	 * @param Database\Key $key Instance of Key to add
 	 */

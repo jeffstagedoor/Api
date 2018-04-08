@@ -15,17 +15,17 @@ namespace Jeff\Api\Database;
  */
 Class Column {
 	/** @var string name of the column */
-	public $name;
+	private $name;
 	/** @var string the column type */
-	public $type;
+	private $type;
 	/** @var int|double length desired length */
-	public $length;
+	private $length;
 	/** @var bool if the column may be null */
-	public $hasNull;
+	private $hasNull;
 	/** @var string|bool the default value */
-	public $default;
+	private $default;
 	/** @var string extra definitions like 'AUTO_INCREMENT' */
-	public $extra;
+	private $extra;
 
 	/**
 	 * creates the column definition.
@@ -48,6 +48,49 @@ Class Column {
 			$this->hasNull = isset($column[3]) ? $column[3] : false;
 			$this->default = isset($column[4]) ? $column[4] : null;
 			$this->extra = isset($column[5]) ? $column[5] : null;
+	}
+
+	/**
+	 * return property name
+	 * @return string Name of the Column
+	 */
+	public function getName() {
+		return $this->name;
+	}
+	/**
+	 * return property Type
+	 * @return string Type of the Column
+	 */
+	public function getType() {
+		return $this->type;
+	}
+	/**
+	 * return property Length
+	 * @return string Length of the Column
+	 */
+	public function getLength() {
+		return $this->length;
+	}
+	/**
+	 * return property hasNull
+	 * @return string hasNull of the Column
+	 */
+	public function getHasNull() {
+		return $this->hasNull;
+	}
+	/**
+	 * return property Default
+	 * @return string Default of the Column
+	 */
+	public function getDefault() {
+		return $this->default;
+	}
+	/**
+	 * return property Extra
+	 * @return string Extra of the Column
+	 */
+	public function getExtra() {
+		return $this->extra;
 	}
 
 	/**

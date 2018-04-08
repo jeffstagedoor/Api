@@ -1,6 +1,6 @@
 <?php
 /**
-*	Classes Helper
+*	Class Helper
 *	
 *	Helper functions for API and it's Database
 *
@@ -18,7 +18,7 @@ require_once('Column.php');
 require_once('Key.php');
 
 /**
-*	Classes Helper
+*	Class Helper
 *	
 *	Helper functions for API and it's Database
 *
@@ -34,7 +34,7 @@ Class Helper {
 	/** @var \Jeff\Api\ErrorHandler   Instance of ErrorHandler */
 	private $errorHandler;
 	/** @var boolean just a switch to enable/disable indexes */
-	private $processIndexes = false;
+	private $processIndexes = true;
 
 	/**
 	 * Constructor
@@ -49,6 +49,16 @@ Class Helper {
 		$this->errorHandler = $errorHandler;
 	}
 
+	/**
+	 * checks differences between db-definition an database 
+	 * and updates database if diffs are found and execution is switched on
+	 * @param  \Jeff\Api\Environment  $ENV          Instance of Environment
+	 * @param  boolean $execute      	If the update should actually be executed
+	 * @param  array  $requestArray 	the array of the request
+	 *                               	it's possible to do a api/dbupdate/showDbDefinition/tableName
+	 *                               	that's what we need this for...
+	 * @return void                		directly echos the info
+	 */
 	public function update($ENV, $execute=false, $requestArray) {
 		echo "<html><body>";
 		echo $execute ? "<h5 style='color: #0d0;'>execution is switched ON.</h5>" : "<h5 style='color: #bbb;'>execution is switched OFF.</h5>";
@@ -85,9 +95,9 @@ Class Helper {
 		$models[] = $Task;
 
 		// Accounts/Users should be an extended model in consuming App
-		// require_once($ENV->dirs->vendor."jeffstagedoor/Api/api/Account.php");
-		// $Account = new \Jeff\Api\Models\Account($this->db, $ENV, $this->errorHandler, null);
-		// $models[] = $Account;
+		require_once($ENV->dirs->vendor."jeffstagedoor/Api/api/Account.php");
+		$Account = new \Jeff\Api\Models\Account($this->db, $ENV, $this->errorHandler, null);
+		$models[] = $Account;
 		
 
 		if(count($models)===0) {
@@ -120,6 +130,13 @@ Class Helper {
 		echo "</body></html>";
 	}
 
+	/**
+	 * takes the dbDefinition of a model and transfers that to proper classes Table, Column, Key
+	 * @param  string $tableName    name of the current table
+	 * @param  array $dbDefinition the table definition as described in model
+	 * @param  string $primaryKey   name of the primary key
+	 * @return Table               Instance of Table, containing Column[]
+	 */
 	private function _buildTableDefinition($tableName, $dbDefinition, $primaryKey) {
 		$table = new Table($tableName);
 		foreach ($dbDefinition as $column) {
@@ -129,65 +146,69 @@ Class Helper {
 		return $table;
 	}
 
+	/**
+	 * does the actual check if there are differences between a db-table and the found definitions
+	 * @param  \Jeff\Api\Environment $ENV             Instance of Environment
+	 * @param  string $tableName        name of the db-table
+	 * @param  Table $tableDefinition   Instance of Table, containing all the info about current dbDefinition
+	 * @param  array $requestArray      the array of the request
+	 *                               	it's possible to do a api/dbupdate/showDbDefinition/tableName
+	 *                               	that's what we need this for...
+	 * @return void                     will do all the html output inline
+	 */
 	private function _checkDbIsTheSame($ENV, $tableName, $tableDefinition, $requestArray/*, $primaryKey*/) {
 
 			$result = $this->db->rawQuery("SHOW FULL TABLES LIKE '".$tableName."'");
 			if(count($result)>0) {
 				// TABLE EXISTS -> check for possible updates
 				echo "\n\n<br><br>Table <b>'{$tableName}'</b> <span style='color: #00CC00;'>exists</span>"; //, <i>checking for updates:</i>";
+				$tableSnapshot = $this->getTableSnapshot($tableName);
 
-				#$tableDefinition = buildTableDefinition($tableName, $dbDefinition, $primaryKey); 
-				$tableInfo = $this->getTableInfo($tableName);
-
-				#var_dump($tableDefinition);
 				foreach($tableDefinition->getColumns() as $column) {
-					#var_dump($column);
-
-
-						echo "\n<br> &nbsp;&nbsp;&nbsp;&nbsp;".$column->name;
-						$field = $this->_findColumn($tableInfo, $column->name);
+						echo "\n<br> &nbsp;&nbsp;&nbsp;&nbsp;".$column->getName();
+						$snapshotColumn = $tableSnapshot->findColumn($column->getName());
 						$mismatch = false;
-						if($field) {
+						if($snapshotColumn) {
 							echo " - <span style='color: #00CC00;'>exists</span> ";
-							if($field->type != $column->type) {
+							if($snapshotColumn->getType() != $column->getType()) {
 								echo "- <b>TYPES MISMATCH</b>";
-								echo "in db: ".$field->type.", in definition: ".$column->type."<br>";
+								echo "in db: ".$snapshotColumn->getType().", in definition: ".$column->getType()."<br>";
 								$mismatch=true;
 							}
-							if($field->length != $column->length) {
+							if($snapshotColumn->getLength() != $column->getLength()) {
 								echo "- <b>LENGTH MISMATCH</b>";
-								echo "in db: ".$field->length.", in definition: ".$column->length."<br>";
+								echo "in db: ".$snapshotColumn->getLength().", in definition: ".$column->getLength()."<br>";
 								$mismatch=true;
 							}
-							if($field->hasNull != $column->hasNull) {
+							if($snapshotColumn->getHasNull() != $column->getHasNull()) {
 								echo "- <b>HASNULL MISMATCH:</b> ";
-								echo "in db: ".$field->hasNull.", in definition: ".$column->hasNull."<br>";
+								echo "in db: ".$snapshotColumn->getHasNull().", in definition: ".$column->getHasNull()."<br>";
 								$mismatch=true;
 							}
 							/* OLD NULL-VERSION
-							if(isset($column[3]) && $field->hasNull != $column[3]) {
+							if(isset($column[3]) && $snapshotColumn->getHasNull() != $column[3]) {
 								echo "- <b>HASNULL MISMATCH (and set)</b>";
 								$mismatch=true;
 							} elseif(!isset($column[3])) {
-								if($field->hasNull===true) {
+								if($snapshotColumn->getHasNull()===true) {
 								echo "- <b>HASNULL MISMATCH</b>";
 								$mismatch=true;
 								}
 							}
 							*/
 
-							if($field->default != $column->default) {
+							if($snapshotColumn->getDefault() != $column->getDefault()) {
 								echo "- <b>DEFAULT MISMATCH</b> ";
-								echo "in db: ".$field->default.", in definition: ".$column->default."<br>";
+								echo "in db: ".$field->getDefault().", in definition: ".$column->getDefault()."<br>";
 								$mismatch=true;
 							}
 							/* original DEFAULT-VERSION
 																				// default as NULL    OR  default as 					'NULL'
-							if(isset($column[4]) && $field->default !== $column[4] && (is_null($field->default) && strtoupper($column[4])!=='NULL') ) {
+							if(isset($column[4]) && $field->getDefault() !== $column[4] && (is_null($field->getDefault()) && strtoupper($column[4])!=='NULL') ) {
 								echo "- <b>DEFAULT MISMATCH</b>";
 								$mismatch=true;
 							} elseif(!isset($column[4])) {
-								if($field->default!==NULL || $field->default==='') {
+								if($field->getDefault()!==NULL || $field->getDefault()==='') {
 								echo "- <b>DEFAULT MISMATCH</b>";
 								$mismatch=true;
 								}
@@ -235,7 +256,7 @@ Class Helper {
 				// got the INFO from Database, now let's compare what we've got in definitions:
 				if(isset($requestArray[1]) && $requestArray[1]==='showDbDefinition' && isset($requestArray[2]) && $requestArray[2]===$tableName) {
 						echo "<pre>";
-						echo $this->_extractDbDefinition($tableInfo);
+						echo $this->_extractDbDefinition($tableSnapshot);
 						echo "</pre>";
 				} else {
 					echo "<br><a href=\"{$ENV->urls->baseUrl}{$ENV->urls->apiUrl}dbupdate/showDbDefinition/$tableName/\">showDbDefinition</a><br>";
@@ -265,31 +286,47 @@ Class Helper {
 
 	}
 
-	public function getTableInfo($tableName) {
+	/**
+	 * gets a current snapshot of a database table
+	 * @param  string $tableName name of the table
+	 * @return Table             a Table object
+	 */
+	public function getTableSnapshot($tableName) {
 		$result = $this->db->rawQuery("DESCRIBE `".$tableName."`");
+		$tableSnapshot = new Table() 
 
-		// $tableInfo=$result;
-		$tableInfo = array();
-		// print_r($result);
 		foreach ($result as $key => $value) {
-			// print_r($value);
-			$info = new \stdClass();
-			$info->name = $value['Field'];
-			$info->type = $this->_getColumnType($value['Type']);
-			$info->length = $this->_getLength($value['Type']);
-			$info->hasNull = $this->_getNull($value['Null']);
-			$info->default = $this->_getDefault($value['Default']);
-			$info->extra = $this->_getExtra($value['Extra']);
-			$tableInfo[] = $info;
+			$column = new Column(
+				$value['Field'], 
+				$this->_getColumnType($value['Type']), 
+				$this->_getLength($value['Type']), 
+				$this->_getNull($value['Null']),
+				$this->_getDefault($value['Default']), 
+				$this->_getExtra($value['Extra']);
+			);
+			
+			$tableSnapshot->addColumn($column);
 		}
-		return $tableInfo;
+		return $tableSnapshot;
 	}
 
-
+	/**
+	 * finds and returns the indexes in given db table
+	 * @param  string $tableName name of the table
+	 * @return array            an array of indexes
+	 */
 	private function _getIndexes($tableName) {
 		$result = $this->db->rawQuery("SHOW INDEX FROM `".$tableName."`");
 		return $result;
-		// print_r($result);
+	}
+
+	/**
+	 * alias for _getIndexes($tableName)
+	 * @param  string $tableName name of the table
+	 * @return array            an array of indexes
+	 */
+	private function _getKeys($tableName) {
+		return $this->_getIndexes($tableName);
 	}
 
 	private function _extractDbDefinition($tableInfo) {
@@ -297,11 +334,11 @@ Class Helper {
 		foreach ($tableInfo as $key => $field) {
 			$fieldDefinition = [];
 			$fieldDefinition[0] = $field->name;
-			$fieldDefinition[1] = $field->type;
-			$fieldDefinition[2] = $field->length;
-			$fieldDefinition[3] = $field->hasNull;
-			$fieldDefinition[4] = $field->default;
-			$fieldDefinition[5] = $field->extra;
+			$fieldDefinition[1] = $field->getType();
+			$fieldDefinition[2] = $field->getLength();
+			$fieldDefinition[3] = $field->getHasNull();
+			$fieldDefinition[4] = $field->getDefault();
+			$fieldDefinition[5] = $field->getExtra();
 			$array[] = $fieldDefinition;
 		}
 		// $array = $tableInfo;
@@ -317,15 +354,27 @@ Class Helper {
 		return false;
 	}
 
+	/**
+	 * generates sql to change a column description and executes
+	 * @param  string $tableName name of the table
+	 * @param  Column $column    Instance of column
+	 * @return void
+	 */
 	private function _alterTable($tableName, $column) {
-		$s = "ALTER TABLE `$tableName` CHANGE `{$column->name}` ";
+		$s = "ALTER TABLE `$tableName` CHANGE `{$column->getName()}` ";
 		#$s .= $this->_Column($column);
 		$s .= $column->getSql();
 		$this->_showQuery($s);
 		$this->_dbExecute($s);
 	}
 
-
+	/** 
+	 * generates sql to create a column via "ALTER TABLE ADD...".
+	 * Uses Column::getSql()
+	 * @param string $tableName name of the table
+	 * @param Column $column    Instance of Column
+	 * @return void
+	 */
 	private function _addColumn($tableName, $column) {
 		$s = "ALTER TABLE `$tableName` ADD ";
 		#$s .= $this->_Column($column);
@@ -334,10 +383,20 @@ Class Helper {
 		$this->_dbExecute($s);
 	}
 
+	/**
+	 * just echoes the given query in <pre> tags
+	 * @param  string $sql the query to show
+	 * @return void
+	 */
 	private function _showQuery($sql) {
 		echo "<div style='margin-left: 50px;'><pre>$sql</pre></div>";
 	}
 
+	/**
+	 * executes the given query if $this->execute is true
+	 * @param  string $sql the query
+	 * @return void
+	 */
 	private function _dbExecute($sql) {
 		if($this->execute) {
 			$result = $this->db->rawQuery($sql);
