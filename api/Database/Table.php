@@ -46,13 +46,21 @@ Class Table {
 	}
 
 	/**
+	 * returns the columns-array
+	 * @return Columns[] the array of Columns
+	 */
+	public function getColumns() {
+		return $this->columns;
+	}
+
+	/**
 	 * searches for a column in this Table and returns it
 	 * @param  string $columnName name of the column to search for
 	 * @return Column|NULL             the Column, if found. Or NULL if no matching column was found
 	 */
 	public function findColumn($columnName) {
 		foreach ($this->columns as $column) {
-			if($column->getName === $columnName) {
+			if($column->getName() === $columnName) {
 				return $column;
 			}
 		}
@@ -69,12 +77,42 @@ Class Table {
 	}
 
 	/**
+	 * returns the keys array
+	 * @return Database\Key[] all Keys in this Table as array
+	 */
+	public function getKeys() {
+		return $this->keys;
+	}
+
+	/**
+	 * returns a specific key in this table by name
+	 * @param  string $name name of the key to find
+	 * @return Database\Key|NULL a found key or NULL
+	 */
+	public function getKeyByName($name) {
+		$keys = $this->getKeys();
+		foreach ($keys as $key) {
+			if($key->name === $name) {
+				return $key;
+			}
+		}
+		return NULL;
+	}
+
+	/**
 	 * Sets primaryKey to given name
 	 * @param string $primaryKey name of the primary key
 	 */
 	public function setPrimaryKey($primaryKey) {
 		$this->primaryKey = $primaryKey;
 		return $this;
+	}
+	/**
+	 * Gets primaryKey to given name
+	 * @return string $primaryKey name of the primary key
+	 */
+	public function getPrimaryKey() {
+		return $this->primaryKey;
 	}
 
 	/**
@@ -94,13 +132,5 @@ Class Table {
 			$s[] = $key->getSql();
 		}
 		return $sql.implode(",\n", $s)."\n)";
-	}
-
-	/**
-	 * returns the columns-array
-	 * @return Columns[] the array of Columns
-	 */
-	public function getColumns() {
-		return $this->columns;
 	}
 }

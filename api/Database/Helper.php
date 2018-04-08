@@ -111,7 +111,7 @@ Class Helper {
 			}
 
 			$tableName = $model->getDbTable();
-			$tableDefinition = $this->_buildTableDefinition($tableName, $model->dbDefinition, $model->dbPrimaryKey);
+			$tableDefinition = $this->_buildTableDefinition($tableName, $model->dbDefinition, $model->dbPrimaryKey, $model->keys);
 			
 			$this->_checkDbIsTheSame($ENV, $tableName, $tableDefinition, $requestArray/*, $model->dbPrimaryKey*/);
 
@@ -132,12 +132,13 @@ Class Helper {
 
 	/**
 	 * takes the dbDefinition of a model and transfers that to proper classes Table, Column, Key
-	 * @param  string $tableName    name of the current table
-	 * @param  array $dbDefinition the table definition as described in model
-	 * @param  string $primaryKey   name of the primary key
-	 * @return Table               Instance of Table, containing Column[]
+	 * @param  string  $tableName     name of the current table
+	 * @param  array   $dbDefinition  the table definition as described in model
+	 * @param  string  $primaryKey    name of the primary key
+	 * @param  array   $keys          definition of the keys
+	 * @return Table                  Instance of Table, containing Column[]
 	 */
-	private function _buildTableDefinition($tableName, $dbDefinition, $primaryKey) {
+	private function _buildTableDefinition($tableName, $dbDefinition, $primaryKey, $keys) {
 		$table = new Table($tableName);
 		foreach ($dbDefinition as $column) {
 			$table->addColumn(new Column($column));
@@ -230,26 +231,47 @@ Class Helper {
 				// KEYS / INDEXES:
 
 				if($this->processIndexes) {
-					$indexes = $this->_getIndexes($tableName);
-					#var_dump($indexes);
-					$foundPrimaryInDB = false;
-					foreach ($indexes as $index) {
-						if($index['Key_name']==='PRIMARY') {
-							if(isset($primaryKey) && $primaryKey===$index['Column_name']) {
-								// Primary Key matches
-							} else {
-								echo "<br>- <b>PRIMARY KEY MISMATCH</b>";
-								if(is_null($primaryKey)) {
-									echo "\n<br>Primary key exists in DB (on '{$index['Column_name']}') , but is NOT set in Model";
-								}
-							}
-							$foundPrimaryInDB=true;
+						echo "<br><span style='color: #333;'>PRIMARY KEY: </span>";
+						echo "defined: ".$tableDefinition->getPrimaryKey().",";
+						echo "found: ".$tableDefinition->getPrimaryKey()." ";
+					if($tableDefinition->getPrimaryKey()==$tableSnapshot->getPrimaryKey()) {
+						echo "<span style='color: #00CC00;'>matches</span> ";
+						
+					} else {
+						echo "<br>- <b>PRIMARY KEY MISMATCH</b>";
+						if(is_null($tableDefinition->getPrimaryKey()) && !is_null($tableSnapshot->getPrimaryKey())) {
+							echo "\n<br>Primary key exists in DB (on '{$tableSnapshot->getPrimaryKey()}') , but is NOT set in Model<br>";
+						} elseif (!is_null($tableDefinition->getPrimaryKey()) && is_null($tableSnapshot->getPrimaryKey())) {
+							echo "\n<br>Primary key is defined in Model (on '{$tableDefinition->getPrimaryKey()}'), but doesn't exists in DB<br>";
 						}
+
+						echo "<span style:'color: #f00;'>no sql to change that yet implemented...</span>";
 					}
-					if(!is_null($primaryKey) && !$foundPrimaryInDB) {
-						echo "- <b>PRIMARY KEY MISMATCH</b>";
-						echo "\n<br>Primary key is defined in Model (on '{$model->dbPrimaryKey}') , but is NOT defined in DB";
+					
+					// Keys:
+					// var_dump($tableSnapshot->getKeys());
+					echo "Keys in database:<br>";
+					foreach ($tableSnapshot->getKeys() as $key) {
+						echo $key->getName()."<br>";
 					}
+
+					// foreach ($indexes as $index) {
+					// 	if($index['Key_name']==='PRIMARY') {
+					// 		if(isset($primaryKey) && $primaryKey===$index['Column_name']) {
+					// 			// Primary Key matches
+					// 		} else {
+					// 			echo "<br>- <b>PRIMARY KEY MISMATCH</b>";
+					// 			if(is_null($primaryKey)) {
+					// 				echo "\n<br>Primary key exists in DB (on '{$index['Column_name']}') , but is NOT set in Model";
+					// 			}
+					// 		}
+					// 		$foundPrimaryInDB=true;
+					// 	}
+					// }
+					// if(!is_null($primaryKey) && !$foundPrimaryInDB) {
+					// 	echo "- <b>PRIMARY KEY MISMATCH</b>";
+					// 	echo "\n<br>Primary key is defined in Model (on '{$model->dbPrimaryKey}') , but is NOT defined in DB";
+					// }
 				} // if $processIndexes
 
 
@@ -293,8 +315,10 @@ Class Helper {
 	 */
 	public function getTableSnapshot($tableName) {
 		$result = $this->db->rawQuery("DESCRIBE `".$tableName."`");
-		$tableSnapshot = new Table() 
-
+		$tableSnapshot = new Table($tableName);
+		echo "<pre>";
+		// var_dump($result);
+		echo "</pre>";
 		foreach ($result as $key => $value) {
 			$column = new Column(
 				$value['Field'], 
@@ -302,10 +326,20 @@ Class Helper {
 				$this->_getLength($value['Type']), 
 				$this->_getNull($value['Null']),
 				$this->_getDefault($value['Default']), 
-				$this->_getExtra($value['Extra']);
+				$this->_getExtra($value['Extra'])
 			);
 			
 			$tableSnapshot->addColumn($column);
+			// if($value['Key']=='PRI') {
+			// 	$tableSnapshot->setPrimaryKey($value['Field']);
+			// }
+		}
+		$indexInfo = $this->_getIndexes($tableName);
+		if(isset($indexInfo->primaryKey)) {
+	 		$tableSnapshot->setPrimaryKey($indexInfo->primaryKey);
+		}
+		foreach ($indexInfo->keys as $key) {
+		 		$tableSnapshot->addKey(new Key($key->name, $key));
 		}
 		return $tableSnapshot;
 	}
@@ -317,7 +351,28 @@ Class Helper {
 	 */
 	private function _getIndexes($tableName) {
 		$result = $this->db->rawQuery("SHOW INDEX FROM `".$tableName."`");
-		return $result;
+		$oIndexes = new \stdClass();
+		$oIndexes->primaryKey = null;
+		$oIndexes->keys = [];
+		foreach ($result as $key => $indexArray) {
+		 	if($indexArray['Key_name']==='PRIMARY') {
+		 		$oIndexes->primaryKey = $indexArray['Column_name'];
+		 	} else {
+		 		if(isset($oIndexes->keys[$indexArray['Key_name']])) {
+		 			$oIndexes->keys[$indexArray['Key_name']]->columns[] = $indexArray['Column_name'];
+		 		} else {
+			 		$x = new \stdClass();
+			 		$x->name = isset($indexArray['Key_name']) ? $indexArray['Key_name'] : NULL;
+			 		$x->collation = isset($indexArray['Collation']) ? $indexArray['Collation'] : NULL;
+			 		$x->cardinality = isset($indexArray['Cardinality']) ? $indexArray['Cardinality'] : NUll;
+			 		$x->type = isset($indexArray['Index_type']) ? $indexArray['Index_type'] : NULL;
+			 		$x->comment = isset($indexArray['Index_Comment']) ? $indexArray['Index_Comment'] : '';
+			 		$x->columns[] = isset($indexArray['Column_name']) ? $indexArray['Column_name'] : 'undefined';
+			 		$oIndexes->keys[$indexArray['Key_name']]  = $x;
+		 		}
+		 	}
+		 }
+		return $oIndexes;
 	}
 
 	/**
