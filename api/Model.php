@@ -135,9 +135,9 @@ Class Model
 	public $dbPrimaryKey = 'id';
 
 	/**
-	*	@var array the database keys/indexes definition
-	*	           shall look like that:
+	 * the database keys/indexes definition which shall look like that:
 	*	           
+	*	           ```
 	*	           array(
 	*	               "name" => "firstIndex",
 	*	               "collation" => "A",
@@ -146,7 +146,9 @@ Class Model
 	*	               "comment" => "This is a database index foo bar, whatsoever",
 	*	               "columns" => ["fieldName1", "anotherField"]
 	*	           )
+	*	           ```
 	*	
+	* @var array   the database keys/indexes definition, 
 	*/	
 	public $dbKeys = [];
 
