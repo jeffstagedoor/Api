@@ -111,7 +111,7 @@ Class Helper {
 			}
 
 			$tableName = $model->getDbTable();
-			$tableDefinition = $this->_buildTableDefinition($tableName, $model->dbDefinition, $model->dbPrimaryKey, $model->keys);
+			$tableDefinition = $this->_buildTableDefinition($tableName, $model->dbDefinition, $model->dbPrimaryKey, $model->dbKeys);
 			
 			$this->_checkDbIsTheSame($ENV, $tableName, $tableDefinition, $requestArray/*, $model->dbPrimaryKey*/);
 
@@ -119,8 +119,9 @@ Class Helper {
 				foreach ($model->hasMany as $key => $def) {
 					$tableName = $key;
 					if(isset($def['db'])) {
-						// var_dump($def);
-						$tableDefinition = $this->_buildTableDefinition($tableName, $def['db'], $def['primaryKey']);
+						$primaryKey = isset($def['primaryKey']) ? $def['primaryKey'] : NULL;
+						$keys = isset($def['keys']) ? $def['keys'] : [];
+						$tableDefinition = $this->_buildTableDefinition($tableName, $def['db'], $primaryKey, $keys);
 						$this->_checkDbIsTheSame($ENV, $tableName, $tableDefinition, $requestArray/*, $primaryKey*/);
 					}
 				}
