@@ -34,7 +34,7 @@ Class Helper {
 	/** @var \Jeff\Api\ErrorHandler   Instance of ErrorHandler */
 	private $errorHandler;
 	/** @var boolean just a switch to enable/disable indexes */
-	private $processIndexes = true;
+	private $processIndexes = false;
 
 	/**
 	 * Constructor

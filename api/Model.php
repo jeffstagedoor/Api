@@ -6,7 +6,7 @@
 
 namespace Jeff\Api\Models;
 use Jeff\Api as Api;
-
+use Jeff\Api\Environment;
 
 /**
  *	This is the base class for all models.
@@ -317,19 +317,14 @@ Class Model
   	* ```
   	*
   	* @param \MySqlDb $db Instance of Database class
-  	* @param \Jeff\Api\Environment $ENV Instance of Environment class
-  	* @param \Jeff\Api\ErrorHandler $errorHandler Instance of ErrorHandler class
   	* @param Account $account Instance of Account class (with the logged in account)
   	* @param object $request Object containing all relevant infos about the current request
 	*/
-	public function __construct($db, $ENV, $errorHandler, $account, $request=NULL) 
+	public function __construct($db, $account) 
 	{
 		$this->db = $db;
-		$this->ENV = $ENV;
-		$this->errorHandler = $errorHandler;
 		$this->cols = $this->_makeAssociativeFieldsArray($this->dbTable, $this->dbDefinition);
 		$this->account = $account;
-		$this->request = $request;
 
 		if(method_exists($this, "initializeHook")) {
 			$this->initializeHook();
@@ -380,8 +375,8 @@ Class Model
 	{
 		// checking for quthorization first:
 		if( isset($this->request->type) && $this->request->type!=Api\Api::REQUEST_TYPE_SPECIAL) {
-			if(file_exists($this->ENV->dirs->appRoot."AuthorizationConfig.php")) {
-				include_once($this->ENV->dirs->appRoot."AuthorizationConfig.php");
+			if(file_exists(Environment::$dirs->appRoot."AuthorizationConfig.php")) {
+				include_once(Environment::$dirs->appRoot."AuthorizationConfig.php");
 				$Authorizor = new \Jeff\Api\Authorizor\Authorizor($Settings, $this->account, $this->db);
 				// check if we have settings for that model
 				$isAuthorized = $Authorizor->authorize($this->modelName, $this->modelNamePlural, $id, 'mayView');
@@ -1361,7 +1356,7 @@ Class Model
 
 						$sideloadModelFileName = $sideloadItem['name'].".php";
 						
-						include_once($this->ENV->dirs->models.DIRECTORY_SEPARATOR.$sideloadModelFileName);
+						include_once(Environment::$dirs->models.DIRECTORY_SEPARATOR.$sideloadModelFileName);
 						$className = $sideloadItem['name'];
 						// echo "className: $className\n";
 						$classNameNamespaced = "\\Jeff\\Api\\Models\\" . ucfirst($className);
@@ -1436,7 +1431,7 @@ Class Model
 	private function _getResultFromDb() {
 		global $err;
 
-		$db2 = new \MysqliDb($this->ENV->database);
+		$db2 = new \MysqliDb(Environment::$database);
 		// $tableResult = $this->db->rawQuery("SHOW FULL TABLES LIKE '".$this->dbTable."'");
 		$tableResult = $db2->rawQuery("SHOW FULL TABLES LIKE '".$this->dbTable."'");
 		if(!(count($tableResult)>0)) {

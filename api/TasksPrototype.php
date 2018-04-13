@@ -69,6 +69,24 @@ Class TasksPrototype
 		);
 	/** @var string $dbPrimaryKey primary database id/key. */	
 	public $dbPrimaryKey = 'id';
+	
+	/**
+	* the database keys/indexes definition which shall look like that:
+	*	           
+	*	           ```
+	*	           array(
+	*	               "name" => "firstIndex",
+	*	               "collation" => "A",
+	*	               "cardinality" => 5,
+	*	               "type" => "BTREE",
+	*	               "comment" => "This is a database index foo bar, whatsoever",
+	*	               "columns" => ["fieldName1", "anotherField"]
+	*	           )
+	*	           ```
+	*	
+	* @var array   the database keys/indexes definition, 
+	*/	
+	public $dbKeys = [];
 	/**
 	 * returns the db-tableName
 	 * @return string name of the corresponding database table

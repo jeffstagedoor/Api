@@ -13,11 +13,12 @@
 */
 
 namespace Jeff\Api;
+use Jeff\Api\Environment;
 
-require_once($ENV->dirs->vendor.'joshcam/mysqli-database-class/MysqliDb.php');
-
+require_once("Environment.php");
 require_once("ErrorHandler.php");
 require_once("Log/Log.php");
+require_once("Log/LogDefault.php");
 require_once("DataMasker.php");
 require_once("Database/Helper.php");
 require_once("ApiHelper.php");
@@ -26,6 +27,7 @@ require_once("Account.php");
 require_once("MailerPrototype.php");
 require_once("Authorizor/Authorizor.php");
 include_once("debughelpers.php");
+require_once(Environment::$dirs->vendor.'joshcam/mysqli-database-class/MysqliDb.php');
 
 /**
  * a class that defines and shows version, author, etc. of this package
@@ -82,7 +84,7 @@ Class ApiInfo {
 Class Api {
 
 	/** @var object Environment Object to be passed in __construct() */
-	private $ENV;
+	// private $ENV;
 	
 	/** 
 	 * for development only - disables authorization. Set in Environment.
@@ -145,33 +147,30 @@ Class Api {
 	 * will analyse the made $request, get needed $models, authorize the current user     
 	 * and will delegate to ApiGet, ApiPost, ApiPut, ApiDelete depending on the request made.
 	 *	
-	 * @param Environment $ENV Environment-Definition Object. Defines all environment parameters, such as paths, links, debug, log, ...
-	 *	
 	 */
-	public function __construct(Environment $ENV=null) {
-		// self::$instance = $this;
-		$this->ENV = $ENV;
+	public function __construct() {
 		// instatiate all nesseccary classes
-		$this->errorHandler = new ErrorHandler();
-		$this->db = new \MysqliDb($this->ENV->database);
-		$this->log = new Log\Log($this->db, $this->ENV, $this->errorHandler);
+		// $this->errorHandler = new ErrorHandler();
+		$this->db = new \MysqliDb(Environment::$database);
+		// $this->log = new Log\Log($this->db);
+		Log\Log::initialize($this->db);
 
-		self::_sendPrimaryHeaders($ENV);
+		self::_sendPrimaryHeaders();
 
 		// check if we have a database ready:
 		try {
 			$this->db->connect();
 		} catch(\Exception $e) {
 			$this->db = NULL;
-			$this->errorHandler->add(Array("DB Error", "Could not connect to database", 500, true, ErrorHandler::CRITICAL_ALL));
-			$this->errorHandler->sendErrors();
-			$this->errorHandler->sendApiErrors();
+			ErrorHandler::add(Array("DB Error", "Could not connect to database", 500, true, ErrorHandler::CRITICAL_ALL));
+			ErrorHandler::sendErrors();
+			ErrorHandler::sendApiErrors();
 			exit;
 		}
 
 
-		$this->NOAUTH = isset($this->ENV->api->noAuth) ? $this->ENV->api->noAuth : false;
-		$this->account = new Models\Account($this->db, $this->ENV, $this->errorHandler, null);
+		$this->NOAUTH = isset(Environment::$api->noAuth) ? Environment::$api->noAuth : false;
+		$this->account = new Models\Account($this->db, null);
 
 		// put together what was passed as parameters to this api:
 		$this->method = $_SERVER['REQUEST_METHOD'];
@@ -224,7 +223,7 @@ Class Api {
 				$this->account->updateLastOnline();
 			}
 		} 
-		if($this->ENV->api->noAuth) {
+		if(Environment::$api->noAuth) {
 			$this->account->mockAccount();
 		}
 		# End Authentication
@@ -249,7 +248,7 @@ Class Api {
 				exit;
 			case 'GET':
 				require_once('ApiGet.php');
-				$ApiGet = new ApiGet($this->request, $this->data, $this->ENV, $this->db, $this->errorHandler, $this->account);
+				$ApiGet = new ApiGet($this->request, $this->data, $this->db, $this->account);
 				if($this->request->type===self::REQUEST_TYPE_SPECIAL) {
 					$response = $ApiGet->getSpecial();
 					if($response) {
@@ -419,7 +418,7 @@ Class Api {
 				}
 			}
 		}
-		$modelFile = $this->ENV->dirs->models . ucfirst($modelName) . ".php";
+		$modelFile = Environment::$dirs->models . ucfirst($modelName) . ".php";
 		
 		if (!file_exists($modelFile)) {
 			$this->errorHandler->throwOne(Array("Api Error", "Requested recource '{$modelName}' not found/defined.", 400, ErrorHandler::CRITICAL_EMAIL, false));
@@ -427,7 +426,7 @@ Class Api {
 		} else {
 			include_once($modelFile);
 			$classNameNamespaced = "\\Jeff\\Api\\Models\\" . ucfirst($modelName);
-			$model = new $classNameNamespaced($this->db, $this->ENV, $this->errorHandler, $this->account);
+			$model = new $classNameNamespaced($this->db, $this->account);
 			return $model;
 		}
 		return null;
@@ -442,13 +441,13 @@ Class Api {
 	*/
 	private function _getAllModels(): array {
 		$models = Array();
-		$folder = $this->ENV->dirs->models;
+		$folder = Environment::$dirs->models;
 		$files = array_diff(scandir($folder), array('.', '..'));
 		foreach ($files as $fileName) {
 			include_once($folder.DIRECTORY_SEPARATOR.$fileName);
 			$className = basename($fileName, ".php");
 			$classNameNamespaced = "\\Jeff\\Api\\Models\\" . ucfirst($className);
-			$model = new $classNameNamespaced($this->db, $this->ENV, $this->errorHandler, $this->account);
+			$model = new $classNameNamespaced($this->db, $this->account);
 			$models[$model->modelNamePlural] = $model;
 		}
 		return $models;
@@ -466,15 +465,15 @@ Class Api {
 	*/
 	private function _needsAuthentication() {
 		#echo __FILE__." ". __FUNCTION__ ."() - Line: ". __LINE__."\n";
-		if(isset($this->ENV->api->noAuthRoutes) && is_array($this->ENV->api->noAuthRoutes) && is_array($this->requestArray)) {
+		if(isset(Environment::$api->noAuthRoutes) && is_array(Environment::$api->noAuthRoutes) && is_array($this->requestArray)) {
 			$requestRoute = implode('/', $this->requestArray);
-			foreach ($this->ENV->api->noAuthRoutes as $key => $route) {
+			foreach (Environment::$api->noAuthRoutes as $key => $route) {
 				if($route===$requestRoute) {
 					return false;
 				}
 			}
 		}
-		if($this->ENV->api->noAuth) { 
+		if(Environment::$api->noAuth) { 
 			return false;
 		}
 		if($this->method==='OPTIONS') {
@@ -494,8 +493,8 @@ Class Api {
 	*	@param Environment $ENV the configuration Object
 	*	@return void
 	*/
-	private function _sendPrimaryHeaders($ENV) {
-		header("Access-Control-Allow-Origin: ".$this->ENV->urls->allowOrigin);
+	private function _sendPrimaryHeaders() {
+		header("Access-Control-Allow-Origin: ".Environment::$urls->allowOrigin);
 		header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 		header("Access-Control-Allow-Headers: Origin, Content-Type, Authorization, X-Custom-Auth");	
 	}

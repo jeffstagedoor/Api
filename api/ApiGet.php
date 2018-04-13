@@ -31,8 +31,6 @@ Class ApiGet
 	private $account;
 	/** @var object the request Object */
 	private $request;
-	/** @var Environment Instance of Environment class */
-	private $ENV;
 	/** @var array the requested items */
 	private $items;
 
@@ -46,12 +44,10 @@ Class ApiGet
 	 * @param ErrorHandler   $errorHandler Instance of ErrorHandler
 	 * @param Models\Account $account      Instance of Account
 	 */
-	function __construct($request, $data, $ENV, $db, $errorHandler, $account) {
+	function __construct($request, $data, $db, $account) {
 		$this->request = $request;
 		$this->data = $data;
-		$this->ENV = $ENV;
 		$this->db = $db;
-		$this->errorHandler = $errorHandler;
 		$this->account = $account;
 		$this->items = new \stdClass();
 	}
@@ -93,7 +89,7 @@ Class ApiGet
 				if(isset($this->request->id)) {
 					$this->items->{$this->request->model->modelName} = $this->request->model->getOneById($this->request->id);
 					if(is_null($this->items->{$this->request->model->modelName})) {
-						$this->errorHandler->addSendAllExit(21);
+						ErrorHandler::addSendAllExit(21);
 						exit;
 					}
 					
@@ -136,7 +132,7 @@ Class ApiGet
 					} else {
 						$modelFile = $this->ENV->dirs->models . ucfirst($modelName) . ".php";
 						if (!file_exists($modelFile)) {
-							$this->errorHandler->throwOne(Array("Api Error", "Requested recource '{$modelName}' not found/defined.", 400, ErrorHandler::CRITICAL_EMAIL, false));
+							ErrorHandler::throwOne(Array("Api Error", "Requested recource '{$modelName}' not found/defined.", 400, ErrorHandler::CRITICAL_EMAIL, false));
 							exit;
 						} else {	
 							require_once($modelFile);
@@ -189,7 +185,7 @@ Class ApiGet
 					#$response = new \stdClass();
 					$response = $tasks->getTaskById($this->request->requestArray[1]);
 				} else {
-					$this->errorHandler->throwOne(ErrorHandler::TASK_NOT_DEFINED);
+					ErrorHandler::throwOne(ErrorHandler::TASK_NOT_DEFINED);
 					exit;
 				}
 				return $response;
@@ -268,7 +264,7 @@ Class ApiGet
 		}
 		if(!isset($this->ENV->publicFolders->{$requestedFolder})) {
 			// publicFolder not set -> send Error Message
-			$this->errorHandler->throwOne(Array("API-Error", "Public Folder not defined."));
+			ErrorHandler::throwOne(Array("API-Error", "Public Folder not defined."));
 			exit;
 		}
 		$publicFolder = $this->ENV->publicFolders->{$request[1]};
@@ -276,7 +272,7 @@ Class ApiGet
 
 		// first check if we have a valid folder:
 		if(!is_dir($publicFolder)) {
-			$this->errorHandler->throwOne(Array("API-Error", "Folder not found."));
+			ErrorHandler::throwOne(Array("API-Error", "Folder not found."));
 			exit;
 		}
 
@@ -331,10 +327,10 @@ Class ApiGet
 		} elseif (isset($this->data->imageId)) {
 			// VERSION 2 (filename & path has to be fetched from db-table files)
 			// TODO
-			$this->errorHandler->throwOne(Array("API-Error", "Image fetching from DB not yet implemented (ApiGet.class.php line 176)"));
+			ErrorHandler::throwOne(Array("API-Error", "Image fetching from DB not yet implemented (ApiGet.class.php line 176)"));
 			exit;
 		} else {
-			$this->errorHandler->throwOne(Array("API-Error", "wrong call to getImage. Missing data 'file' or 'imageId'"));
+			ErrorHandler::throwOne(Array("API-Error", "wrong call to getImage. Missing data 'file' or 'imageId'"));
 			exit;
 		}
 		// var_dump($this->data);
@@ -355,7 +351,7 @@ Class ApiGet
 	 * @return recource the file to download?
 	 */
 	private function _getFile() {
-		$this->errorHandler->throwOne(Array("API-Error", "getFile not yet implemented."));
+		ErrorHandler::throwOne(Array("API-Error", "getFile not yet implemented."));
 	}
 
 }

@@ -12,7 +12,6 @@
 
 
 namespace Jeff\Api;
-
 /*
 *	basic Error syntax as array:
 *	Array("title", "msg", "httpCode", "critical", "internal", Exception)
@@ -81,7 +80,7 @@ Class ErrorHandler {
 	Const CRITICAL_ALL = 3;
 
 
-	private $Errors = Array();
+	private static $Errors = Array();
 	public static $Codes = Array(
 
 	// DB
@@ -152,27 +151,27 @@ Class ErrorHandler {
 	/**
 	*	add
 	*	adds an Error to the error array
-	*	@param [int] error code, [array] title and msg for custom errors
-	*	@return [array] all errors
+	*	@param int|array|Error error code, or array of [title, msg, httpCode, Critical, internal] for custom errors, or an Error Instance
+	*	@return Error[] all errors
 	**/
-	public function add($e) {
+	public static function add($e) {
 		if(is_integer($e)) {
 			// if I get an Integer, it's the number-code of a predefined error
 			// so lets make this a real Error Instance
-			$this->Errors[] = new Error($e);
+			self::$Errors[] = new Error($e);
 		} elseif(is_array($e)) {
 			// if I get an Array, it's a custom error in format ['title', 'msg', {int} 'httpCode', {int} 'Critical', {Boolean} 'Internal']
-			$this->Errors[] = new Error($e);
+			self::$Errors[] = new Error($e);
 
 		} elseif($e instanceof Error) {
 			// if I get an Instance of Error-Class, it's the best anyway
-			$this->Errors[] = $e;
+			self::$Errors[] = $e;
 
 		} else {
-			$this->add(Array("Error in Class Err:"," e is not an Instance of Error, nor an Integer, nor an Array.".var_export($e, true), 500, 1));
+			self::add(Array("Error in Class Err:"," e is not an Instance of Error, nor an Integer, nor an Array.".var_export($e, true), 500, 1));
 		}
 		// return all saved errors by defult, as a shortcut
-		return $this->get();
+		return self::get();
 	}
 
 
@@ -182,31 +181,31 @@ Class ErrorHandler {
 	*	@param [int] error code, [array] title and msg for custom errors
 	*	@return [array] all errors
 	**/
-	public function throwOne($e) {
-		$this->add($e);
-		$this->sendApiErrors();
-		$this->sendErrors();
+	public static function throwOne($e) {
+		self::add($e);
+		self::sendApiErrors();
+		self::sendErrors();
 	}
 
 
 	// returns ALL saved Errors
-	public function get() {
+	public static function get() {
 		$arr = Array();
-		foreach ($this->Errors as $key => $error) {
+		foreach (self::$Errors as $key => $error) {
 			$arr[] = $error;
 		}
 		return $arr;
 	}
 
 	// dummy for get()
-	public function getErrors() {
-		return $this->get();
+	public static function getErrors() {
+		return self::get();
 	}
 
 	// returns all public Errors as array
-	public function getPublic() {
+	public static function getPublic() {
 		$arr = Array();
-		foreach ($this->Errors as $key => $error) {
+		foreach (self::$Errors as $key => $error) {
 			#echo $error->msg . " internal: ".$error->internal."\n";
 			if($error->isPublic()) {
 				#echo "isPublic:";
@@ -217,16 +216,16 @@ Class ErrorHandler {
 		return $arr;
 	}
 
-	public function hasErrors() {
-		if(sizeof($this->Errors)>0) {
+	public static function hasErrors() {
+		if(sizeof(self::$Errors)>0) {
 			return true;
 		} else {
 			return false;
 		}
 	}
 
-	public function sendApiErrors() {
-		$errors = $this->getPublic();
+	public static function sendApiErrors() {
+		$errors = self::getPublic();
 		if(count($errors)) {
 			http_response_code($errors[0]['httpCode']);
 			header("Content-Type: application/json");
@@ -234,10 +233,10 @@ Class ErrorHandler {
 		}
 	}
 
-	public function sendErrors() {
+	public static function sendErrors() {
 
 		$txt='';
-		foreach ($this->Errors as $key => $error) {
+		foreach (self::$Errors as $key => $error) {
 			$e = $error->toArray(true);
 			$txt .= date('d.m.Y H:i:s').": {$e['title']} - {$e['msg']} ".PHP_EOL;
 			if(isset($e['stackTrace']) && $e['stackTrace']>'') {
@@ -247,7 +246,7 @@ Class ErrorHandler {
 		}
 		$geoInfo = Log\Log::getGeoInfoArray();
 		$txt.= "     ".$_SERVER['REMOTE_ADDR']." ".implode(", ",$geoInfo).PHP_EOL;
-		$logPath = (null !== \LogConfig::getPath()) ? \LogConfig::getPath() : "../apiLog";
+		$logPath = (null !== LogConfig::getPath()) ? LogConfig::getPath() : "../apiLog";
 		if (!is_dir($logPath)) {
     		mkdir($logPath, 0664, true);
 		}
@@ -257,21 +256,21 @@ Class ErrorHandler {
 		// depending on what errors we've got we either echo them as json, or write it to the log, or send an email.
 	}
 
-	public function sendAllErrorsAndExit() {
-		$this->sendApiErrors();
-		$this->sendErrors();
+	public static function sendAllErrorsAndExit() {
+		self::sendApiErrors();
+		self::sendErrors();
 		exit;
 	}
 
 	// sendApiErrors() AND sendErrors()
-	public function sendAll() {
-		$this->sendApiErrors();
-		$this->sendErrors();
+	public static function sendAll() {
+		self::sendApiErrors();
+		self::sendErrors();
 	}
 
-	public function addSendAllExit($e) {
-		$this->add($e);
-		$this->sendAllErrorsAndExit();
+	public static function addSendAllExit($e) {
+		self::add($e);
+		self::sendAllErrorsAndExit();
 	}
 
 

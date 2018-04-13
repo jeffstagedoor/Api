@@ -5,6 +5,7 @@
 
 namespace Jeff\Api\Log;
 use Jeff\Api;
+use Jeff\Api\Environment;
 
 require_once('LogDefault.php');
 
@@ -21,19 +22,15 @@ require_once('LogDefault.php');
 **/
 Class Log {
 	/** @var \MySqliDb Instance of database class */
-	protected $db = NULL;
+	protected static $db = NULL;
 	/** @var \Log\LogConfig Instance of LogConfig class */
-	protected $logConfig;
+	protected static $logConfig;
 	/** @var bool if the Log is ready to write (after checking LogConfig and DB) */
-	protected $readyToWrite = false;
-	/** @var Environment Instance of Environment class */
-	protected $ENV = NULL;
-	/** @var ErrorHAndler Instance of ErrorHandler class */
-	protected $errorHandler = NULL;
+	protected static $readyToWrite = false;
 	/** @var string NOT USED? */
-	public $modelName = "Log";
+	public static $modelName = "Log";
 	/** @var string db-table name */
-	protected $dbTable = "log";
+	protected static $dbTable = "log";
 	/**
 	*
 	* Database-Table definition to be used by {@see DBHelper} class to create the corresponding table
@@ -68,6 +65,23 @@ Class Log {
 	/** @var string db primary key = 'id' */
 	public $dbPrimaryKey = 'id';
 
+	/**
+	* the database keys/indexes definition which shall look like that:
+	*	           
+	*	           ```
+	*	           array(
+	*	               "name" => "firstIndex",
+	*	               "collation" => "A",
+	*	               "cardinality" => 5,
+	*	               "type" => "BTREE",
+	*	               "comment" => "This is a database index foo bar, whatsoever",
+	*	               "columns" => ["fieldName1", "anotherField"]
+	*	           )
+	*	           ```
+	*	
+	* @var array   the database keys/indexes definition, 
+	*/	
+	public $dbKeys = [];
 
 	/**
 	 * Constructor
@@ -79,44 +93,39 @@ Class Log {
 	 * 
 	 * Checks for ready database and trwos Error if not existing or tableName not found
 	 * @param \MySqliDb                $db    Instance of database class
-	 * @param \Jeff\Api\Environment    $ENV   Instance of Environment class
-	 * @param \Jeff\Api\ErrorHandler   §errorHandler  Instance of ErrorHandler
 	 */
-	public function __construct($db, $ENV, $errorHandler) {
-		$this->db = $db;
-		$this->ENV = $ENV;
-		$this->errorHandler=$errorHandler;
+	public static function initialize($db) {
+		self::$db = $db;
 	
-		if(!$this->errorHandler) { $this->errorHandler = new ErrorHandler(); }
-		if (!file_exists($this->ENV->dirs->appRoot."LogConfig.php")) {
-			$this->errorHandler->add(new Error(ErrorHandler::LOG_NO_CONFIG));
-			$this->errorHandler->sendErrors();
+		if (!file_exists(Environment::$dirs->appRoot."LogConfig.php")) {
+			ErrorHandler::add(new Error(ErrorHandler::LOG_NO_CONFIG));
+			ErrorHandler::sendErrors();
 			$readyToWrite = false;
 		} else {
-			include_once($this->ENV->dirs->appRoot."LogConfig.php");
-			$this->logConfig = \LogConfig::values();
+			include_once(Environment::$dirs->appRoot."LogConfig.php");
+			self::$logConfig = \LogConfig::values();
 			$readyToWrite = true;
 		}
 
 		// check if we have a database ready:
 		try {
-			$this->db->connect();
+			self::$db->connect();
 		} catch(\Exception $e) {
-			$this->db = NULL;
-			$this->readyToWrite = false;
-			$this->errorHandler->add(Array("DB Error", "Could not connect to database", 500, true, ErrorHandler::CRITICAL_ALL, $e));
-			$this->errorHandler->sendErrors();
+			self::$db = NULL;
+			self::$readyToWrite = false;
+			ErrorHandler::add(Array("DB Error", "Could not connect to database", 500, true, ErrorHandler::CRITICAL_ALL, $e));
+			ErrorHandler::sendErrors();
 			exit;
 		}
 
 
-		$logTable = $this->db->rawQuery("SHOW tables like '".\LogConfig::DB_TABLE."'");
+		$logTable = self::$db->rawQuery("SHOW tables like '".\LogConfig::DB_TABLE."'");
 		if(count($logTable)>0) { 
-			$this->readyToWrite=true;
+			self::$readyToWrite=true;
 		} else {
-			$this->readyToWrite = false;
-			$this->errorHandler->add(new Error(ErrorHandler::LOG_NO_TABLE));
-			$this->errorHandler->sendErrors();
+			self::$readyToWrite = false;
+			ErrorHandler::add(new Error(ErrorHandler::LOG_NO_TABLE));
+			ErrorHandler::sendErrors();
 		}
 	}
 
@@ -131,7 +140,7 @@ Class Log {
 	*	
 	**/
 	public function write($accountId, $type, $itemName, $data) {
-		if(!$this->readyToWrite) {
+		if(!self::$readyToWrite) {
 			return null;
 		}
 		// check if we have a 'for' and a 'meta' given in $data
@@ -143,9 +152,9 @@ Class Log {
 			// first Prepare from custom LogConfig
 			// so let's see if we have a configuration for the given item:
 			// echo "itemName:" .$itemName."\n";
-			if (isset( $this->logConfig->{$itemName} )) {
-				$for = $this->extractDataFromConfig($this->logConfig->{$itemName}->for, $data);
-				$meta = $this->extractDataFromConfig($this->logConfig->{$itemName}->meta, $data);
+			if (isset( self::$logConfig->{$itemName} )) {
+				$for = self::extractDataFromConfig(self::$logConfig->{$itemName}->for, $data);
+				$meta = self::extractDataFromConfig(self::$logConfig->{$itemName}->meta, $data);
 			} else {
 				// fallback to default
 				$logForConfig = new LogDefaultFor(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
@@ -157,8 +166,8 @@ Class Log {
 					// otherwise (for relational tables like accounts2workgroup) store it in meta4, which is a varchar
 					$logMetaConfig = new LogDefaultMeta(NULL,NULL,NULL,Array($itemName,"id"),NULL);
 				}
-				$for = $this->extractDataFromConfig($logForConfig, $data);
-				$meta = $this->extractDataFromConfig($logMetaConfig, $data);
+				$for = self::extractDataFromConfig($logForConfig, $data);
+				$meta = self::extractDataFromConfig($logMetaConfig, $data);
 			}
 		}
 
@@ -169,11 +178,11 @@ Class Log {
 
 
 		$dbData = array_merge((Array) $data, (Array) $for, (Array) $meta);
-		// var_dump($this->logConfig);
+		// var_dump(self::logConfig);
 		#var_dump($dbData);
-		// var_dump($this->db)
+		// var_dump(self::db)
 
-		$id = $this->db->insert($this->dbTable, $dbData);
+		$id = self::$db->insert(self::dbTable, $dbData);
 		#echo "return from insert: ".$id;
 		#echo $this->db->getLastError();
 		return $id;		

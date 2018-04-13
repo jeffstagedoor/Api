@@ -1,18 +1,18 @@
 <?php
 /**
-*	Class Environment
+*	Static Class Environment
 *	
 *	@author Jeff Frohner
 *	@copyright Copyright (c) 2017
 *	@license   private
 *	@version   1.0
 *
-**/
+*/
 namespace Jeff\Api;
 
 
 /**
-*	Class Environment
+*	Static Class Environment
 *	
 *	@author Jeff Frohner
 *	@copyright Copyright (c) 2017
@@ -22,53 +22,63 @@ namespace Jeff\Api;
 */
 Class Environment
 {
-	public $production = true;
-	public $development = false;
-	public $debug = false;
-	public $database = Array(
+	public static $production = true;
+	public static $development = false;
+	public static $debug = false;
+	public static $database = Array(
 			"username" => "",
 			"password" => "", 
 			"host" => "",  
 			"db" => ""
 		);
-	// default for noAuthRoutes: routes, that don't need to be authenticated
-	public $noAuthRoutes = Array(
+
+
+		// default for noAuthRoutes: routes, that don't need to be authenticated
+	public static $noAuthRoutes = Array(
 		"login",
 		"signup",
 		"apiInfo",
 		"getImage"
 		);
-	public $urls;
-	public $dirs;
-	public $api;
 
-	function __construct(array $noAuthRoutes=null) {
-		$this->urls = new \stdClass();
-		$this->urls->baseUrl = "";
-		$this->urls->appUrl = "";
-		$this->urls->apiUrl = "api/";
-		$this->urls->tasksUrl = "api/task/";
-		$this->urls->allowOrigin = "";
+	public static $urls;
+	public static $dirs;
+	public static $api;
 
-		$this->dirs = new \stdClass();
-		$this->dirs->appRoot = dirname(__FILE__).DIRECTORY_SEPARATOR.$this->folderUp(4);
-		$this->dirs->vendor = __DIR__.DIRECTORY_SEPARATOR.$this->folderUp(3);
-		$this->dirs->api = __DIR__.DIRECTORY_SEPARATOR;
-		$this->dirs->models = $this->dirs->appRoot."models".DIRECTORY_SEPARATOR;
-		$this->dirs->files = $this->folderUp(2)."files".DIRECTORY_SEPARATOR;
+	/**
+	 * prevent constructor from beeing called to make this a static class
+	 */
+	public function __construct() {}
+
+	/**
+	 * initialize this class with default values
+	 *
+	 */
+	public static function initialize(array $noAuthRoutes=null) {
+		self::$urls = new \stdClass();
+		self::$urls->baseUrl = "";
+		self::$urls->appUrl = "";
+		self::$urls->apiUrl = "api/";
+		self::$urls->tasksUrl = "api/task/";
+		self::$urls->allowOrigin = "";
+
+		self::$dirs = new \stdClass();
+		self::$dirs->appRoot = dirname(__FILE__).DIRECTORY_SEPARATOR.self::folderUp(4);
+		self::$dirs->vendor = __DIR__.DIRECTORY_SEPARATOR.self::folderUp(3);
+		self::$dirs->api = __DIR__.DIRECTORY_SEPARATOR;
+		self::$dirs->models = self::$dirs->appRoot."models".DIRECTORY_SEPARATOR;
+		self::$dirs->files = self::folderUp(2)."files".DIRECTORY_SEPARATOR;
 		// $this->dirs->phpRoot = "..".DIRECTORY_SEPARATOR;
 
-		$this->api = new \stdClass();
-		$this->api->noAuth = false;
+		self::$api = new \stdClass();
+		self::$api->noAuth = false;
 		if($noAuthRoutes) {
-			$this->api->noAuthRoutes = array_merge($this->noAuthRoutes, $noAuthRoutes);
+			self::$api->noAuthRoutes = array_merge(self::$noAuthRoutes, $noAuthRoutes);
 		} 
-		#var_dump($this->api->noAuthRoutes);
-
 	}
 
-	public function addNoAuthRoute(string $route) {
-		$this->noAuthRoutes[] = $route;
+	public static function addNoAuthRoute(string $route) {
+		self::$noAuthRoutes[] = $route;
 	}
 
 	/**
@@ -76,7 +86,7 @@ Class Environment
 	 * @param  int|integer $times how many folders we wanna go up
 	 * @return string             f.e. '../../../' (if $times==3)
 	 */
-	public function folderUp(int $times=1): string {
+	public static function folderUp(int $times=1): string {
 		$x="";
 		for ($i=0; $i < $times; $i++) { 
 			$x.="..".DIRECTORY_SEPARATOR;
