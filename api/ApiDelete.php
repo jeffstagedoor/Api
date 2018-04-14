@@ -10,6 +10,7 @@
 **/
 
 namespace Jeff\Api;
+use Log\Log;
 
 /**
 *	Class ApiDelete
@@ -28,32 +29,22 @@ Class ApiDelete
 	private $account;
 	/** @var object the request Object */
 	private $request;
-	/** @var Environment Instance of database class */
-	private $ENV;
 	/** @var array array of items to delete */
 	private $items;
-	/** @var Log\Log instance of Log */
-	private $log;
 
 	/**
 	 * The Constructor.
 	 * Only sets the passed in instances/classes to private vars
 	 * @param object         $request      The requst object
 	 * @param object         $data         The data with the item to add
-	 * @param Environment    $ENV          The Environment as defined in consuming app
 	 * @param \MySqliDb      $db           Instance of Database class
-	 * @param ErrorHandler   $errorHandler Instance of ErrorHandler
 	 * @param Models\Account $account      Instance of Account
-	 * @param Log\Log        $log          Instance of Log class
 	 */
-	function __construct($request, $data, $ENV, $db, $errorHandler, $account, $log) {
+	function __construct($request, $data, $db, $account) {
 		$this->request = $request;
 		$this->data = $data;
-		$this->ENV = $ENV;
 		$this->db = $db;
-		$this->errorHandler = $errorHandler;
 		$this->account = $account;
-		$this->log = $log;
 	}
 
 
@@ -72,7 +63,7 @@ Class ApiDelete
 				$model = $this->request->model;
 				$modelLeft = $this->request->modelLeft;
 				if(!isset($this->request->id)) {
-					$this->errorHandler->throwOne(45);
+					ErrorHandler::throwOne(45);
 					exit;
 				}
 
@@ -81,7 +72,7 @@ Class ApiDelete
 					$response = new \stdClass();
 					return $response;
 				} else {
-					$this->errorHandler->throwOne(24);
+					ErrorHandler::throwOne(24);
 					exit;
 				}
 
@@ -105,7 +96,7 @@ Class ApiDelete
 				}
 				$logData = new \stdClass();
 				$logData->{$this->request->model->modelName} = $item;
-				$this->log->write($this->account->id, 'delete', $this->request->model->modelName, $logData);
+				Log::write($this->account->id, 'delete', $this->request->model->modelName, $logData);
 				
 				break;
 		}

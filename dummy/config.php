@@ -1,67 +1,45 @@
 <?php
 /**
-*	@description Configuration file
+*	Configuration file
+*
+*	This File describes the basic api configuration such as database credentials, folder structure,
+*	debug switches, urls, ..
+*
 *	@author Jeff Frohner
-*	@version 1.0.0
+*	@version 2.0.0
 */
 
 
-$ENV = new \stdClass();
+use Jeff\Api\Environment;
 
-// defaults (=production)
-$ENV->production = true;
-$ENV->development = false;
-$ENV->debug = false;
-
-$ENV->database = Array( 
-			"username" => "",
-			"password" => "", 
-			"host" => "",  
-			"db" => "" 
-);
-
-$ENV->urls = new \stdClass();
-$ENV->urls->baseUrl = "http://www.example.de";
-$ENV->urls->appUrl = "";
-$ENV->urls->apiUrl = "api/";
-$ENV->urls->tasksUrl = "api/tasks/";
-$ENV->urls->allowOrigin = "";
-
-$ENV->dirs = new \stdClass();
-$ENV->dirs->appRoot = folderUp(1)."dummy".DIRECTORY_SEPARATOR;
-$ENV->dirs->vendor = folderUp(1)."vendor".DIRECTORY_SEPARATOR;
-$ENV->dirs->models = $ENV->dirs->appRoot."models".DIRECTORY_SEPARATOR;
-$ENV->dirs->files = folderUp(2)."files".DIRECTORY_SEPARATOR;
-
-$ENV->Api = new \stdClass();
-$ENV->Api->noAuthRoutes = Array(
-	"login",
-	"signup",
-	"apiinfo",
-	"getimage",
-	"tasks/user2artistconfirmation"
-	);
+Environment::init();
+// add routes that don't need authentication
+Environment::addNoAuthRoutes([
+					"task/acceptInvitation",
+					"task/account2workgroupInvitationGetData",
+					"task/account2workgroupInvitationAcception"
+					]);
 
 
 switch ($_SERVER['SERVER_NAME']) {
 	case 'dummy':
 	case 'localhost':
 	case '127.0.0.1':
-		$ENV->production = false;
-		$ENV->development = true;
-		$ENV->debug = false;
-		$ENV->Api->noAuth = true;
+		Environment::$production = false;
+		Environment::$development = true;
+		Environment::$debug = false;
+		Environment::$Api->noAuth = true;
 
-		$ENV->database = Array( 
+		Environment::$database = Array( 
 					"username" => "root",
 					"password" => "", 
 					"host" => "localhost",  
 					"db" => "apidummy" 
 		);
 
-		$ENV->urls->baseUrl = "http://127.0.0.1/jeffstagedoor/php/Api/dummy/";
-		$ENV->urls->appUrl = "dist/";
-		$ENV->urls->allowOrigin = "http://localhost:4200";  // where Api-calls may be from exept same host
+		Environment::$urls->baseUrl = "http://127.0.0.1/jeffstagedoor/php/Api/dummy/";
+		Environment::$urls->appUrl = "dist/";
+		Environment::$urls->allowOrigin = "http://localhost:4200";  // where Api-calls may be from exept same host
 
 		// $ENV->urls->apiUrl = "api/"; // is default
 		// $ENV->urls->tasksUrl = "api/tasks/"; // is default
@@ -69,33 +47,24 @@ switch ($_SERVER['SERVER_NAME']) {
 
 		break;
 	case 'www.example2.com':
-		$ENV->production = false;
-		$ENV->development = false;
-		$ENV->debug = true;
+		Environment::$production = false;
+		Environment::$development = false;
+		Environment::$debug = true;
 
-		$ENV->database = Array( 
+		Environment::$database = Array( 
 					"username" => "",
 					"password" => "", 
 					"host" => "localhost",  
 					"db" => "dummy" 
 		);
 
-		$ENV->urls->baseUrl = "http://www.example2.com";
-		$ENV->urls->appUrl = "";
-		$ENV->urls->apiUrl = "api/";
-		$ENV->urls->tasksUrl = "api/tasks/";
+		Environment::$urls->baseUrl = "http://www.example2.com";
+		Environment::$urls->appUrl = "";
+		Environment::$urls->apiUrl = "api/";
+		Environment::$urls->tasksUrl = "api/tasks/";
 
-		$ENV->dirs->files = folderUp(3)."files".DIRECTORY_SEPARATOR;
+		Environment::$dirs->files = folderUp(3)."files".DIRECTORY_SEPARATOR;
 
 		break;
 
-}
-
-
-function folderUp($times=1) {
-	$x="";
-	for ($i=0; $i < $times; $i++) { 
-		$x.="..".DIRECTORY_SEPARATOR;
-	}
-	return $x;
 }

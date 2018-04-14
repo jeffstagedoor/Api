@@ -30,15 +30,9 @@ Class TasksPrototype
 	protected $db = NULL;
 	/** @var object the file-config as defined in consuming app */
 	protected $fileConfig;
-	/** @var Environment Instance of Environment class */
-	protected $ENV = NULL;
-	/** @var ErrorHandler Instance of ErrorHandler class */
-	protected $errorHandler = NULL;
 	/** @var Models\Account instance of Log */
 	protected $account = NULL;
 	/** @var Log\Log instance of Log */
-	protected $log = NULL;
-	/** @var pseudo modelName, needed for db-definition and auto-db-Update only */
 	public $modelName = "Task";
 	/** @var string $dbTable The name of the corresponding database table */
 	protected $dbTable = "tasks";
@@ -174,13 +168,13 @@ Class TasksPrototype
 	/**
 	 * will send the user to error page via header(location).
 	 * Target url: 
-	 * `"location: ".$this->ENV->urls->appUrl.'publicLinks/error?type='.$type.'&msg='.urlencode($errors[0]['msg']))`
+	 * `"location: ".Environment::$urls->appUrl.'publicLinks/error?type='.$type.'&msg='.urlencode($errors[0]['msg']))`
 	 * @param  array $errors must be an Error Array with an property "msg" in first Error-Item
 	 * @param  string $type   [description]
 	 * @return void         [description]
 	 */
 	protected function _gotoErrorPage($errors, $type='') {
-		header("location: ".$this->ENV->urls->appUrl.'publicLinks/error?type='.$type.'&msg='.urlencode($errors[0]['msg']));
+		header("location: ".Environment::$urls->appUrl.'publicLinks/error?type='.$type.'&msg='.urlencode($errors[0]['msg']));
 	}
 
 	/**

@@ -10,6 +10,8 @@
 **/
 namespace Jeff\Api\Log;
 use Jeff\Api as Api;
+use Jeff\Api\ErrorHandler;
+use Jeff\Api\Error;
 
 require_once('Log.php');
 
@@ -44,29 +46,29 @@ Class LogLogin extends Log {
 		);
 	public $dbPrimaryKey = 'id';
 
-	public function writeLoginLog($user, $type, $loginattempt, $success) {
-		$this->user = $user;
-		$this->loginattempt = $loginattempt;
-		$this->success = $success;
-		$this->type = $type;
-		$result = $this->db->rawQuery("SHOW FULL TABLES LIKE '".\LogConfig::DB_TABLE_LOGIN."'");
+	public static function writeLoginLog($user, $type, $loginattempt, $success) {
+		self::$user = $user;
+		self::$loginattempt = $loginattempt;
+		self::$success = $success;
+		self::$type = $type;
+		$result = self::$db->rawQuery("SHOW FULL TABLES LIKE '".\LogConfig::$dbTableLogin."'");
 		if(count($result)>0) {
 			// debug('writeLoginLog insert');
 			try {
-				$id = $this->db->insert(\LogConfig::DB_TABLE_LOGIN, $this->collectData());
+				$id = self::$db->insert(\LogConfig::$dbTableLogin, self::collectData());
 			} 
 			catch (\Exception $e) {
-				$this->errorHandler->add(new Api\Error(Api\ErrorHandler::DB_ERROR));
-				$this->errorHandler->add(new Api\Error(array('DB-LogLogin',"db Error: \n".$this->db->getLastError()."\non query:\n".$this->db->getLastQuery()."\nin File ".__FILE__.":".__LINE__." - ".get_class(), 500, Api\ErrorHandler::CRITICAL_ALL, true, $e)));
+				ErrorHandler::add(new Error(ErrorHandler::DB_ERROR));
+				ErrorHandler::add(new Error(array('DB-LogLogin',"db Error: \n".self::$db->getLastError()."\non query:\n".self::$db->getLastQuery()."\nin File ".__FILE__.":".__LINE__." - ".get_class(), 500, ErrorHandler::CRITICAL_ALL, true, $e)));
 
 				$id=NULL;
 			}
-			// debug($this->db->getLastQuery(), __FILE__, __LINE__, get_class());
-			// debug($this->db->getLastError(), __FILE__, __LINE__, get_class());
+			// debug(self::$db->getLastQuery(), __FILE__, __LINE__, get_class());
+			// debug(self::$db->getLastError(), __FILE__, __LINE__, get_class());
 			return $id;
 		} else {
-			$this->errorHandler->add(new Error(ErrorHandler::LOG_NO_TABLE_LOGIN));
-			$this->errorHandler->sendErrors();
+			ErrorHandler::add(new Error(ErrorHandler::LOG_NO_TABLE_LOGIN));
+			ErrorHandler::sendErrors();
 		}
 	}
 }

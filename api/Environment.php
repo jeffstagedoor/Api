@@ -54,7 +54,7 @@ Class Environment
 	 * initialize this class with default values
 	 *
 	 */
-	public static function initialize(array $noAuthRoutes=null) {
+	public static function init(array $noAuthRoutes=null) {
 		self::$urls = new \stdClass();
 		self::$urls->baseUrl = "";
 		self::$urls->appUrl = "";
@@ -77,6 +77,21 @@ Class Environment
 		} 
 	}
 
+
+	/**
+	 * adds an array of routes [string] to the local $noAuthRoutes.
+	 * These routes don't need an authentication
+	 * @param string[] $routes the array of routes as string eg. 'signup', 'task/acceptInvitation'
+	 */
+	public static function addNoAuthRoutes(array $routes) {
+		self::$api->noAuthRoutes = array_merge(self::$noAuthRoutes, $routes);
+	}
+
+	/**
+	 * adds one route [string] to the local $noAuthRoutes.
+	 * These routes don't need an authentication
+	 * @param string $route the routes eg. 'signup', 'task/acceptInvitation'
+	 */
 	public static function addNoAuthRoute(string $route) {
 		self::$noAuthRoutes[] = $route;
 	}

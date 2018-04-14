@@ -9,6 +9,7 @@
 *
 **/
 namespace Jeff\Api;
+use Jeff\Api\Log\Log;
 
 /**
 *	Class that handles POST requests.
@@ -27,12 +28,8 @@ Class ApiPost
 	private $account;
 	/** @var object the request Object */
 	private $request;
-	/** @var Environment Instance of database class */
-	private $ENV;
 	/** @var array array of items to add */
 	private $items;
-	/** @var Log\Log instance of Log */
-	private $log;
 	/** @var object the response to be returned to client */
 	private $response;
 
@@ -41,20 +38,14 @@ Class ApiPost
 	 * Only sets the passed in instances/classes to private vars
 	 * @param object         $request      The requst object
 	 * @param object         $data         The data with the item to add
-	 * @param Environment    $ENV          The Environment as defined in consuming app
 	 * @param \MySqliDb      $db           Instance of Database class
-	 * @param ErrorHandler   $errorHandler Instance of ErrorHandler
 	 * @param Models\Account $account      Instance of Account
-	 * @param Log\Log        $log          Instance of Log class
 	 */
-	function __construct($request, $data, $ENV, $db, $errorHandler, $account, $log) {
+	function __construct($request, $data, $db, $account) {
 		$this->request = $request;
 		$this->data = $data;
-		$this->ENV = $ENV;
 		$this->db = $db;
-		$this->errorHandler = $errorHandler;
 		$this->account = $account;
-		$this->log = $log;
 	}
 
 	/**
@@ -78,7 +69,7 @@ Class ApiPost
 				#var_dump($this->data->{$model->modelName});
 				$itemName = $modelLeft->modelNamePlural.'2'.$model->modelName;
 				if(!isset($this->data->{$itemName})) {
-					$this->errorHandler->throwOne(41);
+					ErrorHandler::throwOne(41);
 					exit;
 				}
 				$dataSet = $this->data->{$itemName};
@@ -86,13 +77,13 @@ Class ApiPost
 				unset($dataSet['modDate']);
 				$id = $model->addMany2Many($modelLeft, $dataSet);
 				
-				if($this->errorHandler->hasErrors()) {
-					$this->errorHandler->sendAllErrorsAndExit();
+				if(ErrorHandler::hasErrors()) {
+					ErrorHandler::sendAllErrorsAndExit();
 				}
 
 				$this->response->{$itemName} = $this->request->model->getMany2Many($id, $modelLeft->modelNamePlural);
 				$this->data->{$itemName}['id'] = $id;
-				$this->log->write($this->account->id, $itemName."Add", $itemName, $this->data);
+				Log::write($this->account->id, $itemName."Add", $itemName, $this->data);
 				return $this->response;
 				break;
 			case Api::REQUEST_TYPE_COALESCE:
@@ -101,24 +92,24 @@ Class ApiPost
 				$logData = new \stdClass();
 				$logData->for = new LogDefaultFor(NULL,\Constants::USER_ADMIN,NULL,NULL,NULL,NULL,NULL,NULL);
 				$logData->meta = new LogDefaultMeta(NULL,NULL, count($items),NULL, json_encode($this->data->multipleParams));
-				$this->log->write($this->account->id, "createMultiple", $this->request->model->modelName, $logData);
+				Log::write($this->account->id, "createMultiple", $this->request->model->modelName, $logData);
 				return $this->response;
 				break;
 			case Api::REQUEST_TYPE_QUERY:
-				$this->errorHandler->add(array("API Error", "I received a Post request with a filter. Not implemented, doesn't make sense.",500,true, Api::CRITICAL_EMAIL));
-				$this->errorHandler->add(ErrorHandler::API_INVALID_POST_REQUEST);
-				$this->errorHandler->sendAllErrorsAndExit();
+				ErrorHandler::add(array("API Error", "I received a Post request with a filter. Not implemented, doesn't make sense.",500,true, Api::CRITICAL_EMAIL));
+				ErrorHandler::add(ErrorHandler::API_INVALID_POST_REQUEST);
+				ErrorHandler::sendAllErrorsAndExit();
 			case Api::REQUEST_TYPE_NORMAL:
 				if(isset($this->request->special)) {
 
 					switch ($this->request->special) {
 						case 'import':
 							$this->response->{$this->request->model->modelName} = $this->request->model->import($this->data);
-							$this->log->write($this->account->id, 'create', $this->request->model->modelName, $this->response->{$this->request->model->modelName});
+							Log::write($this->account->id, 'create', $this->request->model->modelName, $this->response->{$this->request->model->modelName});
 							break;
 						default:
-							$this->errorHandler->throwOne(array("Api Error", "POST normal-special '{$this->request->special}'' not implemented.\nIn ApiPost ".__FUNCTION__." Line ".__LINE__."\n", 500, ErrorHandler::CRITICAL_EMAIL, true));
-							$this->errorHandler->throwOne(array("Api Error", "POST normal-special '{$this->request->special}'' not implemented.", 500, ErrorHandler::CRITICAL_EMAIL, false));
+							ErrorHandler::throwOne(array("Api Error", "POST normal-special '{$this->request->special}'' not implemented.\nIn ApiPost ".__FUNCTION__." Line ".__LINE__."\n", 500, ErrorHandler::CRITICAL_EMAIL, true));
+							ErrorHandler::throwOne(array("Api Error", "POST normal-special '{$this->request->special}'' not implemented.", 500, ErrorHandler::CRITICAL_EMAIL, false));
 							exit;
 					}
 
@@ -133,12 +124,12 @@ Class ApiPost
 
 					$id = $this->request->model->add($dataSet);
 
-					if($this->errorHandler->hasErrors()) {
-						$this->errorHandler->sendAllErrorsAndExit();
+					if(ErrorHandler::hasErrors()) {
+						ErrorHandler::sendAllErrorsAndExit();
 					}
 					$this->response->{$this->request->model->modelName} = $this->request->model->getOneById($id);
 					$this->data->{$this->request->model->modelName}['id'] = $id;
-					$this->log->write($this->account->id, 'create', $this->request->model->modelName, $this->data);
+					Log::write($this->account->id, 'create', $this->request->model->modelName, $this->data);
 					#$this->response->{$this->request->model->modelNamePlural} = $this->request->model->getAll();
 				}	
 				break;
@@ -164,7 +155,7 @@ Class ApiPost
 				require_once("TasksPrototype.php");
 				// check if we have Task.php implemented
 				if(!file_exists($this->ENV->dirs->appRoot."Tasks.php")) {
-					$this->errorHandler->throwOne(ErrorHandler::TASK_NOT_DEFINED);
+					ErrorHandler::throwOne(ErrorHandler::TASK_NOT_DEFINED);
 					exit;
 				}
 				require_once($this->ENV->dirs->appRoot."Tasks.php");
@@ -181,7 +172,7 @@ Class ApiPost
 				if(method_exists($tasks, $taskName)){
 					$response = $tasks->{$taskName}($this->data, $this->request);
 				} else {
-					$this->errorHandler->throwOne(ErrorHandler::TASK_NOT_DEFINED);
+					ErrorHandler::throwOne(ErrorHandler::TASK_NOT_DEFINED);
 					exit;
 				}
 				return $response;
@@ -204,19 +195,16 @@ Class ApiPost
 					$response = $account->getAccount(); 
 					return $response;
 				} else {
-					$this->errorHandler->add(array("Signup Error", "Could not sign up new account", 500, ErrorHandler::CRITICAL_EMAIL, false));
-					$this->errorHandler->sendAllErrorsAndExit();
-					exit;
+					ErrorHandler::add(array("Signup Error", "Could not sign up new account", 500, ErrorHandler::CRITICAL_EMAIL, false));
+					ErrorHandler::sendAllErrorsAndExit();
 				}
 				break;
 			case "import":
 				echo "importing! NOT IMPLEMENTED HERE, BUT IN POST ..api/modelName/import";
 				break;
 			default:
-				$this->errorHandler->throwOne(ErrorHandler::API_INVALID_POST_REQUEST);
+				ErrorHandler::throwOne(ErrorHandler::API_INVALID_POST_REQUEST);
 				exit;
-
-
 		}
 	}
 

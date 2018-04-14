@@ -204,7 +204,7 @@ Class Api {
 					$invitationToken = $this->data->filter['invitationToken'];
 				} else {
 					// no authtoken, no invitationToken found -> send error & exit script!
-					$this->errorHandler->throwOne(ErrorHandler::AUTH_NO_AUTHTOKEN);
+					ErrorHandler::throwOne(ErrorHandler::AUTH_NO_AUTHTOKEN);
 					exit;
 				}
 			}
@@ -216,7 +216,7 @@ Class Api {
 
 			if(!$this->account->isAuthenticated) {	
 				// authorization failed
-				$this->errorHandler->throwOne(ErrorHandler::AUTH_FAILED);
+				ErrorHandler::throwOne(ErrorHandler::AUTH_FAILED);
 				exit;
 			} else { 
 				// authorization succeeded
@@ -254,7 +254,7 @@ Class Api {
 					if($response) {
 						ApiHelper::sendResponse(200,json_encode($response));
 					} else {
-						$this->errorHandler->throwOne(42);
+						ErrorHandler::throwOne(42);
 						exit;
 					}
 				} else {
@@ -270,7 +270,7 @@ Class Api {
 						// ApiHelper::postItems($this->request->model, $items, $this->request->model->modelNamePlural);
 					} else {
 
-						$this->errorHandler->throwOne(ErrorHandler::DB_NOT_FOUND);
+						ErrorHandler::throwOne(ErrorHandler::DB_NOT_FOUND);
 						exit;
 					}
 				}
@@ -359,7 +359,7 @@ Class Api {
 			} else {
 				// 3. if we have NO id on position 2 and it's a PUT or DELETE we have an ERROR
 				if($this->method==='PUT' || $this->method==='DELETE') {
-					$this->errorHandler->throwOne(ErrorHandler::API_ID_MISSING);
+					ErrorHandler::throwOne(ErrorHandler::API_ID_MISSING);
 				}
 			} 
 		}
@@ -421,7 +421,7 @@ Class Api {
 		$modelFile = Environment::$dirs->models . ucfirst($modelName) . ".php";
 		
 		if (!file_exists($modelFile)) {
-			$this->errorHandler->throwOne(Array("Api Error", "Requested recource '{$modelName}' not found/defined.", 400, ErrorHandler::CRITICAL_EMAIL, false));
+			ErrorHandler::throwOne(Array("Api Error", "Requested recource '{$modelName}' not found/defined.", 400, ErrorHandler::CRITICAL_EMAIL, false));
 			exit;
 		} else {
 			include_once($modelFile);

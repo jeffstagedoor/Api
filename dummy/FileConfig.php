@@ -1,11 +1,14 @@
 <?php
-/*
-/	FileUpload Configuration File
-/
+/**
+* Customizing FILEUPLOADS
+*
+*
 */
 
-// this is the config-json for what to save in DB and where:
-$jsonConfigItemTypes = '{
+use Jeff\Api\FileDefaultConfig;
+
+Class FileConfig extends FileDefaultConfig {
+	public static $itemTypes = '{
 	"tmp" : {
 		"reference": null,
 		"dbtable": null,
@@ -32,4 +35,4 @@ $jsonConfigItemTypes = '{
 	}
 
 }';
-$configItemTypes = json_decode($jsonConfigItemTypes, true);
+}

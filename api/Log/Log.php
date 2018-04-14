@@ -8,6 +8,8 @@ use Jeff\Api;
 use Jeff\Api\Environment;
 
 require_once('LogDefault.php');
+require_once('LogDefaultFor.php');
+require_once('LogDefaultMeta.php');
 
 
 /**
@@ -94,7 +96,7 @@ Class Log {
 	 * Checks for ready database and trwos Error if not existing or tableName not found
 	 * @param \MySqliDb                $db    Instance of database class
 	 */
-	public static function initialize($db) {
+	public static function init($db) {
 		self::$db = $db;
 	
 		if (!file_exists(Environment::$dirs->appRoot."LogConfig.php")) {

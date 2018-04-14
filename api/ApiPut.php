@@ -10,6 +10,7 @@
 */
 
 namespace Jeff\Api;
+use Jeff\Api\Log\Log;
 
 /**
 * Class ApiPut
@@ -29,12 +30,8 @@ Class ApiPut
 	private $account;
 	/** @var object the request Object */
 	private $request;
-	/** @var Environment Instance of Environment class */
-	private $ENV;
 	/** @var object the item to update */
 	private $item;
-	/** @var Log\Log instance of Log */
-	private $log;
 
 
 	/**
@@ -42,20 +39,14 @@ Class ApiPut
 	 * Only sets the passed in instances/classes to private vars
 	 * @param object         $request      The requst object
 	 * @param object         $data         The data with the item to add
-	 * @param Environment    $ENV          The Environment as defined in consuming app
 	 * @param \MySqliDb      $db           Instance of Database class
-	 * @param ErrorHandler   $errorHandler Instance of ErrorHandler
 	 * @param Models\Account $account      Instance of Account
-	 * @param Log\Log        $log          Instance of Log class
 	 */
-	function __construct($request, $data, $ENV, $db, $errorHandler, $account, $log) {
+	function __construct($request, $data, $db, $account) {
 		$this->request = $request;
 		$this->data = $data;
-		$this->ENV = $ENV;
 		$this->db = $db;
-		$this->errorHandler = $errorHandler;
 		$this->account = $account;
-		$this->log = $log;
 		$this->item = new \stdClass();
 	}
 
@@ -77,7 +68,7 @@ Class ApiPut
 				$model = $this->request->model;
 				$modelLeft = $this->request->modelLeft;
 				if(!isset($this->request->id)) {
-					$this->errorHandler->throwOne(ErrorHandler::API_ID_MISSING);
+					ErrorHandler::throwOne(ErrorHandler::API_ID_MISSING);
 					exit;
 				}
 
@@ -93,8 +84,8 @@ Class ApiPut
 					$this->items->{$modelLeft->modelNamePlural.'2'.$model->modelName} = $this->request->model->getMany2Many($this->request->id, $modelLeft->modelNamePlural);
 					return $this->items;
 				} else {
-					$this->errorHandler->add(ErrorHandler::DB_UPDATE);
-					$this->errorHandler->throwOne(array('DB-Error', 'Could not updateMany2Many in '.__FILE__.': '.__LINE__.' with dbError: '.$this->db->getLastError(), 500, ErrorHandler::CRITICAL_EMAIL, true));
+					ErrorHandler::add(ErrorHandler::DB_UPDATE);
+					ErrorHandler::throwOne(array('DB-Error', 'Could not updateMany2Many in '.__FILE__.': '.__LINE__.' with dbError: '.$this->db->getLastError(), 500, ErrorHandler::CRITICAL_EMAIL, true));
 					exit;
 				}
 				
@@ -121,14 +112,14 @@ Class ApiPut
 									$logData = new \stdClass();
 									$logData->for = new Log\LogDefaultFor(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 									$logData->meta = new Log\LogDefaultMeta($this->data->id,$this->data->reference, $this->data->currentSort,$this->data->direction, $this->request->model->sortBy);
-									$this->log->write($this->account->id, 'sort', $this->request->model->modelName, $logData);
+									Log::write($this->account->id, 'sort', $this->request->model->modelName, $logData);
 									return $response;
 								} else {
-									$this->errorHandler->sendApiErrors();
+									ErrorHandler::sendApiErrors();
 									exit;
 								}
 							} else {
-								$this->errorHandler->throwOne(ErrorHandler::MODEL_NOT_SORTABLE);
+								ErrorHandler::throwOne(ErrorHandler::MODEL_NOT_SORTABLE);
 								exit;
 							}
 							break;
@@ -139,14 +130,14 @@ Class ApiPut
 							*	a property 'specialMethods' to the model. Unless this method is listed there it wont be called. 
 							*/
 							if(!in_array($this->request->special, $this->request->model->specialMethods)) {
-								$this->errorHandler->throwOne(array("SEC ALERT", "a un-registered special method was tried to be called via ApiPut: ".$this->request->special,500, ErrorHandler::CRITICAL_EMAIL, true));
+								ErrorHandler::throwOne(array("SEC ALERT", "a un-registered special method was tried to be called via ApiPut: ".$this->request->special,500, ErrorHandler::CRITICAL_EMAIL, true));
 								return false;
 								exit;
 							}
 							$methodExists = method_exists($this->request->model, $this->request->special);
 							$return = $this->request->model->{$this->request->special}($this->data, $this->account, $this->request);
 							if(isset($return->log)) {
-								$this->log->write($return->log->account, $return->log->type, $return->log->item, $return->log->data);
+								Log::write($return->log->account, $return->log->type, $return->log->item, $return->log->data);
 								unset($return->log);
 							}
 							return $return;
@@ -162,16 +153,14 @@ Class ApiPut
 
 					$updateReturn = $this->request->model->update($this->request->id, $dataSet);
 
-					if($this->errorHandler->hasErrors()) {
-						$this->errorHandler->sendApiErrors();
-						$this->errorHandler->sendErrors();
+					if(ErrorHandler::hasErrors()) {
+						ErrorHandler::sendApiErrors();
+						ErrorHandler::sendErrors();
 					}
 					if($updateReturn) {
 						$this->item->{$this->request->model->modelName} = $this->request->model->getOneById($updateReturn->id);
 						$this->data->{$this->request->model->modelName}['id'] = $updateReturn->id;
-						#echo "data var_dumped in ApiPut Line 117:\n";
-						#var_dump($this->data);
-						$this->log->write($this->account->id, 'update', $this->request->model->modelName, $this->data);
+						Log::->write($this->account->id, 'update', $this->request->model->modelName, $this->data);
 					}
 				}	
 				break;
@@ -197,7 +186,7 @@ Class ApiPut
 				if($auth->success) {
 					#debug("auth was successfull",__FILE__,__LINE__,get_class($this));
 					if($this->account->comparePasswords($this->data->passwordNew)) {
-						$this->errorHandler->throwOne(ErrorHandler::AUTH_PWD_NOT_VALID);
+						ErrorHandler::throwOne(ErrorHandler::AUTH_PWD_NOT_VALID);
 						exit;
 					}
 					$pattern = '/([a-zA-Z0-9@!§$%=?+*#]{8,100})/';
@@ -206,19 +195,19 @@ Class ApiPut
 							$this->account->changePassword($auth->user['id'], $this->data->passwordNew);
 							$response = "{\"success\": {\"msg\": \"password changed\"} }";
 							ApiHelper::sendResponse(200,$response);
-							$this->log->write($this->account->id, 'changePassword', 'account', $this->data);
+							Log::->write($this->account->id, 'changePassword', 'account', $this->data);
 							exit;
 						} else {
-							$this->errorHandler->throwOne(ErrorHandler::AUTH_PWD_NOT_MATCHING);
+							ErrorHandler::throwOne(ErrorHandler::AUTH_PWD_NOT_MATCHING);
 							exit;
 						}
 					} else {
-						$this->errorHandler->throwOne(ErrorHandler::AUTH_PWD_NOT_VALID);
+						ErrorHandler::throwOne(ErrorHandler::AUTH_PWD_NOT_VALID);
 						exit;
 					}
 				} else {
 					// if oldPassword doesnt match the saved one, send invalid grant error
-					$this->errorHandler->throwOne(ErrorHandler::AUTH_PWD_INCORRECT);
+					ErrorHandler::throwOne(ErrorHandler::AUTH_PWD_INCORRECT);
 					exit;
 				}
 				exit;
