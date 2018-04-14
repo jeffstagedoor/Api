@@ -160,7 +160,7 @@ Class ApiPut
 					if($updateReturn) {
 						$this->item->{$this->request->model->modelName} = $this->request->model->getOneById($updateReturn->id);
 						$this->data->{$this->request->model->modelName}['id'] = $updateReturn->id;
-						Log::->write($this->account->id, 'update', $this->request->model->modelName, $this->data);
+						Log::write($this->account->id, 'update', $this->request->model->modelName, $this->data);
 					}
 				}	
 				break;
@@ -195,7 +195,7 @@ Class ApiPut
 							$this->account->changePassword($auth->user['id'], $this->data->passwordNew);
 							$response = "{\"success\": {\"msg\": \"password changed\"} }";
 							ApiHelper::sendResponse(200,$response);
-							Log::->write($this->account->id, 'changePassword', 'account', $this->data);
+							Log::write($this->account->id, 'changePassword', 'account', $this->data);
 							exit;
 						} else {
 							ErrorHandler::throwOne(ErrorHandler::AUTH_PWD_NOT_MATCHING);

@@ -14,7 +14,9 @@
 
 namespace Jeff\Api;
 use Jeff\Api\Environment;
+use Jeff\Api\Request;
 
+require_once("Request.php");
 require_once("Environment.php");
 require_once("ErrorHandler.php");
 require_once("Log/Log.php");
@@ -123,15 +125,6 @@ Class Api {
 	/** @var Jeff\Api\Log\Log The Logging class */
 	private $log;
 
-	Const REQUEST_TYPE_NORMAL = 1;
-	Const REQUEST_TYPE_REFERENCE = 2;
-	Const REQUEST_TYPE_COALESCE = 3;
-	Const REQUEST_TYPE_QUERY = 4;
-	Const REQUEST_TYPE_SPECIAL = 5;
-	Const REQUEST_TYPE_INFO = 6;
-
-	
-
 	/**
 	 * The Constructor
 	 *
@@ -179,7 +172,7 @@ Class Api {
 		$this->models = $this->_getAllModels();
 		$this->request = $this->_getFullRequest();
 		// var_dump($this->request);
-		if(count($this->requestArray)===0 || $this->request===null || $this->request->type===self::REQUEST_TYPE_INFO) {
+		if(count($this->requestArray)===0 || $this->request===null || $this->request->type===RequestType::INFO) {
 			echo ApiInfo::getApiInfo();
 			exit;
 		}
@@ -231,7 +224,7 @@ Class Api {
 
 		// some specials before regular API call
 		// dbupdate
-		if($this->request->type===self::REQUEST_TYPE_SPECIAL && $this->request->special==='dbupdate') {
+		if($this->request->type===RequestType::SPECIAL && $this->request->special==='dbupdate') {
 			if(isset($this->request->requestArray[1]) && $this->request->requestArray[1]==='execute') {
 				$execute = true;
 			} else {
@@ -249,7 +242,7 @@ Class Api {
 			case 'GET':
 				require_once('ApiGet.php');
 				$ApiGet = new ApiGet($this->request, $this->data, $this->db, $this->account);
-				if($this->request->type===self::REQUEST_TYPE_SPECIAL) {
+				if($this->request->type===RequestType::SPECIAL) {
 					$response = $ApiGet->getSpecial();
 					if($response) {
 						ApiHelper::sendResponse(200,json_encode($response));
@@ -277,8 +270,8 @@ Class Api {
 				break;
 			case 'POST':
 				require_once('ApiPost.php');
-				$ApiPost = new ApiPost($this->request, $this->data, $this->ENV, $this->db, $this->errorHandler, $this->account, $this->log);
-				if($this->request->type===self::REQUEST_TYPE_SPECIAL) {
+				$ApiPost = new ApiPost($this->request, $this->data, $this->db, $this->account);
+				if($this->request->type===RequestType::SPECIAL) {
 					$response = $ApiPost->postSpecial();
 					if($response) {
 						ApiHelper::sendResponse(200,json_encode($response));
@@ -292,8 +285,8 @@ Class Api {
 				break;
 			case 'PUT':
 				require_once('ApiPut.php');
-				$ApiPut = new ApiPut($this->request, $this->data, $this->ENV, $this->db, $this->errorHandler, $this->account, $this->log);
-				if($this->request->type===self::REQUEST_TYPE_SPECIAL) {
+				$ApiPut = new ApiPut($this->request, $this->data, $this->db, $this->account);
+				if($this->request->type===RequestType::SPECIAL) {
 					$response = $ApiPut->putSpecial(/*$this->models*/);
 					if($response) {
 						ApiHelper::sendResponse(200,json_encode($response));
@@ -305,7 +298,7 @@ Class Api {
 				break;
 			case 'DELETE':
 				require_once('ApiDelete.php');
-				$ApiDelete = new ApiDelete($this->request, $this->data, $this->ENV, $this->db, $this->errorHandler, $this->account, $this->log);
+				$ApiDelete = new ApiDelete($this->request, $this->data, $this->db, $this->account);
 				$response = $ApiDelete->deleteItem();
 				ApiHelper::sendResponse(200,json_encode($response));
 				break;
@@ -328,13 +321,13 @@ Class Api {
 		$request->type = $this->_determineRequestType();
 		$request->requestArray = $this->requestArray;
 
-		if($request->type === self::REQUEST_TYPE_SPECIAL) {
+		if($request->type === RequestType::SPECIAL) {
 			$request->special = $this->requestArray[0];
 			$request->requestArray = $this->requestArray;
 		}
 
 
-		if($request->type === self::REQUEST_TYPE_REFERENCE) {
+		if($request->type === RequestType::REFERENCE) {
 			// the model to get these items from is always the "bigger" one, the right one
 			// user2prduction can be got in Model-Class Production
 			// by the method getMany2Many(id, by(id), child-model)
@@ -345,9 +338,9 @@ Class Api {
 			}
 			#$request->singularRequest = substr($this->requestArray[0], 0, strlen($this->requestArray[0])-1);
 		}
-		if($request->type === self::REQUEST_TYPE_NORMAL 
-			|| $request->type === self::REQUEST_TYPE_QUERY 
-			|| $request->type=== self::REQUEST_TYPE_COALESCE) {
+		if($request->type === RequestType::NORMAL 
+			|| $request->type === RequestType::QUERY 
+			|| $request->type=== RequestType::COALESCE) {
 			
 			$modelName = $this->requestArray[0];
 			$model = $this->_getModel($modelName);
@@ -375,25 +368,25 @@ Class Api {
 	**/
 	private function _determineRequestType() {
 		if($this->requestArray[0]==='' || strtolower($this->requestArray[0])==='apiInfo') {
-			return self::REQUEST_TYPE_INFO;
+			return RequestType::INFO;
 		}
 		// check for comment2post type 'references'
 		$references = explode("2", $this->requestArray[0]);
 		if(count($references)===2) {
 			$this->references = $references;
-			return self::REQUEST_TYPE_REFERENCE;
+			return RequestType::REFERENCE;
 		}
 		if ((isset($this->requestArray[1]) && $this->requestArray[1]==='multiple') || isset($this->data->ids)) {
-			return self::REQUEST_TYPE_COALESCE;
+			return RequestType::COALESCE;
 		}
 		if(in_array($this->requestArray[0], $this->specialVerbs)) {
-			return self::REQUEST_TYPE_SPECIAL;
+			return RequestType::SPECIAL;
 		}
 		if(isset($this->data->filter) || isset($this->data->gt) || isset($this->data->gte) || isset($this->data->lt) || isset($this->data->lte)) {
-			return self::REQUEST_TYPE_QUERY;
+			return RequestType::QUERY;
 		}
 		// default
-		return self::REQUEST_TYPE_NORMAL;
+		return RequestType::NORMAL;
 	}
 
 
