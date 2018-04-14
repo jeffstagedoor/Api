@@ -120,7 +120,7 @@ Class Api {
 	/** @var object all the data that has been sent with the request */
 	private $data;
 
-	/** @var Jeff\Api\Log\log The Logging class */
+	/** @var Jeff\Api\Log\Log The Logging class */
 	private $log;
 
 	Const REQUEST_TYPE_NORMAL = 1;

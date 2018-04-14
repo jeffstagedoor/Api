@@ -16,10 +16,14 @@ use Jeff\Api\Error;
 require_once('Log.php');
 
 Class LogLogin extends Log {
+
+	/** @var string a 'model' name. We need this for finding this entity in several methods */
 	public $modelName = "LogLogin";
 
-	// private $dbTable = \Jeff\LogConfig::DB_TABLE_LOGIN;
+	/** @var string the database table name */
 	protected $dbTable = "loglogin";
+
+	/** @var array[] the database table definition as described in class {@see \Jeff\Api\Models\Model } */
 	public $dbDefinition = Array(
 			array ('id', 'int', '11', false, NULL, 'auto_increment'),
 			array ('user', 'int', '11', false),
@@ -44,8 +48,17 @@ Class LogLogin extends Log {
 			array ('geoOrg', 'varchar', '50', false),
 			array ('geoPostal', 'varchar', '15', false),
 		);
+	/** @var string the database primary key */
 	public $dbPrimaryKey = 'id';
 
+	/**
+	 * the method to write a Login-Log entry.
+	 * 
+	 * the params given will be needed in collectData()
+	 * @param	int 	$user	id of current user
+	 * @param	int		$loginattempt
+	 * @param			$type
+	 */
 	public static function writeLoginLog($user, $type, $loginattempt, $success) {
 		self::$user = $user;
 		self::$loginattempt = $loginattempt;
@@ -60,7 +73,6 @@ Class LogLogin extends Log {
 			catch (\Exception $e) {
 				ErrorHandler::add(new Error(ErrorHandler::DB_ERROR));
 				ErrorHandler::add(new Error(array('DB-LogLogin',"db Error: \n".self::$db->getLastError()."\non query:\n".self::$db->getLastQuery()."\nin File ".__FILE__.":".__LINE__." - ".get_class(), 500, ErrorHandler::CRITICAL_ALL, true, $e)));
-
 				$id=NULL;
 			}
 			// debug(self::$db->getLastQuery(), __FILE__, __LINE__, get_class());
