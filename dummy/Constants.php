@@ -1,7 +1,5 @@
 <?php
 
-namespace Jeff;
-
 abstract class Constants {
 	
 	// RIGHTS - MANAGEMENT

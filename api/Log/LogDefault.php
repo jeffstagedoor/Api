@@ -13,10 +13,10 @@ namespace Jeff\Api\Log;
 
 // These are the default classes that shall be used by LogConfig.php
 Class LogDefaultConfig {
-	private $dirName = 'apiLog';
-	private $dbTable = "log";
-	private $dbTableLogin = "loglogin";
-	private $path;
+	protected static $dirName = 'apiLog';
+	protected static $dbTable = "log";
+	protected static $dbTableLogin = "loglogin";
+	protected static $path;
 
 	public static function values() {
 		$values = new \stdClass();
@@ -24,22 +24,18 @@ Class LogDefaultConfig {
 	}
 
 	public static function getPath() {
-		if(empty(self::$path)) {
-			return dirname(__FILE__).DIRECTORY_SEPARATOR.self::$dirName.DIRECTORY_SEPARATOR;
-		} else {
-			return self::$path;
-		}
+		return static::$path;
 	}
 
 	public static function setPath($path) {
-		self::$path = $path;
+		static::$path = $path;
 	}
 
 	public static function getDbTable() {
-		return self::$dbTable;
+		return static::$dbTable;
 	}
 
 	public static function setDbTable($tableName) {
-		self::$dbTable;
+		static::$dbTable;
 	}
 }

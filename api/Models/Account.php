@@ -7,8 +7,8 @@ namespace Jeff\Api\Models;
 use Jeff\Api as Api;
 use Jeff\Api\Environment;
 
-require_once('Model.php');
-require_once(Environment::$dirs->appRoot.'Constants.php');
+//require_once('Model.php');
+//require_once(Environment::$dirs->appRoot.'Constants.php');
 
 
 /**

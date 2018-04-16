@@ -1,14 +1,15 @@
 <?php
 /**
-*	Configuration file
+* Configuration file
 *
-*	This File describes the basic api configuration such as database credentials, folder structure,
-*	debug switches, urls, ..
-*
-*	@author Jeff Frohner
-*	@version 2.0.0
+* This File describes the basic api configuration such as database credentials, folder structure,
+* debug switches, urls, ..
+* 
+* This is obligatory.
+* 
+* @author Jeff Frohner
+* @version 2.0.0
 */
-
 
 use Jeff\Api\Environment;
 
@@ -28,7 +29,8 @@ switch ($_SERVER['SERVER_NAME']) {
 		Environment::$production = false;
 		Environment::$development = true;
 		Environment::$debug = false;
-		Environment::$Api->noAuth = true;
+		Environment::$api->noAuth = true;
+		Environment::$api->allowOrigin = "http://localhost:4200";  // where Api-calls may be from exept same host
 
 		Environment::$database = Array( 
 					"username" => "root",
@@ -39,7 +41,12 @@ switch ($_SERVER['SERVER_NAME']) {
 
 		Environment::$urls->baseUrl = "http://127.0.0.1/jeffstagedoor/php/Api/dummy/";
 		Environment::$urls->appUrl = "dist/";
-		Environment::$urls->allowOrigin = "http://localhost:4200";  // where Api-calls may be from exept same host
+		Environment::$dirs->vendor = Environment::folderUp(2)."vendor/";
+		Environment::$dirs->appRoot = __DIR__.DIRECTORY_SEPARATOR;
+		Environment::$dirs->api = __DIR__.Environment::folderUp(2)."api".DIRECTORY_SEPARATOR;
+		Environment::$dirs->models = Environment::$dirs->appRoot."models".DIRECTORY_SEPARATOR;
+		Environment::$dirs->files = Environment::folderUp(2)."files".DIRECTORY_SEPARATOR;
+
 
 		// $ENV->urls->apiUrl = "api/"; // is default
 		// $ENV->urls->tasksUrl = "api/tasks/"; // is default

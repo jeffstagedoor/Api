@@ -13,9 +13,13 @@
 */
 namespace Jeff\Api\Database;
 
+use Jeff\Api\Environment;
+use Jeff\Api\ErrorHandler;
+
 require_once('Table.php');
 require_once('Column.php');
 require_once('Key.php');
+require_once('DBTableRepresentation.php');
 
 /**
 *	Class Helper
@@ -31,8 +35,6 @@ require_once('Key.php');
 Class Helper {
 	/** @var \MySliDb                 Instance of database class */
 	private $db;
-	/** @var \Jeff\Api\ErrorHandler   Instance of ErrorHandler */
-	private $errorHandler;
 	/** @var boolean just a switch to enable/disable indexes */
 	private $processIndexes = false;
 
@@ -42,61 +44,60 @@ Class Helper {
 	 * Just assigns passed in instances to private vars
 	 * 
 	 * @param \MySliDb     $db           Instance of database class
-	 * @param ErrorHandler $errorHandler Instance of ErrorHandler
 	 */
-	public function __construct($db, $errorHandler) {
+	public function __construct($db) {
 		$this->db = $db;
-		$this->errorHandler = $errorHandler;
 	}
 
 	/**
 	 * checks differences between db-definition an database 
 	 * and updates database if diffs are found and execution is switched on
-	 * @param  \Jeff\Api\Environment  $ENV          Instance of Environment
 	 * @param  boolean $execute      	If the update should actually be executed
-	 * @param  array  $requestArray 	the array of the request
+	 * @param  array  $params		 	the array params of the request
 	 *                               	it's possible to do a api/dbupdate/showDbDefinition/tableName
 	 *                               	that's what we need this for...
 	 * @return void                		directly echos the info
 	 */
-	public function update($ENV, $execute=false, $requestArray) {
+	public function update($execute=false, $params) {
 		echo "<html><body>";
 		echo $execute ? "<h5 style='color: #0d0;'>execution is switched ON.</h5>" : "<h5 style='color: #bbb;'>execution is switched OFF.</h5>";
 		$this->execute = $execute;
 		echo "- getting all Models<br>\n";
 
-		$dh  = opendir($ENV->dirs->models);
+		$dh  = opendir(Environment::$dirs->models);
 		while (false !== ($filename = readdir($dh))) {
 			if($filename!='.' && $filename!='..') {
-				require_once($ENV->dirs->models.$filename);
-				$path_parts = pathinfo($ENV->dirs->models.$filename);
+				require_once(Environment::$dirs->models.$filename);
+				$path_parts = pathinfo(Environment::$dirs->models.$filename);
 				$modelName = $path_parts['filename'];
 				echo $modelName."<br>\n";
 				$className = "\\Jeff\\Api\\Models\\" . $modelName;
-				$model = new $className($this->db, $ENV, $this->errorHandler, null);
+				$model = new $className($this->db, null);
 				$models[] = $model;
 			}
 		}
 		// special "Models":
 
 
-		require_once($ENV->dirs->vendor."jeffstagedoor/Api/api/Log/Log.php");
-		$Log = new \Jeff\Api\Log\Log($this->db, $ENV, $this->errorHandler);
-		$models[] = $Log;
+		// require_once(Environment::$dirs->api."Log/Log.php");
+		// $Log = new \Jeff\Api\Log\Log($this->db);
+		// $models[] = $Log;
 
 
-		require_once($ENV->dirs->vendor."jeffstagedoor/Api/api/Log/LogLogin.php");
-		$LogLogin = new \Jeff\Api\Log\LogLogin($this->db, $ENV, $this->errorHandler);
-		$models[] = $LogLogin;
+		// require_once(Environment::$dirs->api."Log/LogLogin.php");
+		// $LogLogin = new \Jeff\Api\Log\LogLogin($this->db);
+		// $models[] = $LogLogin;
 		
-		require_once($ENV->dirs->vendor."jeffstagedoor/Api/api/TasksPrototype.php");
-		require_once($ENV->dirs->appRoot."Tasks.php");
-		$Task = new \Jeff\Api\Tasks($this->db, $ENV, $this->errorHandler);
-		$models[] = $Task;
+		require_once(Environment::$dirs->api."TasksPrototype.php");
+		if(file_exists(Environment::$dirs->appRoot."Tasks.php")) {
+			require_once(Environment::$dirs->appRoot."Tasks.php");
+			$Task = new \Jeff\Api\Tasks($this->db);
+			$models[] = $Task;
+		}
 
 		// Accounts/Users should be an extended model in consuming App
-		require_once($ENV->dirs->vendor."jeffstagedoor/Api/api/Account.php");
-		$Account = new \Jeff\Api\Models\Account($this->db, $ENV, $this->errorHandler, null);
+		require_once(Environment::$dirs->api."Models/Account.php");
+		$Account = new \Jeff\Api\Models\Account($this->db, null);
 		$models[] = $Account;
 		
 
@@ -113,7 +114,7 @@ Class Helper {
 			$tableName = $model->getDbTable();
 			$tableDefinition = $this->_buildTableDefinition($tableName, $model->dbDefinition, $model->dbPrimaryKey, $model->dbKeys);
 			
-			$this->_checkDbIsTheSame($ENV, $tableName, $tableDefinition, $requestArray/*, $model->dbPrimaryKey*/);
+			$this->_checkDbIsTheSame($tableName, $tableDefinition, $params, $model->dbPrimaryKey);
 
 			if(isset($model->hasMany)) {
 				foreach ($model->hasMany as $key => $def) {
@@ -122,7 +123,7 @@ Class Helper {
 						$primaryKey = isset($def['primaryKey']) ? $def['primaryKey'] : NULL;
 						$keys = isset($def['keys']) ? $def['keys'] : [];
 						$tableDefinition = $this->_buildTableDefinition($tableName, $def['db'], $primaryKey, $keys);
-						$this->_checkDbIsTheSame($ENV, $tableName, $tableDefinition, $requestArray/*, $primaryKey*/);
+						$this->_checkDbIsTheSame($tableName, $tableDefinition, $params, $primaryKey);
 					}
 				}
 			}
@@ -150,15 +151,14 @@ Class Helper {
 
 	/**
 	 * does the actual check if there are differences between a db-table and the found definitions
-	 * @param  \Jeff\Api\Environment $ENV             Instance of Environment
 	 * @param  string $tableName        name of the db-table
 	 * @param  Table $tableDefinition   Instance of Table, containing all the info about current dbDefinition
-	 * @param  array $requestArray      the array of the request
+	 * @param  array $params      the array of the request
 	 *                               	it's possible to do a api/dbupdate/showDbDefinition/tableName
 	 *                               	that's what we need this for...
 	 * @return void                     will do all the html output inline
 	 */
-	private function _checkDbIsTheSame($ENV, $tableName, $tableDefinition, $requestArray/*, $primaryKey*/) {
+	private function _checkDbIsTheSame($tableName, $tableDefinition, $params, $primaryKey) {
 
 			$result = $this->db->rawQuery("SHOW FULL TABLES LIKE '".$tableName."'");
 			if(count($result)>0) {
@@ -277,19 +277,19 @@ Class Helper {
 
 
 				// got the INFO from Database, now let's compare what we've got in definitions:
-				if(isset($requestArray[1]) && $requestArray[1]==='showDbDefinition' && isset($requestArray[2]) && $requestArray[2]===$tableName) {
+				if(isset($params[1]) && $params[1]==='showDbDefinition' && isset($params[2]) && $params[2]===$tableName) {
 						echo "<pre>";
 						echo $this->_extractDbDefinition($tableSnapshot);
 						echo "</pre>";
 				} else {
-					echo "<br><a href=\"{$ENV->urls->baseUrl}{$ENV->urls->apiUrl}dbupdate/showDbDefinition/$tableName/\">showDbDefinition</a><br>";
+					echo "<br><a href=\"".Environment::$urls->baseUrl.Environment::$urls->apiUrl."dbupdate/showDbDefinition/$tableName/\">showDbDefinition</a><br>";
 				}
 			} else {
 				// TABLE DOESN'T EXIST -> create it
 				echo "\n\n<br><br>Table <b>'{$tableName}'</b> <span style='color: #d00;'>does NOT exist</span>, let's create it:<br>\n";
 				$table = new Table($tableName);
-				foreach ($dbDefinition as $column) {
-					$table->addColumn(new Column($column));
+				foreach ($tableDefinition->getColumns() as $column) {
+					$table->addColumn($column);
 				}
 
 				if(isset($primaryKey)) {
@@ -300,7 +300,7 @@ Class Helper {
 						$table->addKey(new Key($dbKey[0], $dbKey[1]));
 					}
 				}
-				$sql = $table->getSql();
+				$sql = $table->getCreateTableSql();
 				$this->_showQuery($sql);
 				$this->_dbExecute($sql);
 			}

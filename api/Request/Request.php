@@ -2,11 +2,13 @@
 
 
 namespace Jeff\Api\Request;
-use Jeff\Api;
+// use Jeff\Api;
+use Jeff\Api\Api;
 use Jeff\Api\Models;
 use Jeff\Api\Log;
 
 require_once("RequestType.php");
+require_once("RequestMethod.php");
 
 /**
  * class Request, that handles with it's subclasses everything about a request and keeps the sent request data
@@ -52,6 +54,8 @@ class Request {
 			return null;
 		}
 
+		$Api = Api::getInstance();
+
 		if($this->type === RequestType::SPECIAL) {
 			$this->special = $this->params[0];
 		}
@@ -61,8 +65,8 @@ class Request {
 			// the model to get these items from is always the "bigger" one, the right one
 			// user2prduction can be got in Model-Class Production
 			// by the method getMany2Many(id, by(id), child-model)
-			$this->model = Api::_getModel($this->references[1]); // always plural
-			$this->modelLeft = Api::_getModel($this->references[0]);	// always plural
+			$this->model = $Api->_getModel($this->references[1]); // always plural
+			$this->modelLeft = $Api->_getModel($this->references[0]);	// always plural
 			if (isset($this->params[1]) /*&& is_numeric($this->requestArray[1])*/) { // will be a string for Many2Many eg "24_30"
 				$this->id = $this->params[1];
 			}
@@ -73,7 +77,7 @@ class Request {
 			|| $this->type=== RequestType::COALESCE) {
 			
 			$modelName = $this->params[0];
-			$model = Api::_getModel($modelName);
+			$model = $Api->_getModel($modelName);
 			$this->model = $model;
 			if (isset($this->params[1]) && is_numeric($this->params[1])) {
 				$this->id = $this->params[1];
@@ -165,7 +169,8 @@ class Request {
 		if ((isset($this->params[1]) && $this->params[1]==='multiple') || isset($this->data->ids)) {
 			return RequestType::COALESCE;
 		}
-		if(in_array($this->params[0], Api::specialVerbs)) {
+		$Api = Api::getInstance();
+		if(in_array($this->params[0], $Api->getSpecialVerbs())) {
 			return RequestType::SPECIAL;
 		}
 		if(isset($this->data->filter) || isset($this->data->gt) || isset($this->data->gte) || isset($this->data->lt) || isset($this->data->lte)) {

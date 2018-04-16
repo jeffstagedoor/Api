@@ -4,7 +4,9 @@
  */
 
 namespace Jeff\Api\Log;
-use Jeff\Api;
+use Jeff\Api as Api;
+use Jeff\Api\ErrorHandler;
+use Jeff\Api\Error;
 use Jeff\Api\Environment;
 
 require_once('LogDefault.php');
@@ -98,11 +100,12 @@ Class Log {
 	 */
 	public static function init($db) {
 		self::$db = $db;
-	
+		Environment::$dirs->appRoot;
 		if (!file_exists(Environment::$dirs->appRoot."LogConfig.php")) {
-			ErrorHandler::add(new Error(ErrorHandler::LOG_NO_CONFIG));
-			ErrorHandler::sendErrors();
+			ErrorHandler::throwOne(new Error(ErrorHandler::LOG_NO_CONFIG));
+			ErrorHandler::throwOne(array("Api Error", "There's no LogConfig defined or could not be found.", 500, ErrorHandler::CRITICAL_LOG, false));
 			$readyToWrite = false;
+			exit;
 		} else {
 			include_once(Environment::$dirs->appRoot."LogConfig.php");
 			self::$logConfig = \LogConfig::values();
@@ -121,7 +124,7 @@ Class Log {
 		}
 
 
-		$logTable = self::$db->rawQuery("SHOW tables like '".\LogConfig::DB_TABLE."'");
+		$logTable = self::$db->rawQuery("SHOW tables like '".\LogConfig::getDbTable()."'");
 		if(count($logTable)>0) { 
 			self::$readyToWrite=true;
 		} else {
@@ -141,7 +144,7 @@ Class Log {
 	*						       OR an object containing a LogDefaultFor and a LogDefaultMeta as data->for, data->meta[, data->dataset]
 	*	
 	**/
-	public function write($accountId, $type, $itemName, $data) {
+	public static function write($accountId, $type, $itemName, $data) {
 		if(!self::$readyToWrite) {
 			return null;
 		}

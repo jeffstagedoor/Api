@@ -7,7 +7,7 @@
 *
 * @author Jeff Frohner <office@jefffrohner.com>
 * @copyright Jeff Frohner 2018
-* @version 1.8.0
+* @version 1.9.9
 * @package Jeff\Api
 *
 */
@@ -15,12 +15,13 @@
 namespace Jeff\Api;
 use Jeff\Api\Environment;
 use Jeff\Api\Request;
+use Jeff\Api\Request\RequestType;
+use Jeff\Api\Request\RequestMethod;
 
 require_once("Request/Request.php");
 require_once("Environment.php");
 require_once("ErrorHandler.php");
 require_once("Log/Log.php");
-require_once("Log/LogDefault.php");
 require_once("Database/Helper.php");
 require_once("ApiHelper.php");
 require_once("Models/Model.php");
@@ -36,7 +37,7 @@ require_once(Environment::$dirs->vendor.'joshcam/mysqli-database-class/MysqliDb.
  *
  * @author Jeff Frohner <office@jefffrohner.com>
  * @copyright Jeff Frohner 2017
- * @version 1.3.1
+ * @version 1.9.9
  * @package Jeff\Api
  */
 Class ApiInfo {
@@ -80,7 +81,7 @@ Class ApiInfo {
  *
  * @author Jeff Frohner <office@jefffrohner.com>
  * @copyright Jeff Frohner 2017
- * @version 1.3.1
+ * @version 1.9.9
  * @package Jeff\Api
  */
 Class Api {
@@ -148,7 +149,7 @@ Class Api {
 	/**
 	* disallow __clone
 	*/		
-	protected functino __clone() {}
+	protected function __clone() {}
 
 	/**
 	 * The startup
@@ -165,9 +166,11 @@ Class Api {
 	 *	
 	 */
 	public function start() {
+		
 		// instatiate all nesseccary classes
 		$this->db = new \MysqliDb(Environment::$database);
-		Log\Log::initialize($this->db);
+		Log\Log::init($this->db);
+		
 
 		self::_sendPrimaryHeaders();
 		// new: $this->response->sendPrimaryHeaders();
@@ -185,18 +188,18 @@ Class Api {
 
 
 		$this->NOAUTH = isset(Environment::$api->noAuth) ? Environment::$api->noAuth : false;
-		$this->account = new Account($this->db, null);
+		$this->account = new Models\Account($this->db, null);
 
 		// put together what was passed as parameters to this api:
 		#$this->method = $_SERVER['REQUEST_METHOD'];
 		#$this->requestArray = ApiHelper::getRequest();
 		#$this->data = ApiHelper::getData();
 		$this->models = $this->_getAllModels();
-		$this->request = new Request();
+		$this->request = new Request\Request();
 		$this->request->init();
 		#$this->request = $this->_getFullRequest();
 		// var_dump($this->request);
-		if(count($this->request->params)===0 || $this->request->type===RequestType::INFO) {
+		if(count($this->request->params)===0 || $this->request->type===Request\RequestType::INFO) {
 			echo ApiInfo::getApiInfo();
 			exit;
 		}
@@ -249,23 +252,23 @@ Class Api {
 		// some specials before regular API call
 		// dbupdate
 		if($this->request->type===RequestType::SPECIAL && $this->request->special==='dbupdate') {
-			if(isset($this->request->requestArray[1]) && $this->request->requestArray[1]==='execute') {
+			if(isset($this->request->params[1]) && $this->request->params[1]==='execute') {
 				$execute = true;
 			} else {
 				$execute = false;
 			}
-			$dbHelper = new Database\Helper($this->db, $this->errorHandler);
-			$dbHelper->update($this->ENV, $execute, $this->request->requestArray);
+			$dbHelper = new Database\Helper($this->db);
+			$dbHelper->update($execute, $this->request->params);
 			exit;
 			echo "end of request dbupdate";
 		}
 
-		switch ($this->method) {
-			case 'OPTIONS':
+		switch ($this->request->method) {
+			case RequestMethod::OPTIONS:
 				exit;
-			case 'GET':
+			case RequestMethod::GET:
 				require_once('ApiGet.php');
-				$ApiGet = new ApiGet($this->request, $this->request->data, $this->db, $this->account);
+				$ApiGet = new ApiGet($this->request, $this->db, $this->account);
 				if($this->request->type===RequestType::SPECIAL) {
 					$response = $ApiGet->getSpecial();
 					if($response) {
@@ -292,9 +295,9 @@ Class Api {
 					}
 				}
 				break;
-			case 'POST':
+			case RequestMethod::POST:
 				require_once('ApiPost.php');
-				$ApiPost = new ApiPost($this->request, $this->request->data, $this->db, $this->account);
+				$ApiPost = new ApiPost($this->request, $this->db, $this->account);
 				if($this->request->type===RequestType::SPECIAL) {
 					$response = $ApiPost->postSpecial();
 					if($response) {
@@ -307,9 +310,9 @@ Class Api {
 					ApiHelper::sendResponse(200, json_encode($response));
 				}
 				break;
-			case 'PUT':
+			case RequestMethod::PUT:
 				require_once('ApiPut.php');
-				$ApiPut = new ApiPut($this->request, $this->request->data, $this->db, $this->account);
+				$ApiPut = new ApiPut($this->request, $this->db, $this->account);
 				if($this->request->type===RequestType::SPECIAL) {
 					$response = $ApiPut->putSpecial(/*$this->models*/);
 					if($response) {
@@ -320,104 +323,24 @@ Class Api {
 					ApiHelper::sendResponse(200,json_encode($response));
 				}
 				break;
-			case 'DELETE':
+			case RequestMethod::DELETE:
 				require_once('ApiDelete.php');
 				$ApiDelete = new ApiDelete($this->request, $this->request->data, $this->db, $this->account);
 				$response = $ApiDelete->deleteItem();
 				ApiHelper::sendResponse(200,json_encode($response));
 				break;
+			case RequestMethod::PATCH:
+				echo "Method PATCH not implemented";
+				break;
 		}
 	} // end start
 
-
 	/**
-	*	getting a full Request Object with type, model, an id
-	*	
-	*	@return object which has a type, a model, an id
-	**/
-	// MOVED TO Request class
-	
-	// private function _getFullRequest() {
-	// 	if(count($this->requestArray)===0) {
-	// 		// nothing after .../api
-	// 		return null;
-	// 	}
-
-	// 	$request = new \stdClass();
-	// 	$request->type = $this->_determineRequestType();
-	// 	$request->requestArray = $this->requestArray;
-
-	// 	if($request->type === RequestType::SPECIAL) {
-	// 		$request->special = $this->requestArray[0];
-	// 		$request->requestArray = $this->requestArray;
-	// 	}
-
-
-	// 	if($request->type === RequestType::REFERENCE) {
-	// 		// the model to get these items from is always the "bigger" one, the right one
-	// 		// user2prduction can be got in Model-Class Production
-	// 		// by the method getMany2Many(id, by(id), child-model)
-	// 		$request->model = $this->_getModel($this->references[1]); // always plural
-	// 		$request->modelLeft = $this->_getModel($this->references[0]);	// always plural
-	// 		if (isset($this->requestArray[1]) /*&& is_numeric($this->requestArray[1])*/) { // will be a string for Many2Many eg "24_30"
-	// 			$request->id = $this->requestArray[1];
-	// 		}
-	// 		#$request->singularRequest = substr($this->requestArray[0], 0, strlen($this->requestArray[0])-1);
-	// 	}
-	// 	if($request->type === RequestType::NORMAL 
-	// 		|| $request->type === RequestType::QUERY 
-	// 		|| $request->type=== RequestType::COALESCE) {
-			
-	// 		$modelName = $this->requestArray[0];
-	// 		$model = $this->_getModel($modelName);
-	// 		$request->model = $model;
-	// 		if (isset($this->requestArray[1]) && is_numeric($this->requestArray[1])) {
-	// 			$request->id = $this->requestArray[1];
-	// 		} elseif (isset($this->requestArray[1]) && is_string($this->requestArray[1])) {
-	// 			$request->special = $this->requestArray[1];
-	// 		} else {
-	// 			// 3. if we have NO id on position 2 and it's a PUT or DELETE we have an ERROR
-	// 			if($this->method==='PUT' || $this->method==='DELETE') {
-	// 				ErrorHandler::throwOne(ErrorHandler::API_ID_MISSING);
-	// 			}
-	// 		} 
-	// 	}
-	// 	return $request;
-	// }
-
-	/**
-	*	tries to determine the request type based on:
-	* 	- what's in request
-	*	- what's in data
-	*	
-	*	@return int Constant REQUEST_TYPE_*
-	**/
-	// MOVED TO Request class
-	/*	private function _determineRequestType() {
-
-		if($this->requestArray[0]==='' || strtolower($this->requestArray[0])==='apiInfo') {
-			return RequestType::INFO;
-		}
-		// check for comment2post type 'references'
-		$references = explode("2", $this->requestArray[0]);
-		if(count($references)===2) {
-			$this->references = $references;
-			return RequestType::REFERENCE;
-		}
-		if ((isset($this->requestArray[1]) && $this->requestArray[1]==='multiple') || isset($this->data->ids)) {
-			return RequestType::COALESCE;
-		}
-		if(in_array($this->requestArray[0], $this->specialVerbs)) {
-			return RequestType::SPECIAL;
-		}
-		if(isset($this->data->filter) || isset($this->data->gt) || isset($this->data->gte) || isset($this->data->lt) || isset($this->data->lte)) {
-			return RequestType::QUERY;
-		}
-		// default
-		return RequestType::NORMAL;
+	 * getter for private property $specialVerbs
+	 */
+	public function getSpecialVerbs() {
+		return $this->specialVerbs;
 	}
-	*/
-
 
 	/**
 	* tries to get one model based on it's (plural or singular) name 
@@ -425,7 +348,7 @@ Class Api {
 	* @param string $modelName  name of the desired model
 	* @return array array of models
 	*/
-	private function _getModel(string $modelName) {
+	public function _getModel(string $modelName) {
 		if($this->models) {
 			// if we already scanned the directory (which we should have done already), we can simply check if it's in there and return true
 			if(isset($this->models[$modelName])) {
@@ -486,7 +409,6 @@ Class Api {
 	*	@return boolean
 	*/
 	private function _needsAuthentication() {
-		#echo __FILE__." ". __FUNCTION__ ."() - Line: ". __LINE__."\n";
 		if(isset(Environment::$api->noAuthRoutes) && is_array(Environment::$api->noAuthRoutes) && is_array($this->request->params)) {
 			$requestRoute = implode('/', $this->request->params);
 			foreach (Environment::$api->noAuthRoutes as $key => $route) {
@@ -512,11 +434,10 @@ Class Api {
 	*	This is needed at least for an _OPTIONS_ request
 	* 	But this headers will be sent with _every_ response.
 	*	
-	*	@param Environment $ENV the configuration Object
 	*	@return void
 	*/
 	private function _sendPrimaryHeaders() {
-		header("Access-Control-Allow-Origin: ".Environment::$urls->allowOrigin);
+		header("Access-Control-Allow-Origin: ".Environment::$api->allowOrigin);
 		header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 		header("Access-Control-Allow-Headers: Origin, Content-Type, Authorization, X-Custom-Auth");	
 	}

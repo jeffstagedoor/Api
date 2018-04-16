@@ -246,7 +246,11 @@ Class ErrorHandler {
 		}
 		$geoInfo = Log\Log::getGeoInfoArray();
 		$txt.= "     ".$_SERVER['REMOTE_ADDR']." ".implode(", ",$geoInfo).PHP_EOL;
-		$logPath = (null !== LogConfig::getPath()) ? LogConfig::getPath() : "../apiLog";
+		if(class_exists('LogConfig')) {
+			$logPath = (null !== \LogConfig::getPath()) ? \LogConfig::getPath() : "../apiLog";
+		} else {
+			$logPath = "../apiLog";
+		}
 		if (!is_dir($logPath)) {
     		mkdir($logPath, 0664, true);
 		}

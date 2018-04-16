@@ -1,12 +1,13 @@
 <?php
+require_once('../../api/Environment.php');
 require_once("../config.php"); // pointing to AppRoot
 
+// Constants are only used in consuming app, so this is optional
+require_once("../Constants.php"); // pointing to AppRoot
 
+use Jeff\Api\Api;
+use Jeff\Api\Environment;
 
-#require_once("../../../Api/api/api.php");
-// would be in a real app:
-// require_once($ENV->dirs->vendor."jeffstagedoor/Api/api/api.php");
-
-
-require_once("../../../Api/api/Api.class.php");
-$Api = new Jeff\Api\Api($ENV);
+require_once(Environment::$dirs->api."Api.php");
+$Api = Api::getInstance();
+$Api->start();

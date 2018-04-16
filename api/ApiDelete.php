@@ -5,12 +5,13 @@
 *	@author Jeff Frohner
 *	@copyright Copyright (c) 2017
 *	@license   private
-*	@version   1.0
+*	@version   1.9.9
 *
 **/
 
 namespace Jeff\Api;
-use Log\Log;
+use Jeff\ApiLog\Log;
+use Jeff\Api\Request\RequestType;
 
 /**
 *	Class ApiDelete
@@ -18,7 +19,7 @@ use Log\Log;
 *	@author Jeff Frohner
 *	@copyright Copyright (c) 2017
 *	@license   private
-*	@version   1.8.0
+*	@version   1.9.9
 *
 **/
 Class ApiDelete
@@ -36,13 +37,12 @@ Class ApiDelete
 	 * The Constructor.
 	 * Only sets the passed in instances/classes to private vars
 	 * @param object         $request      The requst object
-	 * @param object         $data         The data with the item to add
 	 * @param \MySqliDb      $db           Instance of Database class
 	 * @param Models\Account $account      Instance of Account
 	 */
-	function __construct($request, $data, $db, $account) {
+	function __construct($request, $db, $account) {
 		$this->request = $request;
-		$this->data = $data;
+		$this->data = $request->data;
 		$this->db = $db;
 		$this->account = $account;
 	}
@@ -59,7 +59,7 @@ Class ApiDelete
 	 */
 	public function deleteItem() {
 		switch ($this->request->type) {
-			case Api::REQUEST_TYPE_REFERENCE: 
+			case RequestType::REFERENCE: 
 				$model = $this->request->model;
 				$modelLeft = $this->request->modelLeft;
 				if(!isset($this->request->id)) {
@@ -77,7 +77,7 @@ Class ApiDelete
 				}
 
 				break;
-			case Api::REQUEST_TYPE_NORMAL:
+			case RequestType::NORMAL:
 				$item = $this->request->model->get($this->request->id);
 				$success = $this->request->model->delete($this->request->id);
 

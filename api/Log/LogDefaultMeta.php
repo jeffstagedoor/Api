@@ -20,6 +20,8 @@
  *  }
  * ```
  */
+namespace Jeff\Api\Log;
+
 Class LogDefaultMeta {
 	public $Meta1;
 	public $Meta2;

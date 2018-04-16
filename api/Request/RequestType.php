@@ -3,7 +3,9 @@
  * abstract class to define Request Types
  * 
  */
-abstract class RequestType extends SplEnum {
+namespace Jeff\Api\Request;
+
+abstract class RequestType {
 	Const NORMAL = 1;
 	Const REFERENCE = 2;
 	Const COALESCE = 3;

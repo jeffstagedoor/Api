@@ -7,6 +7,23 @@
 *	@license   private
 *	@version   1.0
 *
+* The consuming app __MUST__ include a file 'config.php' in it's route, that adapts these defaults.
+* 
+* The minimal implementation would be:
+* 
+* ```
+* <?php
+* use Jeff\Api\Environment;
+* Environment::init();
+* // no you can overwrite the settings (based on `$_SERVER['SERVER_NAME']` for example)
+* Environment::$database = Array( 
+*					"username" => "bar",
+*					"password" => "foo", 
+*					"host" => "localhost",  
+*					"db" => "yourdatabase" 
+*		);
+* ```
+*
 */
 namespace Jeff\Api;
 
@@ -32,8 +49,26 @@ Class Environment
 			"db" => ""
 		);
 
+	/**
+	 * @var array Configuration for authorization
+	 * 
+	 * ```
+	 * [
+	 * 	"tokenType" => "1",
+	 *	"authTokenExpiresIn" => "604800"
+	 * ];
+	 * ```
+	 * 
+	 */
+	public static $authenticationConfig = [
+		"tokenType" => "1",
+		"authTokenExpiresIn" => "604800"
+	];
 
-		// default for noAuthRoutes: routes, that don't need to be authenticated
+	/** @var array default for noAuthRoutes: routes, that don't need to be authenticated 
+	 *             simple array like `['login', 'signup', 'apiInfo', 'getImage']`
+	 *             (these are the defaults)
+	*/
 	public static $noAuthRoutes = Array(
 		"login",
 		"signup",
@@ -44,6 +79,7 @@ Class Environment
 	public static $urls;
 	public static $dirs;
 	public static $api;
+	public static $publicFolders = [];
 
 	/**
 	 * prevent constructor from beeing called to make this a static class
@@ -60,7 +96,6 @@ Class Environment
 		self::$urls->appUrl = "";
 		self::$urls->apiUrl = "api/";
 		self::$urls->tasksUrl = "api/task/";
-		self::$urls->allowOrigin = "";
 
 		self::$dirs = new \stdClass();
 		self::$dirs->appRoot = dirname(__FILE__).DIRECTORY_SEPARATOR.self::folderUp(4);
@@ -72,6 +107,7 @@ Class Environment
 
 		self::$api = new \stdClass();
 		self::$api->noAuth = false;
+		self::$api->allowOrigin = "";
 		if($noAuthRoutes) {
 			self::$api->noAuthRoutes = array_merge(self::$noAuthRoutes, $noAuthRoutes);
 		} 
@@ -107,5 +143,17 @@ Class Environment
 			$x.="..".DIRECTORY_SEPARATOR;
 		}
 		return $x;
+	}
+
+	public static function getConfig() {
+		$config = new \stdClass();
+		$config->urls = self::$urls;
+		$config->dirs = self::$dirs;
+		$config->api = self::$api;
+		$config->production = self::$production;
+		$config->development = self::$development;
+		$config->debug = self::$debug;
+
+		return $config;
 	}
 }

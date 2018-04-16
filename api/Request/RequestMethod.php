@@ -7,7 +7,10 @@
  * PATCH update:
  * https://tools.ietf.org/html/rfc5789#section-2
  */
-abstract class RequestMethod extends SplEnum {
+
+namespace Jeff\Api\Request;
+
+abstract class RequestMethod {
 	Const GET = 1;
 	Const HEAD = 2;
 	Const POST = 3;
@@ -19,7 +22,7 @@ abstract class RequestMethod extends SplEnum {
     Const PATCH = 9;
 
     
-    public function findMethod() {
+    public static function findMethod() {
         switch($_SERVER['REQUEST_METHOD']) {
             case 'GET':
                 return RequestMethod::GET;

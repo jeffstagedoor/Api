@@ -5,6 +5,8 @@
  * This would be a (Base-) Model, the Log. This class defines/defaults all params that are nessecary to use the Table class.
  * 
  */
+namespace Jeff\Api\Database;
+
 abstract class DBTableRepresentation {
 
     /** @var string $dbTable The name of the corresponding database table */

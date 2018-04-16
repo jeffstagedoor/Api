@@ -2,7 +2,6 @@
 /**
 * Customizing LOG Entries
 */
-
 use Jeff\Api\Log\LogDefaultConfig;
 use Jeff\Api\Log\LogDefaultFor;
 use Jeff\Api\Log\LogDefaultMeta;
@@ -10,11 +9,13 @@ use Jeff\Api\Log\LogDefaultMeta;
 
 Class LogConfig extends LogDefaultConfig {
 
+	protected static $path = "../LogApi";
+
 	public static function values() {
 		$values = new \stdClass();
 		$values->posts = new \stdClass();
 		$values->posts->for = new LogDefaultFor(
-				NULL, Constants::USER_ADMIN, 		//A
+				NULL, \Constants::USER_ADMIN, 		//A
 				NULL, Null,		// B
 				NULL, NULL,		// C
 				NULL, NULL 		// D

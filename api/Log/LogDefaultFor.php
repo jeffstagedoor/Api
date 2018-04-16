@@ -19,6 +19,8 @@
  *  }
  * ```
  */
+namespace Jeff\Api\Log;
+
 Class LogDefaultFor {
 	public $A;
 	public $ARights;

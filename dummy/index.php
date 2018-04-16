@@ -1,5 +1,8 @@
 <?php
+require_once('../api/Environment.php');
 require("config.php");
+
+use Jeff\Api\Environment;
 ?>
 
 <!DOCTYPE html>
@@ -51,22 +54,22 @@ require("config.php");
 		
 		<small>AppRootFile: <?php echo __DIR__ ?></small><br>
 		<a role="button" data-toggle="collapse" data-target="#env-json" aria-expanded="false" aria-controls="env-json">Environment</a><br>
-		<div id="env-json" class="collapse"><?php echo "<pre>ENV(ironment) as defined in config.php\n".stripslashes(json_encode($ENV, JSON_PRETTY_PRINT))."</pre>"; ?></div>
+		<div id="env-json" class="collapse"><?php echo "<pre>Environment as defined in config.php\n".stripslashes(json_encode(Environment::getConfig(), JSON_PRETTY_PRINT))."</pre>"; ?></div>
 
 
 		<a role="button" data-toggle="collapse" data-target="#paths" aria-expanded="false" aria-controls="paths">Paths</a><br>
 		<?php 
 		echo "<pre id='paths' class='collapse'>";
 		echo "This Script: ".$_SERVER['PHP_SELF'];
-		echo "<br>AppRootUrl: ".$ENV->dirs->appRoot;
-		echo "<br>ApiUrl: ".$ENV->urls->apiUrl;
+		echo "<br>AppRootUrl: ".Environment::$dirs->appRoot;
+		echo "<br>ApiUrl: ".Environment::$urls->apiUrl;
 		echo "</pre>";
 		?>
 
 		<a role="button" data-toggle="collapse" data-target="#ApiTest" aria-expanded="false" aria-controls="ApiTest">Api-Test &amp; Info</a><br>
 		<?php
 			$ch = curl_init(); 
-			curl_setopt($ch, CURLOPT_URL, $ENV->urls->baseUrl.$ENV->urls->apiUrl."/apiInfo"); 
+			curl_setopt($ch, CURLOPT_URL, Environment::$urls->baseUrl.Environment::$urls->apiUrl."/apiInfo"); 
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); 
 			$output = curl_exec($ch); 
 			echo curl_error($ch);

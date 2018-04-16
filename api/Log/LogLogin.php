@@ -18,10 +18,10 @@ require_once('Log.php');
 Class LogLogin extends Log {
 
 	/** @var string a 'model' name. We need this for finding this entity in several methods */
-	public $modelName = "LogLogin";
+	public static $modelName = "LogLogin";
 
 	/** @var string the database table name */
-	protected $dbTable = "loglogin";
+	protected static $dbTable = "loglogin";
 
 	/** @var array[] the database table definition as described in class {@see \Jeff\Api\Models\Model } */
 	public $dbDefinition = Array(

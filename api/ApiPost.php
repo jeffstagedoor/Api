@@ -65,14 +65,14 @@ Class ApiPost
 			case RequestType::REFERENCE: 
 				$model = $this->request->model;
 				$modelLeft = $this->request->modelLeft;
-				#var_dump($this->data);
-				#var_dump($this->data->{$model->modelName});
+				#var_dump($this->request->data);
+				#var_dump($this->request->data->{$model->modelName});
 				$itemName = $modelLeft->modelNamePlural.'2'.$model->modelName;
-				if(!isset($this->data->{$itemName})) {
+				if(!isset($this->request->data->{$itemName})) {
 					ErrorHandler::throwOne(41);
 					exit;
 				}
-				$dataSet = $this->data->{$itemName};
+				$dataSet = $this->request->data->{$itemName};
 				$dataSet['modBy'] = $this->account->id;
 				unset($dataSet['modDate']);
 				$id = $model->addMany2Many($modelLeft, $dataSet);
@@ -82,16 +82,16 @@ Class ApiPost
 				}
 
 				$this->response->{$itemName} = $this->request->model->getMany2Many($id, $modelLeft->modelNamePlural);
-				$this->data->{$itemName}['id'] = $id;
-				Log::write($this->account->id, $itemName."Add", $itemName, $this->data);
+				$this->request->data->{$itemName}['id'] = $id;
+				Log::write($this->account->id, $itemName."Add", $itemName, $this->request->data);
 				return $this->response;
 				break;
 			case RequestType::COALESCE:
-				$items = $this->request->model->addMultiple($this->data->{$this->request->model->modelName}, $this->data->multipleParams);
+				$items = $this->request->model->addMultiple($this->request->data->{$this->request->model->modelName}, $this->request->data->multipleParams);
 				$this->response->{$this->request->model->modelNamePlural} = $items;
 				$logData = new \stdClass();
 				$logData->for = new LogDefaultFor(NULL,\Constants::USER_ADMIN,NULL,NULL,NULL,NULL,NULL,NULL);
-				$logData->meta = new LogDefaultMeta(NULL,NULL, count($items),NULL, json_encode($this->data->multipleParams));
+				$logData->meta = new LogDefaultMeta(NULL,NULL, count($items),NULL, json_encode($this->request->data->multipleParams));
 				Log::write($this->account->id, "createMultiple", $this->request->model->modelName, $logData);
 				return $this->response;
 				break;
@@ -104,7 +104,7 @@ Class ApiPost
 
 					switch ($this->request->special) {
 						case 'import':
-							$this->response->{$this->request->model->modelName} = $this->request->model->import($this->data);
+							$this->response->{$this->request->model->modelName} = $this->request->model->import($this->request->data);
 							Log::write($this->account->id, 'create', $this->request->model->modelName, $this->response->{$this->request->model->modelName});
 							break;
 						default:
@@ -116,24 +116,21 @@ Class ApiPost
 				} else {
 					if($this->request->model->modifiedByField) {
 						// default: 'modBy'
-						$this->data->{$this->request->model->modelName}[$this->request->model->modifiedByField] = $this->account->id;
+						$this->request->data->{$this->request->model->modelName}[$this->request->model->modifiedByField] = $this->account->id;
 					}
-					unset($this->data->{$this->request->model->modelName}['modDate']);
+					unset($this->request->data->{$this->request->model->modelName}['modDate']);
 
-					$dataSet = (isset($this->data->{$this->request->model->modelName})) ? $this->data->{$this->request->model->modelName} : $this->data;
-
+					$dataSet = (isset($this->request->data->{$this->request->model->modelName})) ? $this->request->data->{$this->request->model->modelName} : $this->request->data;
 					$id = $this->request->model->add($dataSet);
 
-					if(ErrorHandler::hasErrors()) {
-						ErrorHandler::sendAllErrorsAndExit();
-					}
 					$this->response->{$this->request->model->modelName} = $this->request->model->getOneById($id);
-					$this->data->{$this->request->model->modelName}['id'] = $id;
-					Log::write($this->account->id, 'create', $this->request->model->modelName, $this->data);
+					$this->request->data->{$this->request->model->modelName}['id'] = $id;
+					Log::write($this->account->id, 'create', $this->request->model->modelName, $this->request->data);
 					#$this->response->{$this->request->model->modelNamePlural} = $this->request->model->getAll();
 				}	
 				break;
 		}
+		
 		return $this->response;
 	}
 
@@ -146,7 +143,7 @@ Class ApiPost
 		// echo "GET REQUEST_TYPE_SPECIAL: ".$this->request->special;
 		switch ($this->request->special) {
 			case "fileUpload":
-				// var_dump($this->data);
+				// var_dump($this->request->data);
 				require_once("FileUpload.php");
 				$fileUpload = new FileUpload($this->db);
 				$fileUpload->upload($this->request->data, $this->account);
@@ -154,20 +151,20 @@ Class ApiPost
 			case "task":
 				require_once("TasksPrototype.php");
 				// check if we have Task.php implemented
-				if(!file_exists($this->ENV->dirs->appRoot."Tasks.php")) {
+				if(!file_exists(Environment::$dirs->appRoot."Tasks.php")) {
 					ErrorHandler::throwOne(ErrorHandler::TASK_NOT_DEFINED);
 					exit;
 				}
-				require_once($this->ENV->dirs->appRoot."Tasks.php");
+				require_once(Environment::$dirs->appRoot."Tasks.php");
 				$tasks = new \Jeff\Api\Tasks($this->db, $this->account);
 				
-				if(isset($this->request->requestArray[1])) {
+				if(isset($this->request->params[1])) {
 					// der task ist im request zb: task/addUserToWorkgroup (die Daten in postData)
 					// check if we have a fitting method defined:
-					$taskName = $this->request->requestArray[1];
-				} elseif (isset($this->data->task)) {
+					$taskName = $this->request->params[1];
+				} elseif (isset($this->request->data->task)) {
 					// ist der task woanders versteckt
-					$taskName = $this->data;
+					$taskName = $this->request->data;
 				}
 				if(method_exists($tasks, $taskName)){
 					$response = $tasks->{$taskName}($this->request);
@@ -189,9 +186,9 @@ Class ApiPost
 					$this->request->data->lastName = $names[3];
 				}
 
-				include_once($this->ENV->dirs->models."Accounts.php");
+				include_once(Environment::$dirs->models."Accounts.php");
 				$account = new Models\Account($this->db, $this->ENV, $this->errorHandler, null);
-				if($account->signup($this->data)) {
+				if($account->signup($this->request->data)) {
 					$response = $account->getAccount(); 
 					return $response;
 				} else {
