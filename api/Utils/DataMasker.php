@@ -9,7 +9,7 @@
 *	@version   1.0
 *
 **/
-namespace Jeff\Api;
+namespace Jeff\Api\Utils;
 
 
 Class DataMasker {

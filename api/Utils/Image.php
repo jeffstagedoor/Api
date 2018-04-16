@@ -2,7 +2,7 @@
 /**
  * file contains class Image
  */
-namespace Jeff\Api;
+namespace Jeff\Api\Utils;
 
 
 /**

@@ -19,7 +19,7 @@ use Jeff\Api\Environment;
  *	@license   private
  *	@version   1.8.1
  */
-Class Model 
+Class Model extends Database\DBTableRepresentation
 {
 
 	/**
@@ -1161,7 +1161,7 @@ Class Model
 
 		// EXAMPLE implementation, that might work for most Model-Types.
 		// will be buggy, if the hasMany-Items have hasMany-Items themselves...
-		/**
+		/*
 		$this->db->startTransaction();
 		// 1. get the source
 		if(!isset($data->id)) {
@@ -1218,15 +1218,6 @@ Class Model
 		$this->db->commit();
 		return $this->getOneById($newId);
 		*/
-	}
-
-
-	/** 
-	* returns the database table name of this model
-	* @return string dbTable
-	*/
-	public function getDbTable() {
-		return $this->dbTable;
 	}
 
 

@@ -24,12 +24,12 @@ use Jeff\Api\Log\Log;
 */
 Class ApiPut
 {
+	/** @var object the request Object */
+	private $request;
 	/** @var \MySqliDb Instance of database class */
 	private $db;
 	/** @var Models\Account Instance of Account class */
 	private $account;
-	/** @var object the request Object */
-	private $request;
 	/** @var object the item to update */
 	private $item;
 
@@ -38,13 +38,11 @@ Class ApiPut
 	 * The Constructor.
 	 * Only sets the passed in instances/classes to private vars
 	 * @param object         $request      The requst object
-	 * @param object         $data         The data with the item to add
 	 * @param \MySqliDb      $db           Instance of Database class
 	 * @param Models\Account $account      Instance of Account
 	 */
-	function __construct($request, $data, $db, $account) {
+	function __construct($request, $db, $account) {
 		$this->request = $request;
-		$this->data = $data;
 		$this->db = $db;
 		$this->account = $account;
 		$this->item = new \stdClass();

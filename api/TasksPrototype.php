@@ -12,6 +12,8 @@
 
 
 namespace Jeff\Api;
+use Jeff\Api\ErrorHandler;
+use Jeff\Api\log\Log;
 
 /**
 *	Class TasksPrototype
@@ -24,7 +26,7 @@ namespace Jeff\Api;
 *	@version   0.8
 *
 **/
-Class TasksPrototype 
+Class TasksPrototype extends Database\DBTableRepresentation
 {
 	/** @var \MySqliDb Instance of database class */
 	protected $db = NULL;
@@ -94,37 +96,11 @@ Class TasksPrototype
 	 * sets the passed classes/objects to local vars.
 	 *
 	 * @param  MySqliDb $db Instance of database
-	 * @param Environment $ENV Instance of Environment
-	 * @param ErrorHandler $errorHandler Instance of ErrorHandler
 	 * @param Models\Account $account Instance of Models\Account
-	 * @param Log\Log $log Instance of Log\Log
 	 */
-	public function __construct($db, $ENV, $errorHandler, $account=null, $log=null) {
+	public function __construct($db, $account=null) {
 		$this->db = $db;
-		$this->ENV = $ENV;
-		$this->errorHandler=$errorHandler;
 		$this->account = $account;
-		$this->log = $log;
-	
-		if(!$this->errorHandler) { $this->errorHandler = new ErrorHandler(); }
-	}
-
-	/**
-	 * old deprecated version of authenticateAccount.
-	 *
-	 * __DEPRECATED__  - use authenticateAccount instead
-	 * 
-	 * @param  object $data the data object that was sent via POST:
-	 * 
-	 *     {
-	 *         authToken: '1234567890'
-	 *     }
-	 *                      
-	 * @return Models\Account       the authenticated Account
-	 */
-	protected function authorizeAccount($data) {
-		echo "method authorizeAccount() was renamed to authenticateAccount().";
-		exit;
 	}
 
 	/**

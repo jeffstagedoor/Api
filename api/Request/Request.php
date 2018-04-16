@@ -13,11 +13,11 @@ require_once("RequestType.php");
  */
 class Request {
 
+    /** @var RequestMethod the Http-Method of the request */
+    public $method;
+
     /** @var Array containing the request-parameters */
     public $params = [];
-
-    /** @var Object containing the request-data */
-    public $data;
 
     /** @var RequestType the type of the request. such as 'NORMAL', 'COALESQUE',.. */
     public $type;
@@ -25,21 +25,28 @@ class Request {
     /** @var string if the request if of RequestType::SPECIAL we will store the special verb in here */
     public $specialVerb;
 
-    public $modelLeft;
+    /** @var Object containing the request-data for POST, PUT, PATCH */
+    public $data;
+
+    /** @var Jeff\Api\Model The requested model to get, post, put, delete,.. */
+    public $model;
+
 
     /**
      * Constructor
      * 
-     * sets RequestArray, data
+     * does nothing til now.
      */
     public function __construct() {
-        // set RequestArray
-        $this->params = $this->setParams();
-        $this->data = $this->findData();
-        $this->type = $this->determineRequestType();
     }
+    
+    public function init() {
+        // set RequestArray
+        $this->method = RequestMethod::findMethod();
+        $this->params = $this->findParams();
+        $this->data = $this->findData();
+        $this->type = $this->findType();
 
-    public function setup() {
         if(count($this->params)===0) {
 			// nothing after .../api
 			return null;
@@ -88,7 +95,7 @@ class Request {
 	*               this will contain everything after 'api' split by '/'
 	*               -> ['modelName', '5']
 	*/
-    public static function setParams() {
+    public function findParams() {
 		if(isset($_GET['request'])) {
 			$request = explode("/",$_GET['request']);
 		} else {
@@ -101,7 +108,7 @@ class Request {
 	*	tries to fetch data where ever it might be posted/put/...
 	*	@return object the posted data as stdClass
 	*/
-	public static function findData() {
+	public function findData() {
 		// check where the data came to (and if at all):
 		$fgc = file_get_contents("php://input");
 
@@ -145,7 +152,7 @@ class Request {
 	*	
 	*	@return RequestType
 	*/
-	private function determineRequestType() {
+	private function findType() {
 		if($this->params[0]==='' || strtolower($this->params[0])==='apiInfo') {
 			return RequestType::INFO;
 		}

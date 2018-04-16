@@ -3,7 +3,7 @@
  * This file contains class Names
  */
 
-namespace Jeff\Api;
+namespace Jeff\Api\Utils;
 
 /**
  *	A Helper Class that generates fullNames (method 'createFullname()') out of parts and/or splits a fullName into it's parts (method 'Arrange()')

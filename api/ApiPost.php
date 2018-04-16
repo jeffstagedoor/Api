@@ -10,6 +10,8 @@
 **/
 namespace Jeff\Api;
 use Jeff\Api\Log\Log;
+use Jeff\Api\Request\RequestType;
+use Jeff\Api\Utils\Names;
 
 /**
 *	Class that handles POST requests.
@@ -22,12 +24,12 @@ use Jeff\Api\Log\Log;
 **/
 Class ApiPost
 {
+	/** @var object the request Object */
+	private $request;
 	/** @var \MySqliDb Instance of database class */
 	private $db;
 	/** @var Models\Account Instance of Account class */
 	private $account;
-	/** @var object the request Object */
-	private $request;
 	/** @var array array of items to add */
 	private $items;
 	/** @var object the response to be returned to client */
@@ -37,13 +39,11 @@ Class ApiPost
 	 * The Constructor.
 	 * Only sets the passed in instances/classes to private vars
 	 * @param object         $request      The requst object
-	 * @param object         $data         The data with the item to add
 	 * @param \MySqliDb      $db           Instance of Database class
 	 * @param Models\Account $account      Instance of Account
 	 */
-	function __construct($request, $data, $db, $account) {
+	function __construct($request, $db, $account) {
 		$this->request = $request;
-		$this->data = $data;
 		$this->db = $db;
 		$this->account = $account;
 	}
@@ -62,7 +62,7 @@ Class ApiPost
 	public function postItem() {
 		$this->response = new \stdClass();
 		switch ($this->request->type) {
-			case Api::REQUEST_TYPE_REFERENCE: 
+			case RequestType::REFERENCE: 
 				$model = $this->request->model;
 				$modelLeft = $this->request->modelLeft;
 				#var_dump($this->data);
@@ -86,7 +86,7 @@ Class ApiPost
 				Log::write($this->account->id, $itemName."Add", $itemName, $this->data);
 				return $this->response;
 				break;
-			case Api::REQUEST_TYPE_COALESCE:
+			case RequestType::COALESCE:
 				$items = $this->request->model->addMultiple($this->data->{$this->request->model->modelName}, $this->data->multipleParams);
 				$this->response->{$this->request->model->modelNamePlural} = $items;
 				$logData = new \stdClass();
@@ -95,11 +95,11 @@ Class ApiPost
 				Log::write($this->account->id, "createMultiple", $this->request->model->modelName, $logData);
 				return $this->response;
 				break;
-			case Api::REQUEST_TYPE_QUERY:
+			case RequestType::QUERY:
 				ErrorHandler::add(array("API Error", "I received a Post request with a filter. Not implemented, doesn't make sense.",500,true, Api::CRITICAL_EMAIL));
 				ErrorHandler::add(ErrorHandler::API_INVALID_POST_REQUEST);
 				ErrorHandler::sendAllErrorsAndExit();
-			case Api::REQUEST_TYPE_NORMAL:
+			case RequestType::NORMAL:
 				if(isset($this->request->special)) {
 
 					switch ($this->request->special) {
@@ -148,8 +148,8 @@ Class ApiPost
 			case "fileUpload":
 				// var_dump($this->data);
 				require_once("FileUpload.php");
-				$fileUpload = new FileUpload($this->db, $this->ENV, $this->errorHandler, $this->log);
-				$fileUpload->upload($this->data, $this->account);
+				$fileUpload = new FileUpload($this->db);
+				$fileUpload->upload($this->request->data, $this->account);
 				exit;
 			case "task":
 				require_once("TasksPrototype.php");
@@ -159,7 +159,7 @@ Class ApiPost
 					exit;
 				}
 				require_once($this->ENV->dirs->appRoot."Tasks.php");
-				$tasks = new \Jeff\Api\Tasks($this->db, $this->ENV, $this->errorHandler, $this->account, $this->log);
+				$tasks = new \Jeff\Api\Tasks($this->db, $this->account);
 				
 				if(isset($this->request->requestArray[1])) {
 					// der task ist im request zb: task/addUserToWorkgroup (die Daten in postData)
@@ -170,7 +170,7 @@ Class ApiPost
 					$taskName = $this->data;
 				}
 				if(method_exists($tasks, $taskName)){
-					$response = $tasks->{$taskName}($this->data, $this->request);
+					$response = $tasks->{$taskName}($this->request);
 				} else {
 					ErrorHandler::throwOne(ErrorHandler::TASK_NOT_DEFINED);
 					exit;
@@ -180,13 +180,13 @@ Class ApiPost
 			case "signup":
 			case "signin":
 				// Name splitten
-				if(isset($this->data->fullName) && !isset($this->data->firstName) && !isset($this->data->lastName)) {
+				if(isset($this->request->data->fullName) && !isset($this->request->data->firstName) && !isset($this->request->data->lastName)) {
 					require_once("Names.php");
-					$names = Names::Arrange($this->data->fullName);
-					$this->data->firstName = $names[0];
-					$this->data->middleName = $names[1];
-					$this->data->prefixName = $names[2];
-					$this->data->lastName = $names[3];
+					$names = Names::Arrange($this->request->data->fullName);
+					$this->request->data->firstName = $names[0];
+					$this->request->data->middleName = $names[1];
+					$this->request->data->prefixName = $names[2];
+					$this->request->data->lastName = $names[3];
 				}
 
 				include_once($this->ENV->dirs->models."Accounts.php");
