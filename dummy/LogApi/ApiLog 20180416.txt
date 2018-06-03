@@ -1,0 +1,623 @@
+16.04.2018 14:00:55: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:00:59: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:11:06: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:12:27: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:12:49: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:13:36: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:14:37: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:15:48: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:17:00: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:18:17: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:18:17: Log DB Error - Log Table not found 
+16.04.2018 14:18:17: Database Error - Table 'posts' does not exist. 
+     ::1 , , , , 
+
+16.04.2018 14:18:17: Log DB Error - Log Table not found 
+16.04.2018 14:18:17: Database Error - Table 'posts' does not exist. 
+16.04.2018 14:18:17: Database Error - An undefined database error occured. 
+     ::1 , , , , 
+
+16.04.2018 14:19:32: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:19:59: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:19:59: Log DB Error - Log Table not found 
+16.04.2018 14:19:59: Database Error - Table 'posts' does not exist. 
+     ::1 , , , , 
+
+16.04.2018 14:19:59: Log DB Error - Log Table not found 
+16.04.2018 14:19:59: Database Error - Table 'posts' does not exist. 
+16.04.2018 14:19:59: Database Error - An undefined database error occured. 
+     ::1 , , , , 
+
+16.04.2018 14:22:45: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:22:45: Log DB Error - Log Table not found 
+16.04.2018 14:22:45: Database Error - Table 'posts' does not exist. 
+     ::1 , , , , 
+
+16.04.2018 14:22:46: Log DB Error - Log Table not found 
+16.04.2018 14:22:46: Database Error - Table 'posts' does not exist. 
+16.04.2018 14:22:46: Database Error - An undefined database error occured. 
+     ::1 , , , , 
+
+16.04.2018 14:24:11: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:25:21: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:27:24: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:27:54: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:28:49: Log DB Error - Log Table not found 
+     ::1 
+
+16.04.2018 14:32:26: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:33:14: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:33:35: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:34:11: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:34:19: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:35:00: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:37:25: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:40:34: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:45:22: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:46:04: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:46:21: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:46:43: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:47:33: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:50:31: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:56:22: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:58:01: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:58:40: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:58:56: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 14:59:25: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:00:54: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:02:10: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:03:24: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:03:38: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:04:44: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:16:07: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:16:43: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:16:48: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:16:52: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:17:08: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:19:59: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:20:34: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:20:52: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:21:07: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:21:07: Log DB Error - Log Table not found 
+16.04.2018 15:21:07: API-Error - Not all required fields were sent. I missed: title,body 
+16.04.2018 15:21:07: Invalid post request - Invalid post request 
+     ::1 , , , , 
+
+16.04.2018 15:24:23: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:24:23: Log DB Error - Log Table not found 
+16.04.2018 15:24:23: API-Error - Not all required fields were sent. I missed: title,body 
+16.04.2018 15:24:23: Invalid post request - Invalid post request 
+     ::1 , , , , 
+
+16.04.2018 15:25:32: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:25:32: Log DB Error - Log Table not found 
+16.04.2018 15:25:32: API-Error - Not all required fields were sent. I missed: title,body 
+16.04.2018 15:25:32: Invalid post request - Invalid post request 
+     ::1 , , , , 
+
+16.04.2018 15:25:38: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:25:39: Log DB Error - Log Table not found 
+16.04.2018 15:25:39: API-Error - Not all required fields were sent. I missed: body 
+16.04.2018 15:25:39: Invalid post request - Invalid post request 
+     ::1 , , , , 
+
+16.04.2018 15:25:44: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:25:49: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:25:49: Log DB Error - Log Table not found 
+16.04.2018 15:25:49: API-Error - Not all required fields were sent. I missed: body 
+16.04.2018 15:25:49: Invalid post request - Invalid post request 
+     ::1 , , , , 
+
+16.04.2018 15:26:31: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:26:31: Log DB Error - Log Table not found 
+16.04.2018 15:26:31: API-Error - Not all required fields were sent. I missed: body 
+16.04.2018 15:26:31: Invalid post request - Invalid post request 
+     ::1 , , , , 
+
+16.04.2018 15:26:58: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:26:58: Log DB Error - Log Table not found 
+16.04.2018 15:26:58: API-Error - Not all required fields were sent. I missed: body 
+16.04.2018 15:26:58: Invalid post request - Invalid post request 
+     ::1 , , , , 
+
+16.04.2018 15:27:25: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:27:25: Log DB Error - Log Table not found 
+16.04.2018 15:27:25: API-Error - Not all required fields were sent. I missed: body 
+16.04.2018 15:27:25: Invalid post request - Invalid post request 
+     ::1 , , , , 
+
+16.04.2018 15:28:30: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:28:31: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:29:31: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:29:31: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:30:50: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:30:51: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:31:48: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:31:48: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:32:02: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 15:32:02: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 16:24:30: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 16:25:16: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 16:25:55: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 16:26:31: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 16:30:21: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 16:37:27: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:16:27: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:20:38: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:20:39: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:21:53: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:21:53: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:22:04: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:22:05: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:25:15: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:25:15: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:25:59: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:25:59: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:26:11: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:26:11: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:26:39: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:26:39: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:26:53: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:26:53: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:27:01: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:27:01: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:31:52: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:32:15: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:32:21: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:32:26: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:39:19: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:39:23: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:43:56: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:44:26: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:45:39: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:51:09: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:54:18: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:54:32: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:55:05: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:55:35: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:55:51: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:56:00: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:56:21: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:56:25: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 17:58:52: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:00:43: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:01:42: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:01:55: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:11:17: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:11:48: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:11:57: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:12:03: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:12:40: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:13:36: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:14:55: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:15:48: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:16:01: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:17:44: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:18:00: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:18:16: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:18:42: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:18:59: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:19:07: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:19:11: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:21:04: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:21:04: Log DB Error - Log Table not found 
+16.04.2018 18:21:04: Api Error - Requested recource 'posts' not found/defined. 
+     ::1 , , , , 
+
+16.04.2018 18:22:47: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:24:22: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:24:40: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:24:48: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:24:53: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:25:12: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:26:01: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:28:12: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:28:33: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:28:50: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:29:33: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:29:52: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:30:04: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:30:15: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:30:42: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:30:59: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:31:05: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:31:09: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:38:14: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:38:18: Log DB Error - Log Table not found 
+16.04.2018 18:38:18: Api Error - Requested recource 'search' not found/defined. 
+     ::1 , , , , 
+
+16.04.2018 18:38:29: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:38:48: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:41:10: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:43:13: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:43:24: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 18:43:25: Log DB Error - Log Table not found 
+16.04.2018 18:43:25: Invalid get request - Invalid get request 
+     ::1 , , , , 
+
+16.04.2018 18:44:19: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 19:01:59: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 19:02:07: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 19:02:36: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 19:02:37: Log DB Error - Log Table not found 
+16.04.2018 19:02:37: API-Error - wrong call to getImage. Missing data 'file' or 'imageId' 
+     ::1 , , , , 
+
+16.04.2018 19:02:52: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 19:03:49: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 19:03:49: Log DB Error - Log Table not found 
+16.04.2018 19:03:49: API-Error - Public Folder not defined. 
+     ::1 , , , , 
+
+16.04.2018 19:04:00: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 19:04:00: Log DB Error - Log Table not found 
+16.04.2018 19:04:00: API-Error - Public Folder not defined. 
+     ::1 , , , , 
+
+16.04.2018 19:04:10: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 19:04:10: Log DB Error - Log Table not found 
+16.04.2018 19:04:10: API-Error - Public Folder not defined. 
+     ::1 , , , , 
+
+16.04.2018 19:11:30: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 19:43:11: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 19:45:22: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 19:45:30: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 19:46:18: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 19:46:39: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 21:57:11: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 22:01:37: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 22:04:22: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 22:07:48: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
+16.04.2018 22:27:34: Log DB Error - Log Table not found 
+     ::1 , , , , 
+
