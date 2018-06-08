@@ -57,9 +57,6 @@ Temporary Items
 #3rd Party repos
 vendor/
 
-*.ffs_db
-*.sublime-workspace
-
 #php-doc
 documentation/
 
@@ -67,4 +64,10 @@ sync.ffs_db
 *.ffs_db
 *.sublime-workspace
 sync.ffs_db
+<<<<<<< HEAD
+
+# Api-Log-Files
+ApiLog*.txt
+=======
 sync.ffs_db
+>>>>>>> refs/remotes/origin/master

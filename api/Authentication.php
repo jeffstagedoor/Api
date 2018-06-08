@@ -10,37 +10,33 @@
 
 namespace Jeff\Api;
 
-header("Access-Control-Allow-Origin: ".$ENV->urls->allowOrigin);
+require_once("Environment.php");
+
+header("Access-Control-Allow-Origin: ".Environment::$allowOrigin);
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 
-require($ENV->dirs->vendor.'joshcam/mysqli-database-class/MysqliDb.php');
+require_once(Environment::$dirs->vendor.'joshcam/mysqli-database-class/MysqliDb.php');
 
-require("ErrorHandler.php");
-require("Log/Log.php");
-require("DataMasker.php");
-require("ApiHelper.php");
-require("Model.php");
-require("Account.php");
-include_once("debughelpers.php");
+require_once("ErrorHandler.php");
+require_once("Log/Log.php");
+require_once("DataMasker.php");
+require_once("ApiHelper.php");
+require_once("Model.php");
+require_once("Account.php");
+#include_once("debughelpers.php");
 
 
 /**
 *	Class Authentication
 *
 *	@author Jeff Frohner
-*	@copyright 2015
-*	@version 1.0
+*	@copyright 2017
+*	@version 1.2
 *
 **/
 Class Authentication {
-	/** @var Environment The current Environment Object, which holds infos about db-credentials, local paths, etc */
-	private $ENV;
 	/** @var \MySqlDb  Instance of Database Class */
 	private $db;
-	/** @var ErrorHandler Instance of ErrorHandler */
-	private $errorHandler;
-	/** @var Log Instance of ErrorHandler */
-	private $log;
 	/** @var Models\Account Instance of ErrorHandler */
 	private $account;
 
@@ -48,32 +44,21 @@ Class Authentication {
 	* The Constructor
 	*
 	* sets up db connection {@see https://github.com/ThingEngineer/PHP-MySQLi-Database-Class}, 
-	* instanciates the classes {@see ErrorHandler}, {@see Log\Log}, {@see Models\Account}
-	* @see Environment
-	* @see ErrorHandler
-	* @see Log\Log
+	* instanciates the class {@see Models\Account}
 	* @see Models\Account
-	*
-	* @param Environment $ENV
 	*/
-	public function __construct($ENV=null) {
-		// echo "in Auth";
-		$this->ENV = $ENV;
+	public function __construct() {
 		// instatiate all nesseccary classes
-		$this->errorHandler = new ErrorHandler();
-		$this->db = new \MysqliDb($this->ENV->database);
-		$this->log = new Log\Log($this->db, $this->ENV, $this->errorHandler);
-		$this->account = new Models\Account($this->db, $this->ENV, $this->errorHandler, null);
+		$this->db = new \MysqliDb(Environment::$database);
+		$this->account = new Models\Account($this->db, null);
 		// check if we have a database ready:
 		try {
 			$this->db->connect();
 		} catch(\Exception $e) {
 			$this->db = NULL;
-			$this->errorHandler->throwOne(Array("DB Error", "Could not connect to database", 500, true, ErrorHandler::CRITICAL_ALL));
+			ErrorHandler::throwOne(Array("DB Error", "Could not connect to database", 500, true, ErrorHandler::CRITICAL_ALL));
 			exit;
 		}
-
-
 	}
 
 
@@ -108,29 +93,35 @@ Class Authentication {
 		} else {
 			// normal authentification
 			$identification = isset($postObject->username) ? $postObject->username : NULL;
-			if(!$identification) { $identification = isset($postObject->identification) ? $postObject->identification : NULL; }
+			if(!$identification) { 
+				$identification = isset($postObject->identification) ? $postObject->identification : NULL; 
+			}
 			$password = isset($postObject->password) ? $postObject->password : NULL;
-			if(!$password) { $password = isset($postObject->pwd) ? $postObject->pwd : NULL; }
-
-			if(strlen($identification)<5 || strlen($password)<4 || is_null($identification) || is_null($password)) {
-				$this->errorHandler->throwOne(ErrorHandler::AUTH_CREDENTIALS_TOO_SHORT);
+			if(!$password) { 
+				$password = isset($postObject->pwd) ? $postObject->pwd : NULL; 
+			}
+			// verify we have all we need
+			if(is_null($identification) || is_null($password) || strlen($identification)<5 || strlen($password)<4) {
+				ErrorHandler::throwOne(ErrorHandler::AUTH_CREDENTIALS_TOO_SHORT);
 				exit;
 			} else {
+				// finally do the real authentication in account-class
 				$auth = $this->account->authenticate($identification, $password);
 			}
 		}
+		// check if it was successfull
 		if(!$auth) {
-			$this->errorHandler->sendApiErrors();
-			$this->errorHandler->sendErrors();
+			ErrorHandler::sendApiErrors();
+			ErrorHandler::sendErrors();
 			exit;
 		} else {
 			$json = '{ "access_token": "'.$auth->authToken.'",
 				"refresh_token": "'.$auth->refreshToken.'",
-				"token_type": "1",
-				"expires_in": "604800",
+				"token_type": "'.Environment::$authenticationConfig['tokenType'].'",
+				"expires_in": "'.Environment::$authenticationConfig['authTokenExpiresIn'].'",
 				"account_id": '.$auth->account_id.'
 			}';
-			header("Access-Control-Allow-Origin: ".$this->ENV->urls->allowOrigin);
+			header("Access-Control-Allow-Origin: ".Environment::$urls->allowOrigin);
 			header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 			header("Access-Control-Allow-Headers: Content-Type");
 			header("HTTP/1.0 200 OK");

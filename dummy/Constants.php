@@ -1,7 +1,5 @@
 <?php
 
-namespace Jeff;
-
 abstract class Constants {
 	
 	// RIGHTS - MANAGEMENT
@@ -25,26 +23,3 @@ abstract class Constants {
 
 	// END RIGHTS MANAGEMENT
 }
-
-
-// Class Rights extends SplEnum {
-// 	Account = new stdClass();
-// 	Account->DISABLED = 0;
-// 	Account->USER = 1;
-// 	Account->ADMIN = 2;
-// 	Account->SUPERADMIN = 3;
-// 	Workgroup = new stdClass();
-// 	Workgroup->CONTESTENT = 0;
-// 	Workgroup->MEMBER = 1;
-// 	Workgroup->ADMIN = 2;
-// 	Production = new stdClass();
-// 	Production->ARTIST = 1;
-// 	Production->HOD_TECH = 3;
-// 	Production->HOD_CREATIVE = 4;
-// 	Production->STAGEMANAGEMENT = 5;
-// 	Production->COMPANYMANAGEMENT = 7;
-// 	Production->ADMIN = 9;
-// }
-
-
-?>

@@ -30,8 +30,5 @@ Class Comments extends Model
 			array('modBy', 'int', '11', true),
 		);
 	public $dbPrimaryKey = 'id';
-	public $dbKeys = array(
-		array('date', array('date')),
-		array('text', array('title', 'body')),
-		);
+	public $dbKeys = [];
 }

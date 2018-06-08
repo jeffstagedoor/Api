@@ -6,7 +6,9 @@
 
 namespace Jeff\Api\Models;
 use Jeff\Api as Api;
-
+use Jeff\Api\Environment;
+use Jeff\Api\Database;
+use Jeff\Api\ErrorHandler;
 
 /**
  *	This is the base class for all models.
@@ -19,7 +21,7 @@ use Jeff\Api as Api;
  *	@license   private
  *	@version   1.8.1
  */
-Class Model 
+Class Model extends Database\DBTableRepresentation
 {
 
 	/**
@@ -94,7 +96,7 @@ Class Model
 	* @see DBHelper
 	* 
 	*/
-	protected $dbDefinition = array();
+	public $dbDefinition = array();
 
 
 	/** @var string field-name in which api will store the last account-id that changed/created an item. Can be NULL */
@@ -317,19 +319,14 @@ Class Model
   	* ```
   	*
   	* @param \MySqlDb $db Instance of Database class
-  	* @param \Jeff\Api\Environment $ENV Instance of Environment class
-  	* @param \Jeff\Api\ErrorHandler $errorHandler Instance of ErrorHandler class
   	* @param Account $account Instance of Account class (with the logged in account)
   	* @param object $request Object containing all relevant infos about the current request
 	*/
-	public function __construct($db, $ENV, $errorHandler, $account, $request=NULL) 
+	public function __construct($db, $account) 
 	{
 		$this->db = $db;
-		$this->ENV = $ENV;
-		$this->errorHandler = $errorHandler;
 		$this->cols = $this->_makeAssociativeFieldsArray($this->dbTable, $this->dbDefinition);
 		$this->account = $account;
-		$this->request = $request;
 
 		if(method_exists($this, "initializeHook")) {
 			$this->initializeHook();
@@ -380,13 +377,13 @@ Class Model
 	{
 		// checking for quthorization first:
 		if( isset($this->request->type) && $this->request->type!=Api\Api::REQUEST_TYPE_SPECIAL) {
-			if(file_exists($this->ENV->dirs->appRoot."AuthorizationConfig.php")) {
-				include_once($this->ENV->dirs->appRoot."AuthorizationConfig.php");
+			if(file_exists(Environment::$dirs->appRoot."AuthorizationConfig.php")) {
+				include_once(Environment::$dirs->appRoot."AuthorizationConfig.php");
 				$Authorizor = new \Jeff\Api\Authorizor\Authorizor($Settings, $this->account, $this->db);
 				// check if we have settings for that model
 				$isAuthorized = $Authorizor->authorize($this->modelName, $this->modelNamePlural, $id, 'mayView');
 				if(!$isAuthorized) {
-					$this->errorHandler->throwOne(Array('Not allowed', 'You are not allowed to access this recource', 400, \Jeff\Api\ErrorHandler::CRITICAL_LOG,false));
+					ErrorHandler::throwOne(Array('Not allowed', 'You are not allowed to access this recource', 400, ErrorHandler::CRITICAL_LOG,false));
 					exit;
 				}
 			}
@@ -501,6 +498,7 @@ Class Model
 	*
 	* If we get an array of ids, as they arrive when doing an coalesceFindRecord call (in ember RestAdapter 'coalesceFindRequests: true')
 	* we return only the corresponding items 
+	* The Api call looks like this: `..api/posts?ids[]=1&ids[]=2&ids[]=3`
 	*	
 	* @param array $coalesceIds
 	* @return array The found items, or false if an error occurred
@@ -514,7 +512,7 @@ Class Model
 			$this->_addSideloadsMultiple($items);
 			return $items;
 		} else {
-			$this->errorHandler->throwOne(ErrorHadler::API_INVALID_GET_REQUEST);
+			ErrorHandler::throwOne(ErrorHadler::API_INVALID_GET_REQUEST);
 			return false;
 		}
 	}
@@ -614,7 +612,7 @@ Class Model
 	* This is why the dbDefinition of the relationship is defined also on the right model side of the relationship.
 	*
 	* possible HOOK, that must return a boolean - if the deletion shall be executed or not:
-	+ 
+	* 
 	* ```
 	*  public function beforedeleteMany2Many($modelLeft, $id) {
 	* 	   return $true;
@@ -701,6 +699,7 @@ Class Model
 			default:
 				$operator = "=";
 		}
+
 		#echo "operator: ".$operator."\n";
 
 		if(isset($data->restrictions)) {
@@ -708,8 +707,8 @@ Class Model
 			unset($data->restrictions);
 			foreach ($restrictions as $key => $value) {
 				if(!in_array($key, $this->searchSendCols)) {
-					$this->errorHandler->throwOne(Array("API-Error", "Search: A Model-Key was added to search-restrictions, but is not included in searchSendCols of the Model.\nModel: ".$this->modelName."\nthe key in question: ".$key, 500, Api\ErrorHandler::CRITICAL_EMAIL, true));
-					$this->errorHandler->throwOne(Array("API-Error", "The search could not be fulfilled", 500, Api\ErrorHandler::CRITICAL_EMAIL, false));
+					ErrorHandler::throwOne(Array("API-Error", "Search: A Model-Key was added to search-restrictions, but is not included in searchSendCols of the Model.\nModel: ".$this->modelName."\nthe key in question: ".$key, 500, ErrorHandler::CRITICAL_EMAIL, true));
+					ErrorHandler::throwOne(Array("API-Error", "The search could not be fulfilled", 500, ErrorHandler::CRITICAL_EMAIL, false));
 					exit;
 				}
 				$this->db->having($key, $value);
@@ -718,7 +717,7 @@ Class Model
 
 		foreach ($data as $key => $value) {
 			if(!is_string($value)) {
-				$this->errorHandler->throwOne(Array("API-Error", "No valid search data found. Please consult readme to find needed format.", 500, Api\ErrorHandler::CRITICAL_EMAIL, false));
+				ErrorHandler::throwOne(Array("API-Error", "No valid search data found. Please consult readme to find needed format.", 500, ErrorHandler::CRITICAL_EMAIL, false));
 				exit;
 			}
 			// for security, I first replace any placeholder with a questionmark
@@ -738,7 +737,7 @@ Class Model
 				$value='%'.$value.'%';
 			}
 			if(!in_array($this->dbTable.".".$key." ".$key, $this->cols)) {
-				$this->errorHandler->throwOne(Array("API-Error", "Searching for field '$key', which doesn't exist in model '$this->modelName'. Please consult readme to find needed format.", 500));
+				ErrorHandler::throwOne(Array("API-Error", "Searching for field '$key', which doesn't exist in model '$this->modelName'. Please consult readme to find needed format.", 500));
 				exit;
 			}
 			if($cnt && $or) {
@@ -751,7 +750,7 @@ Class Model
 		if($cnt) { // if I have minimum one search item, give a result
 			$cols = (count($this->searchSendCols)>1) ? $this->searchSendCols : $this->cols;
 			$result = $this->db->get($this->dbTable, NULL, $cols);
-			// echo $this->db->getLastQuery()."\n";
+			#echo $this->db->getLastQuery()."\n";
 			// Mask properties/fields that where defined to be masked in the Model ('maskFields') and remove the properties, that shall be removed
 			for ($i=0; $i <count($result) ; $i++) {
 				foreach ($this->maskFields as $field => $type) {
@@ -766,8 +765,8 @@ Class Model
 			}
 		} else { // else generate an error
 			$result = null;
-			$this->errorHandler->throwOne(Array("API Error", "search: no search value found: Model ".$this->modelName, 500, Api\ErrorHandler::CRITICAL_EMAIL, true));
-			$this->errorHandler->throwOne(Array("API Error", "no value to search for was found", 500, Api\ErrorHandler::CRITICAL_LOG, false));
+			ErrorHandler::throwOne(Array("API Error", "search: no search value found: Model ".$this->modelName, 500, ErrorHandler::CRITICAL_EMAIL, true));
+			ErrorHandler::throwOne(Array("API Error", "no value to search for was found", 500, ErrorHandler::CRITICAL_LOG, false));
 			exit;
 		}
 		return $result;
@@ -787,7 +786,7 @@ Class Model
 
 			foreach ($delimiters as $key => $value) {
 				if(!in_array($this->dbTable.".".$key." ".$key, $this->cols)) {
-					$this->errorHandler->throwOne(Array("API-Error", "Counting with delimiter '$key', which doesn't exist in model '$this->modelName'. Please consult readme to find needed format.", 400));
+					ErrorHandler::throwOne(Array("API-Error", "Counting with delimiter '$key', which doesn't exist in model '$this->modelName'. Please consult readme to find needed format.", 400));
 					exit;
 				}
 				$this->db->where($key, $value);
@@ -796,7 +795,7 @@ Class Model
 		// elseif(is_array($delimiters)) {
 		// 	for ($i=0; $i < count($delimiters); $i++) { 
 		// 		if(!in_array($this->dbTable.".".$delimiter[$i]->key." ".$delimiter[$i]->key, $this->cols)) {
-		// 			$this->errorHandler->throwOne(Array("API-Error", "Counting with delimiter '$key', which doesn't exist in model '$this->modelName'. Please consult readme to find needed format.", 400));
+		// 			ErrorHandler::throwOne(Array("API-Error", "Counting with delimiter '$key', which doesn't exist in model '$this->modelName'. Please consult readme to find needed format.", 400));
 		// 			exit;
 		// 		}
 		// 		$this->db->where($delimiters[$i]->, $delimiters[$i]['value']);
@@ -862,18 +861,18 @@ Class Model
 				$this->lastInsertedID = $id;
 				return $id;
 			} else {
-				$e = Array("DB-Error", "Could not insert item because: ".$this->db->getLastError()."\nin Model ".__FUNCTION__." ".__LINE__, 500, true, Api\ErrorHandler::CRITICAL_EMAIL);
-				$this->errorHandler->add($e);
-				$e = Array("DB-Error", "Could not insert item", 500, Api\ErrorHandler::CRITICAL_LOG, false);
-				$this->errorHandler->add($e);
-				$this->errorHandler->sendErrors();
-				$this->errorHandler->sendApiErrors();
+				$e = Array("DB-Error", "Could not insert item because: ".$this->db->getLastError()."\nin Model ".__FUNCTION__." ".__LINE__, 500, true, ErrorHandler::CRITICAL_EMAIL);
+				ErrorHandler::add($e);
+				$e = Array("DB-Error", "Could not insert item", 500, ErrorHandler::CRITICAL_LOG, false);
+				ErrorHandler::add($e);
+				ErrorHandler::sendErrors();
+				ErrorHandler::sendApiErrors();
 				exit;
 			} 
 		} else {
-			$e = Array("API-Error", "Not all required fields were sent. I missed: ".implode(",", $missingFields), 400, false, Api\ErrorHandler::CRITICAL_EMAIL);
-			$this->errorHandler->add(new Api\Error($e));
-			$this->errorHandler->add(Api\ErrorHandler::API_INVALID_POST_REQUEST);
+			$e = Array("API-Error", "Not all required fields were sent. I missed: ".implode(",", $missingFields), 400, false, ErrorHandler::CRITICAL_EMAIL);
+			ErrorHandler::add(new Api\Error($e));
+			ErrorHandler::add(ErrorHandler::API_INVALID_POST_REQUEST);
 			return false;
 		}
 	}
@@ -911,9 +910,9 @@ Class Model
 		try {
 			$result = $this->db->getOne($relationTableName);
 		} catch (Exception $e) {
-			$this->errorHandler->add(20);
-			$this->errorHandler->add(Array("DB-Error", "could not get relationTable '".$relationTableName."'", 500, Api\ErrorHandler::CRITICAL_EMAIL, true, $e));
-			$this->errorHandler->sendAllErrorsAndExit();
+			ErrorHandler::add(20);
+			ErrorHandler::add(Array("DB-Error", "could not get relationTable '".$relationTableName."'", 500, ErrorHandler::CRITICAL_EMAIL, true, $e));
+			ErrorHandler::sendAllErrorsAndExit();
 		}
 			
 		if($result) {
@@ -935,7 +934,7 @@ Class Model
 				else { return false; }
 			} else {
 				// artist was connected with same role already
-				$this->errorHandler->throwOne(array('API-Error','Relation already existst',400, Api\ErrorHandler::CRITICAL_LOG, false));
+				ErrorHandler::throwOne(array('API-Error','Relation already existst',400, ErrorHandler::CRITICAL_LOG, false));
 				exit;
 			}
 		}
@@ -951,10 +950,10 @@ Class Model
 		if($success) {
 			return $id;
 		} else {
-			$this->errorHandler->add(20);
-			$this->errorHandler->add(Array("DB-Error", "could not add relation '".$relationTableName."'. DB-Error: ".$this->db->getLastError(), true, Api\ErrorHandler::CRITICAL_EMAIL));
-			$this->errorHandler->sendErrors();
-			$this->errorHandler->sendApiErrors();
+			ErrorHandler::add(20);
+			ErrorHandler::add(Array("DB-Error", "could not add relation '".$relationTableName."'. DB-Error: ".$this->db->getLastError(), true, ErrorHandler::CRITICAL_EMAIL));
+			ErrorHandler::sendErrors();
+			ErrorHandler::sendApiErrors();
 			return false;
 		}
 	}
@@ -982,7 +981,7 @@ Class Model
 		if(method_exists($this, 'addMultipleHook')) {
 			$insertedIds = $this->addMultipleHook($data, $multipleParams);
 		} else {
-			$this->errorHandler->throwOne(\Jeff\Api\ErrorHandler::API_INVALID_POST_REQUEST);
+			ErrorHandler::throwOne(ErrorHandler::API_INVALID_POST_REQUEST);
 		}
 
 		// now return all newly inserted events/items:
@@ -1039,9 +1038,9 @@ Class Model
 			
 		} 
 		catch (Exception $e) {
-			$this->errorHandler->add(array("Model Update Error", "Standard update failed", Api\ErrorHandler::CRITICAL_EMAIL, true, $e));
+			ErrorHandler::add(array("Model Update Error", "Standard update failed", ErrorHandler::CRITICAL_EMAIL, true, $e));
 			if($this->db->getLastError()>'') { 
-				$this->errorHandler->add(new Api\Error($err::DB_UPDATE, $this->db->getLastError()));
+				ErrorHandler::add(new Api\Error($err::DB_UPDATE, $this->db->getLastError()));
 				return false;
 			}
 			return false; 
@@ -1115,7 +1114,7 @@ Class Model
 				// echo "maxSort: ".$maxSort."\n";
 				// echo "currentSort: " .$currentSort."\n";
 				if($maxSort===$currentSort) {
-				 	$this->errorHandler->add(Api\ErrorHandler::MODEL_SORT_OOR);
+				 	ErrorHandler::add(ErrorHandler::MODEL_SORT_OOR);
 					return false;
 				}
 				// first reset the one that the new sort is replacing
@@ -1127,7 +1126,7 @@ Class Model
 				$params = Array($targetSort, $id);
 				$this->db->rawQuery($sql, $params);
 				if($this->db->getLastError()) {
-					$this->errorHandler->add(20);
+					ErrorHandler::add(20);
 					return false;
 				} else {
 					// returning all items in this reference:
@@ -1166,11 +1165,11 @@ Class Model
 
 		// EXAMPLE implementation, that might work for most Model-Types.
 		// will be buggy, if the hasMany-Items have hasMany-Items themselves...
-		/**
+		/*
 		$this->db->startTransaction();
 		// 1. get the source
 		if(!isset($data->id)) {
-			$this->errorHandler->throwOne(41);
+			ErrorHandler::throwOne(41);
 			exit;
 		}
 		$source = $this->getOneById($data->id);
@@ -1190,8 +1189,8 @@ Class Model
 		// 3. save the item
 		$newId = $this->db->insert($this->dbTable, $newItem);
 		if(!$newId) {
-			$this->errorHandler->throwOne(22);
-			$this->errorHandler->throwOne(array("DB-Error", "The query: ".$this->db->getLastQuery() ."\nfailed with error: ".$this->db->getLastError()."\nin ".__FILE__.":".get_class()." - ".__LINE__,500, Api\ErrorHandler::CRITICAL_EMAIL,true));
+			ErrorHandler::throwOne(22);
+			ErrorHandler::throwOne(array("DB-Error", "The query: ".$this->db->getLastQuery() ."\nfailed with error: ".$this->db->getLastError()."\nin ".__FILE__.":".get_class()." - ".__LINE__,500, ErrorHandler::CRITICAL_EMAIL,true));
 			$this->db->rollback();
 			exit;
 		}
@@ -1211,8 +1210,8 @@ Class Model
 				// insert to database
 				$item['id'] = $this->db->insert($hmName, $item);
 				if(!$item['id']) {
-					$this->errorHandler->throwOne(22);
-					$this->errorHandler->throwOne(array("DB-Error", "The query: ".$this->db->getLastQuery() ."\nfailed with error: ".$this->db->getLastError()."\nin ".__FILE__.":".get_class()." - ".__LINE__,500, Api\ErrorHandler::CRITICAL_EMAIL,true));
+					ErrorHandler::throwOne(22);
+					ErrorHandler::throwOne(array("DB-Error", "The query: ".$this->db->getLastQuery() ."\nfailed with error: ".$this->db->getLastError()."\nin ".__FILE__.":".get_class()." - ".__LINE__,500, ErrorHandler::CRITICAL_EMAIL,true));
 					$this->db->rollback();
 					exit;
 				}
@@ -1223,15 +1222,6 @@ Class Model
 		$this->db->commit();
 		return $this->getOneById($newId);
 		*/
-	}
-
-
-	/** 
-	* returns the database table name of this model
-	* @return string dbTable
-	*/
-	public function getDbTable() {
-		return $this->dbTable;
 	}
 
 
@@ -1361,7 +1351,7 @@ Class Model
 
 						$sideloadModelFileName = $sideloadItem['name'].".php";
 						
-						include_once($this->ENV->dirs->models.DIRECTORY_SEPARATOR.$sideloadModelFileName);
+						include_once(Environment::$dirs->models.DIRECTORY_SEPARATOR.$sideloadModelFileName);
 						$className = $sideloadItem['name'];
 						// echo "className: $className\n";
 						$classNameNamespaced = "\\Jeff\\Api\\Models\\" . ucfirst($className);
@@ -1436,12 +1426,12 @@ Class Model
 	private function _getResultFromDb() {
 		global $err;
 
-		$db2 = new \MysqliDb($this->ENV->database);
+		$db2 = new \MysqliDb(Environment::$database);
 		// $tableResult = $this->db->rawQuery("SHOW FULL TABLES LIKE '".$this->dbTable."'");
 		$tableResult = $db2->rawQuery("SHOW FULL TABLES LIKE '".$this->dbTable."'");
 		if(!(count($tableResult)>0)) {
-			$this->errorHandler->throwOne(Array("Database Error", "Table '{$this->dbTable}' does not exist.",500, true));
-			$this->errorHandler->throwOne(20);
+			ErrorHandler::throwOne(Array("Database Error", "Table '{$this->dbTable}' does not exist.",500, ErrorHandler::CRITICAL_EMAIL, true));
+			ErrorHandler::throwOne(20);
 			exit;
 		}
 		$result = Array();
@@ -1449,8 +1439,8 @@ Class Model
 			$result = $this->db->get($this->dbTable, null, $this->cols);
 		} 
 		catch (Exception $e) {
-			$this->errorHandler->throwOne(Array("Database Error", $this->db->getLastError(),500, true));
-			$this->errorHandler->throwOne(20);
+			ErrorHandler::throwOne(Array("Database Error", $this->db->getLastError(),500, ErrorHandler::CRITICAL_EMAIL, true));
+			ErrorHandler::throwOne(20);
 		}
 		return $result;
 	}

@@ -11,7 +11,7 @@ namespace Jeff\Api;
  *	@author Jeff Frohner
  *	@copyright Copyright (c) 2016
  *	@license   private
- *	@version   1.0
+ *	@version   1.9.9
  *
  */
 Class ApiHelper {

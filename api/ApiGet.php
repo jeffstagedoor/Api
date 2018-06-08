@@ -5,12 +5,12 @@
 *	@author Jeff Frohner
 *	@copyright Copyright (c) 2015
 *	@license   private
-*	@version   1.0
+*	@version   1.9.9
 *
 **/
 
 namespace Jeff\Api;
-
+use Jeff\Api\Request\RequestType;
 
 /**
 * Class ApiGet
@@ -31,8 +31,6 @@ Class ApiGet
 	private $account;
 	/** @var object the request Object */
 	private $request;
-	/** @var Environment Instance of Environment class */
-	private $ENV;
 	/** @var array the requested items */
 	private $items;
 
@@ -40,18 +38,13 @@ Class ApiGet
 	 * The Constructor.
 	 * Only sets the passed in instances/classes to private vars
 	 * @param object         $request      The requst object
-	 * @param object         $data         The data with the item to add
-	 * @param Environment    $ENV          The Environment as defined in consuming app
 	 * @param \MySqliDb      $db           Instance of Database class
-	 * @param ErrorHandler   $errorHandler Instance of ErrorHandler
 	 * @param Models\Account $account      Instance of Account
 	 */
-	function __construct($request, $data, $ENV, $db, $errorHandler, $account) {
+	function __construct($request, $db, $account) {
 		$this->request = $request;
-		$this->data = $data;
-		$this->ENV = $ENV;
+		$this->data = $request->data;
 		$this->db = $db;
-		$this->errorHandler = $errorHandler;
 		$this->account = $account;
 		$this->items = new \stdClass();
 	}
@@ -65,7 +58,7 @@ Class ApiGet
 	 * - getOneById (a REQUEST_TYPE_NORMAL with a given id as second param)
 	 * - getAll (a REQUEST_TYPE_NORMAL _without_ a given id as second param)
 	 * - getMany2Many (a REQUEST_TYPE_REFERENCE)
-	 * - getCoalesque (a REQUEST_TYPE_COALESQUE)
+	 * - getCoalesque (a REQUEST_TYPE_COALESQUE that looks like this `..api/posts?ids[]=1&ids[]=2&ids[]=3`)
 	 * - _getFilter + getAll (a REQUEST_TYPE_QUERY)
 	 * 
 	 *   There can be special GET requests implemented:
@@ -76,24 +69,24 @@ Class ApiGet
 	 */
 	public function getItems() {
 		switch ($this->request->type) {
-			case Api::REQUEST_TYPE_REFERENCE: 
+			case RequestType::REFERENCE: 
 				$id = isset($this->request->id) ? $this->request->id : null;
 				$filter = $this->_getFilter();
-				$this->items->{$this->request->requestArray[0]} = $this->request->model->getMany2Many($id, $this->request->modelLeft->modelNamePlural, 'id', $filter); // I might need the by='id' somehwhere..?
+				$this->items->{$this->request->params[0]} = $this->request->model->getMany2Many($id, $this->request->modelLeft->modelNamePlural, 'id', $filter); // I might need the by='id' somehwhere..?
 				break;
-			case Api::REQUEST_TYPE_COALESCE:
+			case RequestType::COALESCE:
 				// var_dump($this->request);
 				$this->items->{$this->request->model->modelNamePlural} = $this->request->model->getCoalesce($this->data->ids);
 				break;
-			case Api::REQUEST_TYPE_QUERY:
+			case RequestType::QUERY:
 				$filter = $this->_getFilter();
 				$this->items->{$this->request->model->modelNamePlural} = $this->request->model->getAll($filter);
 				break;
-			case Api::REQUEST_TYPE_NORMAL:
+			case RequestType::NORMAL:
 				if(isset($this->request->id)) {
 					$this->items->{$this->request->model->modelName} = $this->request->model->getOneById($this->request->id);
 					if(is_null($this->items->{$this->request->model->modelName})) {
-						$this->errorHandler->addSendAllExit(21);
+						ErrorHandler::addSendAllExit(21);
 						exit;
 					}
 					
@@ -119,6 +112,8 @@ Class ApiGet
 					$this->items->{$this->request->model->modelNamePlural} = $this->request->model->getAll();
 				}	
 				break;
+			default: 
+					echo "no matching Request Type: ".$this->request->type;
 		}
 		return $this->items;
 	}
@@ -126,22 +121,22 @@ Class ApiGet
 	public function getSpecial() {
 		switch ($this->request->special) {
 			case "search":
-				if(isset($this->request->requestArray[1])) {
+				if(isset($this->request->params[1])) {
 					// search only in one model
 
-					$modelName = $this->request->requestArray[1];
+					$modelName = $this->request->params[1];
 					// get the Model
 					if($modelName==='accounts') {
 						$model = $this->account;
 					} else {
-						$modelFile = $this->ENV->dirs->models . ucfirst($modelName) . ".php";
+						$modelFile = Environment::$dirs->models . ucfirst($modelName) . ".php";
 						if (!file_exists($modelFile)) {
-							$this->errorHandler->throwOne(Array("Api Error", "Requested recource '{$modelName}' not found/defined.", 400, ErrorHandler::CRITICAL_EMAIL, false));
+							ErrorHandler::throwOne(Array("Api Error", "Requested recource '{$modelName}' not found/defined.", 400, ErrorHandler::CRITICAL_EMAIL, false));
 							exit;
 						} else {	
 							require_once($modelFile);
 							$classNameNamespaced = "\\Jeff\\Api\\Models\\" . ucfirst($modelName);
-							$model = new $classNameNamespaced($this->db, $this->ENV, $this->errorHandler,$this->account);
+							$model = new $classNameNamespaced($this->db, $this->account);
 						}
 					}
 					$result = $model->search($this->data);
@@ -166,30 +161,30 @@ Class ApiGet
 				exit;
 			case "task":
 				require_once("TasksPrototype.php");
-				require_once($this->ENV->dirs->appRoot."Tasks.php");
-				$tasks = new \Jeff\Api\Tasks($this->db, $this->ENV, $this->errorHandler, $this->account);
-				// var_dump($this->request->requestArray);
+				require_once(Environment::$dirs->appRoot."Tasks.php");
+				$tasks = new \Jeff\Api\Tasks($this->db, $this->account);
+				// var_dump($this->request->params);
 				
 				$taskName = 'not defined';
-				if(isset($this->request->requestArray[1])) {
+				if(isset($this->request->params[1])) {
 					// der task ist im request zb: task/addUserToWorkgroup (die Daten in postData)
 					// check if we have a fitting method defined:
-					$taskName = $this->request->requestArray[1];
+					$taskName = $this->request->params[1];
 				} elseif (isset($this->data->task)) {
 					// ist der task woanders versteckt
 					$taskName = $this->data;
 				}
 				if(method_exists($tasks, $taskName)){
 					$response = $tasks->{$taskName}($this->data, $this->request);
-				} elseif ($tasks->getTaskByCode($this->request->requestArray[1])){
+				} elseif ($tasks->getTaskByCode($this->request->params[1])){
 					#$response = new \stdClass();
-					$response = $tasks->getTaskByCode($this->request->requestArray[1]);
+					$response = $tasks->getTaskByCode($this->request->params[1]);
 					// $response = $task;
-				} elseif($task->getTaskById($this->request->requestArray[1])) {
+				} elseif($task->getTaskById($this->request->params[1])) {
 					#$response = new \stdClass();
-					$response = $tasks->getTaskById($this->request->requestArray[1]);
+					$response = $tasks->getTaskById($this->request->params[1]);
 				} else {
-					$this->errorHandler->throwOne(ErrorHandler::TASK_NOT_DEFINED);
+					ErrorHandler::throwOne(ErrorHandler::TASK_NOT_DEFINED);
 					exit;
 				}
 				return $response;
@@ -201,7 +196,9 @@ Class ApiGet
 	/**
 	 * works through an query call and generated a useable filter
 	 *
-	 * (in Ember: `this.store.query('item', {filter: [{"key":value}], gte: [{date: '2016-04-28'}])` ) 
+	 * it's a query-call (in Ember: `this.store.query('item', {filter: [{"key":value}], gte: [{date: '2016-04-28'}])` ) 
+	 * since this format is not very handy, let's restructure that.
+	 *
 	 * @return array the filter, which looks like this:
 	 *
 	 * ```
@@ -212,8 +209,6 @@ Class ApiGet
 	 * ```
 	 */
 	private function _getFilter() {
-		// it's a query-call (in Ember: `this.store.query('item', {filter: [{"key":value}], gte: [{date: '2016-04-28'}])` ) 
-		// since this format is not very handy, let's restructure that.
 		$data = $this->data;
 		$newFilter = Array();
 
@@ -259,24 +254,24 @@ Class ApiGet
 	 *              
 	 */
 	private function _getFolder() {
-		if(isset($this->request->requestArray[1])) {
-			$requestedFolder = $this->request->requestArray[1];
+		if(isset($this->request->params[1])) {
+			$requestedFolder = $this->request->params[1];
 		} elseif (isset($this->data->folder)) {
 			$requestedFolder = $this->data->folder;
 		} else {
 			$requestedFolder = null;
 		}
-		if(!isset($this->ENV->publicFolders->{$requestedFolder})) {
+		if(!isset(Environment::$publicFolders->{$requestedFolder})) {
 			// publicFolder not set -> send Error Message
-			$this->errorHandler->throwOne(Array("API-Error", "Public Folder not defined."));
+			ErrorHandler::throwOne(Array("API-Error", "Public Folder not defined."));
 			exit;
 		}
-		$publicFolder = $this->ENV->publicFolders->{$request[1]};
+		$publicFolder = Environment::$publicFolders->{$request[1]};
 		// echo $publicFolder;
 
 		// first check if we have a valid folder:
 		if(!is_dir($publicFolder)) {
-			$this->errorHandler->throwOne(Array("API-Error", "Folder not found."));
+			ErrorHandler::throwOne(Array("API-Error", "Folder not found."));
 			exit;
 		}
 
@@ -325,16 +320,16 @@ Class ApiGet
 			// VERSION 1 (filename directly given):
 			$filename = $this->data->file;
 			// the path is ../files/itemType[/type]:
-			$path = $this->ENV->dirs->files;
+			$path = Environment::$dirs->files;
 			if(isset($this->data->itemType)) $path.=$this->data->itemType.DIRECTORY_SEPARATOR;
 			if(isset($this->data->type)) $path.=$this->data->type.DIRECTORY_SEPARATOR;
 		} elseif (isset($this->data->imageId)) {
 			// VERSION 2 (filename & path has to be fetched from db-table files)
 			// TODO
-			$this->errorHandler->throwOne(Array("API-Error", "Image fetching from DB not yet implemented (ApiGet.class.php line 176)"));
+			ErrorHandler::throwOne(Array("API-Error", "Image fetching from DB not yet implemented (ApiGet.class.php line 176)"));
 			exit;
 		} else {
-			$this->errorHandler->throwOne(Array("API-Error", "wrong call to getImage. Missing data 'file' or 'imageId'"));
+			ErrorHandler::throwOne(Array("API-Error", "wrong call to getImage. Missing data 'file' or 'imageId'"));
 			exit;
 		}
 		// var_dump($this->data);
@@ -355,7 +350,7 @@ Class ApiGet
 	 * @return recource the file to download?
 	 */
 	private function _getFile() {
-		$this->errorHandler->throwOne(Array("API-Error", "getFile not yet implemented."));
+		ErrorHandler::throwOne(Array("API-Error", "getFile not yet implemented."));
 	}
 
 }

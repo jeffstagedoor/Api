@@ -1,18 +1,17 @@
 <?php
-/*
-/	This File must only be included from api/tasks.php as part of Jeff's API
-/
-/	This File containes special tasks to be called like www.myserver.com/api/task/doSomething
+/**
+*	This File must only be included from api/tasks.php as part of Jeff's API
+*
+*	This File containes special tasks to be called like www.myserver.com/api/task/doSomething
 */
 
 switch ($type) {
 
-	/*
+	/**
 	*	USER2ARTISTREQUEST
 	*	when an user wants to get linked to an artist, frontend will send a post request to api/tasks/user2artistrequst
 	*
 	*/
-
 	case 'user2artistrequest':
 		// save notification/task
 		$code = GetRandomString(80);
@@ -68,7 +67,7 @@ switch ($type) {
 
 
 	
-	/*
+	/**
 	*	USER2ARTISTCONFIRMATION
 	*	this is the callback from email-notifications when an user sends a request to get linked to an artist.
 	*	The artist then gets an email with a verification link, wich leads him here - via ..api/tasks

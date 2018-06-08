@@ -33,14 +33,9 @@ Class MailerPrototype {
 	*   just get the passed classes right.
 	*
 	*/
-	public function __construct($db, $ENV, $errorHandler, $account=null, $log=null) {
+	public function __construct($db, $account=null) {
 		$this->db = $db;
-		$this->ENV = $ENV;
-		$this->errorHandler=$errorHandler;
 		$this->account = $account;
-		$this->log = $log;
-	
-		if(!$this->errorHandler) { $this->errorHandler = new ErrorHandler(); }
 	}
 
 	public function send($from, $recipients, $subject, $content) {
@@ -57,7 +52,6 @@ Class MailerPrototype {
 
 
 	private function _sendOLD($type, $to, $subject="", $text="", $data=null, $html=false, $from=null, $cc=null, $bcc=null) {
-		global $ENV;
 		$success = true;
 		switch ($type) {
 			case "user2workgrouprequest":
@@ -68,7 +62,7 @@ Class MailerPrototype {
 				$subject = "Workgroup Connection Request";
 				$text = "Hello!<br><br>\n\n";
 				$text.= $data->userName." wants to get connected to the workgroup ".$data->workgroupName.".<br>\n";
-				$text.= "If you agree, that ".$data->userName." should be a member of this workgroup <a href=\"".$ENV->urls->baseUrl.$ENV->urls->tasksUrl."user2workgroupconfirmation?code=".$data->verifyCode."&workgroupId=".$data->workgroupId."&userId=".$data->userId."\">click here</a> to verify that!<br>\n";
+				$text.= "If you agree, that ".$data->userName." should be a member of this workgroup <a href=\"".Environment::$urls->baseUrl.Environment::$urls->tasksUrl."user2workgroupconfirmation?code=".$data->verifyCode."&workgroupId=".$data->workgroupId."&userId=".$data->userId."\">click here</a> to verify that!<br>\n";
 				$text.= "In case you have no clue what this is all about, just ignore it and don't do anything.<br>\n";
 				$text.= "You may contact www.mystagedoor.de (<a href=\"mailto:service@mystagedoor.com\">service@mystagedoor.com</a>) if you happen to receive more than one email with this request to stop that.<br>\n";
 				$text.= "<br>\ngreetings, myStagedoor<br><br>\n";
@@ -79,7 +73,7 @@ Class MailerPrototype {
 					}
 				}
 				$headers = $this->_headers($from, $to, true);
-				if($ENV->production || $ENV->debug) {
+				if(Environment::$production || Environment::$debug) {
 					$success = mail( explode(',',$to), $subject, $text, $headers);
 				}
 				return $success;

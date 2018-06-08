@@ -40,7 +40,7 @@ Class Column {
 			} elseif ($numargs===0) {
 				throw new Exception("Error: Ivalid argument count in Class dbField. Must be an array or at least 2 column descriptors: name, type", 1);
 			} else {
-				$column = func_get_args();	
+				$column = func_get_args();
 			}
 			$this->name = $column[0];
 			$this->type = $column[1];

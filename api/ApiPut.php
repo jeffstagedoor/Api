@@ -10,6 +10,8 @@
 */
 
 namespace Jeff\Api;
+use Jeff\Api\Log\Log;
+use Jeff\Api\Request\RequestType;
 
 /**
 * Class ApiPut
@@ -23,39 +25,27 @@ namespace Jeff\Api;
 */
 Class ApiPut
 {
+	/** @var object the request Object */
+	private $request;
 	/** @var \MySqliDb Instance of database class */
 	private $db;
 	/** @var Models\Account Instance of Account class */
 	private $account;
-	/** @var object the request Object */
-	private $request;
-	/** @var Environment Instance of Environment class */
-	private $ENV;
 	/** @var object the item to update */
 	private $item;
-	/** @var Log\Log instance of Log */
-	private $log;
 
 
 	/**
 	 * The Constructor.
 	 * Only sets the passed in instances/classes to private vars
 	 * @param object         $request      The requst object
-	 * @param object         $data         The data with the item to add
-	 * @param Environment    $ENV          The Environment as defined in consuming app
 	 * @param \MySqliDb      $db           Instance of Database class
-	 * @param ErrorHandler   $errorHandler Instance of ErrorHandler
 	 * @param Models\Account $account      Instance of Account
-	 * @param Log\Log        $log          Instance of Log class
 	 */
-	function __construct($request, $data, $ENV, $db, $errorHandler, $account, $log) {
+	function __construct($request, $db, $account) {
 		$this->request = $request;
-		$this->data = $data;
-		$this->ENV = $ENV;
 		$this->db = $db;
-		$this->errorHandler = $errorHandler;
 		$this->account = $account;
-		$this->log = $log;
 		$this->item = new \stdClass();
 	}
 
@@ -73,15 +63,15 @@ Class ApiPut
 	 */
 	public function putItem() {
 		switch ($this->request->type) {
-			case Api::REQUEST_TYPE_REFERENCE: 
+			case RequestType::REFERENCE: 
 				$model = $this->request->model;
 				$modelLeft = $this->request->modelLeft;
 				if(!isset($this->request->id)) {
-					$this->errorHandler->throwOne(ErrorHandler::API_ID_MISSING);
+					ErrorHandler::throwOne(ErrorHandler::API_ID_MISSING);
 					exit;
 				}
 
-				$dataSet = $this->data->{$modelLeft->modelNamePlural.'2'.$model->modelName};
+				$dataSet = $this->request->data->{$modelLeft->modelNamePlural.'2'.$model->modelName};
 				$dataSet['modBy'] = $this->account->id;
 				unset($dataSet['modDate']);
 
@@ -93,42 +83,42 @@ Class ApiPut
 					$this->items->{$modelLeft->modelNamePlural.'2'.$model->modelName} = $this->request->model->getMany2Many($this->request->id, $modelLeft->modelNamePlural);
 					return $this->items;
 				} else {
-					$this->errorHandler->add(ErrorHandler::DB_UPDATE);
-					$this->errorHandler->throwOne(array('DB-Error', 'Could not updateMany2Many in '.__FILE__.': '.__LINE__.' with dbError: '.$this->db->getLastError(), 500, ErrorHandler::CRITICAL_EMAIL, true));
+					ErrorHandler::add(ErrorHandler::DB_UPDATE);
+					ErrorHandler::throwOne(array('DB-Error', 'Could not updateMany2Many in '.__FILE__.': '.__LINE__.' with dbError: '.$this->db->getLastError(), 500, ErrorHandler::CRITICAL_EMAIL, true));
 					exit;
 				}
 				
 				
 				break;
 
-			case Api::REQUEST_TYPE_COALESCE:
+			case RequestType::COALESCE:
 				echo "REQUEST TYPE COALESCE not implemented for PUT requests";
 				exit;
-			case Api::REQUEST_TYPE_QUERY:
+			case RequestType::QUERY:
 				echo "REQUEST TYPE QUERY not implemented for PUT requests";
 				exit;
-			case Api::REQUEST_TYPE_NORMAL:
+			case RequestType::NORMAL:
 				if(isset($this->request->special)) {
 					switch ($this->request->special) {
 						case "sort":
 							if($this->request->model->isSortable) {
 								// method sort returns ALL items in the reference
-								$items = $this->request->model->sort($this->data->reference, $this->data->id, $this->data->direction, $this->data->currentSort);
+								$items = $this->request->model->sort($this->request->data->reference, $this->request->data->id, $this->request->data->direction, $this->request->data->currentSort);
 								if($items) {
 									$response = new \stdClass();
 									$response->{$this->request->model->modelNamePlural} = $items;
 									
 									$logData = new \stdClass();
 									$logData->for = new Log\LogDefaultFor(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
-									$logData->meta = new Log\LogDefaultMeta($this->data->id,$this->data->reference, $this->data->currentSort,$this->data->direction, $this->request->model->sortBy);
-									$this->log->write($this->account->id, 'sort', $this->request->model->modelName, $logData);
+									$logData->meta = new Log\LogDefaultMeta($this->request->data->id,$this->request->data->reference, $this->request->data->currentSort,$this->request->data->direction, $this->request->model->sortBy);
+									Log::write($this->account->id, 'sort', $this->request->model->modelName, $logData);
 									return $response;
 								} else {
-									$this->errorHandler->sendApiErrors();
+									ErrorHandler::sendApiErrors();
 									exit;
 								}
 							} else {
-								$this->errorHandler->throwOne(ErrorHandler::MODEL_NOT_SORTABLE);
+								ErrorHandler::throwOne(ErrorHandler::MODEL_NOT_SORTABLE);
 								exit;
 							}
 							break;
@@ -139,39 +129,39 @@ Class ApiPut
 							*	a property 'specialMethods' to the model. Unless this method is listed there it wont be called. 
 							*/
 							if(!in_array($this->request->special, $this->request->model->specialMethods)) {
-								$this->errorHandler->throwOne(array("SEC ALERT", "a un-registered special method was tried to be called via ApiPut: ".$this->request->special,500, ErrorHandler::CRITICAL_EMAIL, true));
+								ErrorHandler::throwOne(array("SEC ALERT", "a un-registered special method was tried to be called via ApiPut: ".$this->request->special,500, ErrorHandler::CRITICAL_EMAIL, true));
 								return false;
 								exit;
 							}
 							$methodExists = method_exists($this->request->model, $this->request->special);
-							$return = $this->request->model->{$this->request->special}($this->data, $this->account, $this->request);
+							$return = $this->request->model->{$this->request->special}($this->request->data, $this->account, $this->request);
 							if(isset($return->log)) {
-								$this->log->write($return->log->account, $return->log->type, $return->log->item, $return->log->data);
+								Log::write($return->log->account, $return->log->type, $return->log->item, $return->log->data);
 								unset($return->log);
 							}
 							return $return;
 					}
 				} else {
+					#echo "ApiPut 145: normal PUT";
 					if($this->request->model->modifiedByField) {
 						// default: 'modBy'
-						$this->data->{$this->request->model->modelName}[$this->request->model->modifiedByField] = $this->account->id;
+						$this->request->data->{$this->request->model->modelName}[$this->request->model->modifiedByField] = $this->account->id;
 					}
-					unset($this->data->{$this->request->model->modelName}['modDate']);
+					unset($this->request->data->{$this->request->model->modelName}['modDate']);
 
-					$dataSet = (isset($this->data->{$this->request->model->modelName})) ? $this->data->{$this->request->model->modelName} : $this->data;
+					$dataSet = (isset($this->request->data->{$this->request->model->modelName})) ? $this->request->data->{$this->request->model->modelName} : $this->request->data;
 
 					$updateReturn = $this->request->model->update($this->request->id, $dataSet);
 
-					if($this->errorHandler->hasErrors()) {
-						$this->errorHandler->sendApiErrors();
-						$this->errorHandler->sendErrors();
+					if(ErrorHandler::hasErrors()) {
+						ErrorHandler::sendApiErrors();
+						ErrorHandler::sendErrors();
 					}
+
 					if($updateReturn) {
 						$this->item->{$this->request->model->modelName} = $this->request->model->getOneById($updateReturn->id);
-						$this->data->{$this->request->model->modelName}['id'] = $updateReturn->id;
-						#echo "data var_dumped in ApiPut Line 117:\n";
-						#var_dump($this->data);
-						$this->log->write($this->account->id, 'update', $this->request->model->modelName, $this->data);
+						$this->request->data->{$this->request->model->modelName}['id'] = $updateReturn->id;
+						Log::write($this->account->id, 'update', $this->request->model->modelName, $this->request->data);
 					}
 				}	
 				break;
@@ -193,32 +183,32 @@ Class ApiPut
 				break;
 			case 'changePassword':
 				#debug("in change password",__FILE__,__LINE__,get_class($this));
-				$auth = $this->account->verifyCredentials($this->data->email, $this->data->password);
+				$auth = $this->account->verifyCredentials($this->request->data->email, $this->request->data->password);
 				if($auth->success) {
 					#debug("auth was successfull",__FILE__,__LINE__,get_class($this));
-					if($this->account->comparePasswords($this->data->passwordNew)) {
-						$this->errorHandler->throwOne(ErrorHandler::AUTH_PWD_NOT_VALID);
+					if($this->account->comparePasswords($this->request->data->passwordNew)) {
+						ErrorHandler::throwOne(ErrorHandler::AUTH_PWD_NOT_VALID);
 						exit;
 					}
 					$pattern = '/([a-zA-Z0-9@!§$%=?+*#]{8,100})/';
-					if(preg_match($pattern, $this->data->passwordNew)) {
-						if($this->data->passwordNew===$this->data->passwordConfirm) {
-							$this->account->changePassword($auth->user['id'], $this->data->passwordNew);
+					if(preg_match($pattern, $this->request->data->passwordNew)) {
+						if($this->request->data->passwordNew===$this->request->data->passwordConfirm) {
+							$this->account->changePassword($auth->user['id'], $this->request->data->passwordNew);
 							$response = "{\"success\": {\"msg\": \"password changed\"} }";
 							ApiHelper::sendResponse(200,$response);
-							$this->log->write($this->account->id, 'changePassword', 'account', $this->data);
+							Log::write($this->account->id, 'changePassword', 'account', $this->request->data);
 							exit;
 						} else {
-							$this->errorHandler->throwOne(ErrorHandler::AUTH_PWD_NOT_MATCHING);
+							ErrorHandler::throwOne(ErrorHandler::AUTH_PWD_NOT_MATCHING);
 							exit;
 						}
 					} else {
-						$this->errorHandler->throwOne(ErrorHandler::AUTH_PWD_NOT_VALID);
+						ErrorHandler::throwOne(ErrorHandler::AUTH_PWD_NOT_VALID);
 						exit;
 					}
 				} else {
 					// if oldPassword doesnt match the saved one, send invalid grant error
-					$this->errorHandler->throwOne(ErrorHandler::AUTH_PWD_INCORRECT);
+					ErrorHandler::throwOne(ErrorHandler::AUTH_PWD_INCORRECT);
 					exit;
 				}
 				exit;

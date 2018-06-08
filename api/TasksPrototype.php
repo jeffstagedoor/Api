@@ -12,6 +12,8 @@
 
 
 namespace Jeff\Api;
+use Jeff\Api\ErrorHandler;
+use Jeff\Api\log\Log;
 
 /**
 *	Class TasksPrototype
@@ -24,21 +26,15 @@ namespace Jeff\Api;
 *	@version   0.8
 *
 **/
-Class TasksPrototype 
+Class TasksPrototype extends Database\DBTableRepresentation
 {
 	/** @var \MySqliDb Instance of database class */
 	protected $db = NULL;
 	/** @var object the file-config as defined in consuming app */
 	protected $fileConfig;
-	/** @var Environment Instance of Environment class */
-	protected $ENV = NULL;
-	/** @var ErrorHandler Instance of ErrorHandler class */
-	protected $errorHandler = NULL;
 	/** @var Models\Account instance of Log */
 	protected $account = NULL;
 	/** @var Log\Log instance of Log */
-	protected $log = NULL;
-	/** @var pseudo modelName, needed for db-definition and auto-db-Update only */
 	public $modelName = "Task";
 	/** @var string $dbTable The name of the corresponding database table */
 	protected $dbTable = "tasks";
@@ -69,6 +65,24 @@ Class TasksPrototype
 		);
 	/** @var string $dbPrimaryKey primary database id/key. */	
 	public $dbPrimaryKey = 'id';
+	
+	/**
+	* the database keys/indexes definition which shall look like that:
+	*	           
+	*	           ```
+	*	           array(
+	*	               "name" => "firstIndex",
+	*	               "collation" => "A",
+	*	               "cardinality" => 5,
+	*	               "type" => "BTREE",
+	*	               "comment" => "This is a database index foo bar, whatsoever",
+	*	               "columns" => ["fieldName1", "anotherField"]
+	*	           )
+	*	           ```
+	*	
+	* @var array   the database keys/indexes definition, 
+	*/	
+	public $dbKeys = [];
 	/**
 	 * returns the db-tableName
 	 * @return string name of the corresponding database table
@@ -82,37 +96,11 @@ Class TasksPrototype
 	 * sets the passed classes/objects to local vars.
 	 *
 	 * @param  MySqliDb $db Instance of database
-	 * @param Environment $ENV Instance of Environment
-	 * @param ErrorHandler $errorHandler Instance of ErrorHandler
 	 * @param Models\Account $account Instance of Models\Account
-	 * @param Log\Log $log Instance of Log\Log
 	 */
-	public function __construct($db, $ENV, $errorHandler, $account=null, $log=null) {
+	public function __construct($db, $account=null) {
 		$this->db = $db;
-		$this->ENV = $ENV;
-		$this->errorHandler=$errorHandler;
 		$this->account = $account;
-		$this->log = $log;
-	
-		if(!$this->errorHandler) { $this->errorHandler = new ErrorHandler(); }
-	}
-
-	/**
-	 * old deprecated version of authenticateAccount.
-	 *
-	 * __DEPRECATED__  - use authenticateAccount instead
-	 * 
-	 * @param  object $data the data object that was sent via POST:
-	 * 
-	 *     {
-	 *         authToken: '1234567890'
-	 *     }
-	 *                      
-	 * @return Models\Account       the authenticated Account
-	 */
-	protected function authorizeAccount($data) {
-		echo "method authorizeAccount() was renamed to authenticateAccount().";
-		exit;
 	}
 
 	/**
@@ -156,13 +144,13 @@ Class TasksPrototype
 	/**
 	 * will send the user to error page via header(location).
 	 * Target url: 
-	 * `"location: ".$this->ENV->urls->appUrl.'publicLinks/error?type='.$type.'&msg='.urlencode($errors[0]['msg']))`
+	 * `"location: ".Environment::$urls->appUrl.'publicLinks/error?type='.$type.'&msg='.urlencode($errors[0]['msg']))`
 	 * @param  array $errors must be an Error Array with an property "msg" in first Error-Item
 	 * @param  string $type   [description]
 	 * @return void         [description]
 	 */
 	protected function _gotoErrorPage($errors, $type='') {
-		header("location: ".$this->ENV->urls->appUrl.'publicLinks/error?type='.$type.'&msg='.urlencode($errors[0]['msg']));
+		header("location: ".Environment::$urls->appUrl.'publicLinks/error?type='.$type.'&msg='.urlencode($errors[0]['msg']));
 	}
 
 	/**

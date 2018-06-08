@@ -1,6 +1,6 @@
 <?php
 
-namespace Jeff\Api;
+namespace Jeff\Api\Utils;
 
 
 
